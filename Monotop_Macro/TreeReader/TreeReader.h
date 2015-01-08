@@ -193,7 +193,7 @@ public :
    void addHisto( TString var, TString selstep, TString sample, int nbins, float min, float max);
    void fillHisto(TString channel, TString var, TString selstep, TString sample, float val, float weight);
 
-   bool applyEventSel(short int QCDCorr, double SF_QCD, std::vector<TString> datalist, std::vector<TString> datalist_longnames, std::vector<TString> mclist, TString channel, TString systtype, TString sample);
+   bool applyEventSel(short int QCDCorr, double SF_QCD_W, double SF_QCD_B, double SF_QCD_S, double SF_QCD_TT, double SFtrigger, double SFtriggerError, TString channel, TString systtype, TString sample);
 
    void SetUpCSVreweighting();
    double GetCSVweight(const int iSys, int jet_n,
@@ -380,7 +380,7 @@ void TreeReader::Init(short int QCDCorr, TString sample,  TTree *tree)
 
    for (Int_t i = 0; i < nb; i++)
    {
-     if(lb->At(i)->GetName() == "smalltree_nlepton") fChain->SetBranchAddress("smalltree_nlepton", &smalltree_nlepton, &b_smalltree_nlepton);
+     ivector<double>f(lb->At(i)->GetName() == "smalltree_nlepton") fChain->SetBranchAddress("smalltree_nlepton", &smalltree_nlepton, &b_smalltree_nlepton);
      else if(lb->At(i)->GetName() == "smalltree_jet_btagdiscri_up") fChain->SetBranchAddress("smalltree_jet_btagdiscri_up", &smalltree_jet_btagdiscri_up, &b_smalltree_jet_btagdiscri_up);
    }
 */
@@ -442,8 +442,8 @@ void TreeReader::Init(short int QCDCorr, TString sample,  TTree *tree)
         fChain->SetBranchAddress("smalltree_met_unclsup_phi",      &smalltree_met_unclsup_phi,          &b_smalltree_met_unclsup_phi);
         fChain->SetBranchAddress("smalltree_met_unclsdown_pt",     &smalltree_met_unclsdown_pt,         &b_smalltree_met_unclsdown_pt);
         fChain->SetBranchAddress("smalltree_met_unclsdown_phi",    &smalltree_met_unclsdown_phi,        &b_smalltree_met_unclsdown_phi);
-      //fChain->SetBranchAddress("smalltree_weight_trigup",        &smalltree_weight_trigup,            &b_smalltree_weight_trigup);
-      //fChain->SetBranchAddress("smalltree_weight_trigdown",      &smalltree_weight_trigdown,          &b_smalltree_weight_trigdown);
+        fChain->SetBranchAddress("smalltree_weight_trigup",        &smalltree_weight_trigup,            &b_smalltree_weight_trigup);
+        fChain->SetBranchAddress("smalltree_weight_trigdown",      &smalltree_weight_trigdown,          &b_smalltree_weight_trigdown);
         fChain->SetBranchAddress("smalltree_weight_leptup",        &smalltree_weight_leptup,            &b_smalltree_weight_leptup);
         fChain->SetBranchAddress("smalltree_weight_leptdown",      &smalltree_weight_leptdown,          &b_smalltree_weight_leptdown);
       //fChain->SetBranchAddress("smalltree_weight_PDFup",        &smalltree_weight_PDFup,             &b_smalltree_weight_PDFup);
