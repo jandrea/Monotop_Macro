@@ -1,10 +1,11 @@
 {
+    gSystem->Load("../BTagSFNotReshaping/BTagSFUtil_C.so");
     gROOT->ProcessLine(".L TreeReader.C+");
 
 
     std::vector<TString > systlist;
     systlist.push_back(""                           );
-    systlist.push_back("lept__plus"                 );
+/*    systlist.push_back("lept__plus"                 );
     systlist.push_back("lept__minus"                );
     systlist.push_back("trig__plus"                 );
     systlist.push_back("trig__minus"                );
@@ -12,13 +13,17 @@
     //systlist.push_back("PDF__minus"               );
     systlist.push_back("PU__plus"                   );
     systlist.push_back("PU__minus"                  );
+    systlist.push_back("W__plus"                    );
+    systlist.push_back("W__minus"                   );
     systlist.push_back("jes__plus"                  );
     systlist.push_back("jes__minus"                 );
     systlist.push_back("jer__plus"                  );
     systlist.push_back("jer__minus"                 );
     systlist.push_back("metuncls__plus"             );
     systlist.push_back("metuncls__minus"            );
-    systlist.push_back("btag__JES__plus"            );
+    systlist.push_back("toppt__plus"                );
+    systlist.push_back("toppt__minus"               );
+*//*    systlist.push_back("btag__JES__plus"            );
     systlist.push_back("btag__JES__minus"           );
     systlist.push_back("btag__CSVLF__plus"          );
     systlist.push_back("btag__CSVLF__minus"         );
@@ -36,16 +41,21 @@
     systlist.push_back("btag__CSVLFStats1__minus"   );
     systlist.push_back("btag__CSVLFStats2__plus"    );
     systlist.push_back("btag__CSVLFStats2__minus"   );
-
+*/
+/*    systlist.push_back("btag__plus"                 );
+    systlist.push_back("btag__minus"                );
+    systlist.push_back("mistag__plus"               );
+    systlist.push_back("mistag__minus"              );
+*/
 
     /////////////////////////////////////////
-    //////   QCDCorr possible values   //////
+    //////   CorrOption possible values /////
     ////   0 : QCD region (iso > 0.4)    ////
     ///    1 : Analysis wo QCD correction ///
     //     2 : Analysis with QCD correction /
     ///    3 : Analysis with systematics  ///
     /////////////////////////////////////////
-    short int QCDCorr = 3;
+    short int CorrOption = 3;
 
 
     std::vector<TString > datalist_longnames;
@@ -87,6 +97,11 @@
     std::vector<TString > mclist;
     mclist.push_back("TTbar_Madgraph"       );
     mclist.push_back("WJets"                );
+    //mclist.push_back("W0Jets"               );
+    //mclist.push_back("W1Jets"               );
+    //mclist.push_back("W2Jets"               );
+    //mclist.push_back("W3Jets"               );
+    //mclist.push_back("W4Jets"               );
     //mclist.push_back("Wminus_Powheg"      );
     //mclist.push_back("Wplus_Powheg"       );
     mclist.push_back("DYJetsToLL_M-10To50"  );
@@ -119,64 +134,93 @@
     TTree* tree=0;
 
 
-  if(QCDCorr == 0)
+  if(CorrOption == 0)
   {
-    TreeReader * tree_ = new TreeReader(QCDCorr, datalist, datalist_longnames, mclist, tree, "S1_1000_100", systlist);
-    tree_.Loop(QCDCorr, datalist, datalist_longnames, mclist, "S1_1000_100", systlist);
+    TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist, tree, "S1_1000_100", systlist, "noflav");
+    tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, "S1_1000_100", systlist, "noflav");
     delete tree_;
 
     for (unsigned int imc = 0; imc < mclist_longnames.size(); imc++)
     {
-        TreeReader * tree_ = new TreeReader(QCDCorr, datalist, datalist_longnames, mclist,  tree, mclist_longnames[imc], systlist);
-        tree_.Loop(QCDCorr, datalist, datalist_longnames, mclist, mclist_longnames[imc], systlist);
+        TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist_longnames[imc], systlist, "noflav");
+        tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist_longnames[imc], systlist, "noflav");
         delete tree_;
     }
 
     for (unsigned int idata = 0; idata < datalist_longnames.size(); idata++)
     {
-        TreeReader * tree_ = new TreeReader(QCDCorr, datalist, datalist_longnames, mclist,  tree, datalist_longnames[idata], systlist);
-        tree_.Loop(QCDCorr, datalist, datalist_longnames, mclist, datalist_longnames[idata], systlist);
+        TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, datalist_longnames[idata], systlist, "noflav");
+        tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, datalist_longnames[idata], systlist, "noflav");
         delete tree_;
     }
   }
 
-  if(QCDCorr == 1 || QCDCorr == 2 || QCDCorr == 3)
+  if(CorrOption == 1 || CorrOption == 2 || CorrOption == 3)
   {
-    TreeReader * tree_S1 = new TreeReader(QCDCorr, datalist, datalist_longnames, mclist,  tree, "S1", systlist);
-    tree_S1.Loop(QCDCorr, datalist, datalist_longnames, mclist, "S1", systlist);
-    delete tree_S1;
+    TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, "S1_1000_100", systlist, "noflav");
+    tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, "S1_1000_100", systlist, "noflav");
+    delete tree_;
+
+    TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, "S1_500_100", systlist, "noflav");
+    tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, "S1_500_100", systlist, "noflav");
+    delete tree_;
+
+    TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, "S1_1000_800", systlist, "noflav");
+    tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, "S1_1000_800", systlist, "noflav");
+    delete tree_;
 
     for (unsigned int imc = 0; imc < mclist.size(); imc++)
     {
-        TreeReader * tree_ = new TreeReader(QCDCorr, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist);
-        tree_.Loop(QCDCorr, datalist, datalist_longnames, mclist, mclist[imc], systlist);
-        delete tree_;
+        if (mclist[imc] != "WJets")
+        {
+            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist, "noflav");
+            tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], systlist, "noflav");
+            delete tree_;
+        }
+        else
+        {
+            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist, "Incl");
+            tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], systlist, "Incl");
+            delete tree_;
+/*
+            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist, "b");
+            tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], systlist, "b");
+            delete tree_;
+
+            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist, "c");
+            tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], systlist, "c");
+            delete tree_;
+
+            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist, "l");
+            tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], systlist, "l");
+            delete tree_;
+*/        }
     }
 
     for (unsigned int idata = 0; idata < datalist.size(); idata++)
     {
-        TreeReader * tree_ = new TreeReader(QCDCorr, datalist, datalist_longnames, mclist,  tree, datalist[idata], systlist);
-        tree_.Loop(QCDCorr, datalist, datalist_longnames, mclist, datalist[idata], systlist);
+        TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, datalist[idata], systlist, "noflav");
+        tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, datalist[idata], systlist, "noflav");
         delete tree_;
     }
   }
 
-  if(QCDCorr == 1)
+  if(CorrOption == 1)
   {
     for (unsigned int iqcd = 0; iqcd < qcdlist.size(); iqcd++)
     {
-        TreeReader * tree_ = new TreeReader(QCDCorr, datalist, datalist_longnames, mclist,  tree, qcdlist[iqcd], systlist);
-        tree_.Loop(QCDCorr, datalist, datalist_longnames, mclist, qcdlist[iqcd], systlist);
+        TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, qcdlist[iqcd], systlist, "noflav");
+        tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, qcdlist[iqcd], systlist, "noflav");
         delete tree_;
     }
   }
 
-  if(QCDCorr == 2 || QCDCorr == 3)
+  if(CorrOption == 2 || CorrOption == 3)
   {
     for (unsigned int iqcd = 0; iqcd < qcdcorrectedlist.size(); iqcd++)
     {
-        TreeReader * tree_ = new TreeReader(QCDCorr, datalist, datalist_longnames, mclist,  tree, qcdcorrectedlist[iqcd], systlist);
-        tree_.Loop(QCDCorr, datalist, datalist_longnames, mclist, qcdcorrectedlist[iqcd], systlist);
+        TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, qcdcorrectedlist[iqcd], systlist, "noflav");
+        tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, qcdcorrectedlist[iqcd], systlist, "noflav");
         delete tree_;
     }
   }
