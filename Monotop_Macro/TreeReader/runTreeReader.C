@@ -5,7 +5,7 @@
 
     std::vector<TString > systlist;
     systlist.push_back(""                           );
-/*    systlist.push_back("lept__plus"                 );
+    systlist.push_back("lept__plus"                 );
     systlist.push_back("lept__minus"                );
     systlist.push_back("trig__plus"                 );
     systlist.push_back("trig__minus"                );
@@ -23,7 +23,7 @@
     systlist.push_back("metuncls__minus"            );
     systlist.push_back("toppt__plus"                );
     systlist.push_back("toppt__minus"               );
-*//*    systlist.push_back("btag__JES__plus"            );
+/*    systlist.push_back("btag__JES__plus"            );
     systlist.push_back("btag__JES__minus"           );
     systlist.push_back("btag__CSVLF__plus"          );
     systlist.push_back("btag__CSVLF__minus"         );
@@ -42,11 +42,11 @@
     systlist.push_back("btag__CSVLFStats2__plus"    );
     systlist.push_back("btag__CSVLFStats2__minus"   );
 */
-/*    systlist.push_back("btag__plus"                 );
+    systlist.push_back("btag__plus"                 );
     systlist.push_back("btag__minus"                );
     systlist.push_back("mistag__plus"               );
     systlist.push_back("mistag__minus"              );
-*/
+
 
     /////////////////////////////////////////
     //////   CorrOption possible values /////
@@ -96,12 +96,12 @@
 
     std::vector<TString > mclist;
     mclist.push_back("TTbar_Madgraph"       );
-    mclist.push_back("WJets"                );
-    //mclist.push_back("W0Jets"               );
-    //mclist.push_back("W1Jets"               );
-    //mclist.push_back("W2Jets"               );
-    //mclist.push_back("W3Jets"               );
-    //mclist.push_back("W4Jets"               );
+    //mclist.push_back("WJets"                );
+    mclist.push_back("W0Jets"               );
+    mclist.push_back("W1Jets"               );
+    mclist.push_back("W2Jets"               );
+    mclist.push_back("W3Jets"               );
+    mclist.push_back("W4Jets"               );
     //mclist.push_back("Wminus_Powheg"      );
     //mclist.push_back("Wplus_Powheg"       );
     mclist.push_back("DYJetsToLL_M-10To50"  );
@@ -157,7 +157,7 @@
 
   if(CorrOption == 1 || CorrOption == 2 || CorrOption == 3)
   {
-    TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, "S1_1000_100", systlist, "noflav");
+/*    TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, "S1_1000_100", systlist, "noflav");
     tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, "S1_1000_100", systlist, "noflav");
     delete tree_;
 
@@ -168,21 +168,21 @@
     TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, "S1_1000_800", systlist, "noflav");
     tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, "S1_1000_800", systlist, "noflav");
     delete tree_;
-
+*/
     for (unsigned int imc = 0; imc < mclist.size(); imc++)
     {
-        if (mclist[imc] != "WJets")
+        if (mclist[imc] != "WJets" && mclist[imc] != "W0Jets" && mclist[imc] != "W1Jets" && mclist[imc] != "W2Jets" && mclist[imc] != "W3Jets" && mclist[imc] != "W4Jets")
         {
-            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist, "noflav");
+ /*           TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist, "noflav");
             tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], systlist, "noflav");
             delete tree_;
-        }
+*/        }
         else
         {
-            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist, "Incl");
-            tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], systlist, "Incl");
+          TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist, "allflav");
+            tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], systlist, "allflav");
             delete tree_;
-/*
+
             TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist, "b");
             tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], systlist, "b");
             delete tree_;
@@ -194,16 +194,16 @@
             TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist, "l");
             tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], systlist, "l");
             delete tree_;
-*/        }
+        }
     }
-
+/*
     for (unsigned int idata = 0; idata < datalist.size(); idata++)
     {
         TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, datalist[idata], systlist, "noflav");
         tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, datalist[idata], systlist, "noflav");
         delete tree_;
     }
-  }
+*/  }
 
   if(CorrOption == 1)
   {
@@ -217,12 +217,12 @@
 
   if(CorrOption == 2 || CorrOption == 3)
   {
-    for (unsigned int iqcd = 0; iqcd < qcdcorrectedlist.size(); iqcd++)
+/*    for (unsigned int iqcd = 0; iqcd < qcdcorrectedlist.size(); iqcd++)
     {
         TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, qcdcorrectedlist[iqcd], systlist, "noflav");
         tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, qcdcorrectedlist[iqcd], systlist, "noflav");
         delete tree_;
     }
-  }
+*/  }
 
 }

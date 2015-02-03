@@ -43,6 +43,9 @@ public :
    TH1D *h_csv_wgt_lf[100][100][100];
 
    bool isData;
+   bool isW;
+   bool isWExcl;
+   bool isWIncl;
    bool isQCD;
 
    // Declaration of leaf types
@@ -192,16 +195,16 @@ public :
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 
-   void             initializeHisto(TString sample, bool isfirstset);
-   void             addHisto( TString var, TString selstep, TString sample, int nbins, float min, float max);
-   void             fillHisto(TString channel, TString var, TString selstep, TString sample, float val, float weight);
+   void             initializeHisto(TString sample, TString syst, bool isfirstset, TString flavtag);
+   void             addHisto( TString var, TString selstep, TString sample, TString syst, int nbins, float min, float max, TString flavtag);
+   void             fillHisto(TString channel, TString var, TString selstep, TString sample, TString syst, float val, float weight, TString flavtag);
    void             scaleHisto(TString channel, TString sample, TH1F* histoWCorrWeights);
 
-   bool             applyEventSel(short int CorrOption, double SF_QCD_W, double SF_QCD_B, double SF_QCD_S, double SF_QCD_TT, double SFtrigger, double SFtriggerError, TString channel, TString systtype, TString sample);
+   bool             applyEventSel(short int CorrOption, double SF_QCD_W, double SF_QCD_B, double SF_QCD_S, double SF_QCD_TT, double SFtrigger, double SFtriggerError, TString channel, TString systtype, TString sample, TString flavtag);
    void             SetUpCSVreweighting();
    double           GetCSVweight(const int iSys, int jet_n, float *jet_pt,float *jet_eta,float *jet_btagdiscri,int *jet_flav);
-   TH1F*            getWCorrWeights(vector<TString> datalist, vector<TString> mclist, TString normregion);
-   double           getQCDscalefactor(vector<TString> datalist, vector<TString> datalist_longnames, vector<TString> mclist, TString normregion);
+   TH1F*            getWCorrWeights(vector<TString> datalist, vector<TString> mclist, TString normregion, TString flavtag);
+   double           getQCDscalefactor(vector<TString> datalist, vector<TString> datalist_longnames, vector<TString> mclist, TString normregion, TString flavtag);
    vector<double>   getY( TGraphAsymmErrors* graph, double Wvalue);
    vector<double>   getSFtrigger( TGraphAsymmErrors* ratioPlot, double pT, double eta);
 
