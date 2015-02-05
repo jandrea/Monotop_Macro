@@ -20,8 +20,7 @@ void CompareSystPlots(TString var, TString syst, TString process){
   gStyle->SetOptStat(0); // To display the mean and RMS:   SetOptStat("mr");
 
 
-  //TFile * inputfile_fit = new TFile("theta_histofiles.root");
-  TFile * inputfile_fit = new TFile("../TreeReader/outputroot_withSyst/histo_merged.root");
+  TFile * inputfile_fit = new TFile("../TreeReader/outputroot_withSyst/histo_merged_woWCorr.root");
 
   TString histoname         = var+"__"+process;
   TString histoname_minus   = var+"__"+process+"__"+syst+"__minus";
@@ -35,23 +34,6 @@ void CompareSystPlots(TString var, TString syst, TString process){
   TCanvas *c1 = new TCanvas("c1","c1", 1000, 800);
   c1->cd();
 
-  /*
-  hist_comp_->GetXaxis()->SetBinLabel(1, "(0,0)");
-  hist_comp_->GetXaxis()->SetBinLabel(2, "(1,0)");
-  hist_comp_->GetXaxis()->SetBinLabel(3, "(1,1)");
-  hist_comp_->GetXaxis()->SetBinLabel(4, "(2,0)");
-  hist_comp_->GetXaxis()->SetBinLabel(5, "(2,1)");
-  hist_comp_->GetXaxis()->SetBinLabel(6, "(2,2)");
-  hist_comp_->GetXaxis()->SetBinLabel(7, "(3,0)");
-  hist_comp_->GetXaxis()->SetBinLabel(8, "(3,1)");
-  hist_comp_->GetXaxis()->SetBinLabel(9, "(3,2)");
-  hist_comp_->GetXaxis()->SetBinLabel(10, "(3,3)");
-  hist_comp_->GetXaxis()->SetBinLabel(11, "(4,0)");
-  hist_comp_->GetXaxis()->SetBinLabel(12, "(4,1)");
-  hist_comp_->GetXaxis()->SetBinLabel(13, "(4,2)");
-  hist_comp_->GetXaxis()->SetBinLabel(14, "(4,3)");
-  hist_comp_->GetXaxis()->SetBinLabel(14, "(4,>3)");
-  hist_comp_->GetXaxis()->SetTitle("(NJets, NBJets)");*/
   hist_comp_->SetTitle("");
 
 
@@ -65,9 +47,9 @@ void CompareSystPlots(TString var, TString syst, TString process){
   hist_comp___plus-> SetLineWidth(3);
 
 
-  hist_comp_->Draw("");
+  hist_comp___plus->Draw("");
   hist_comp___minus->Draw("same");
-  hist_comp___plus->Draw("same");
+  hist_comp_->Draw("same");
 
 
   TLegend* qw = new TLegend(.45,.60,.85,.85);
@@ -79,16 +61,20 @@ void CompareSystPlots(TString var, TString syst, TString process){
   qw->AddEntry(hist_comp___plus,    (var+"__"+process+"__"+syst+"__plus").Data()  , "l");
 
   qw->Draw();
-  c1->SaveAs( ("plots/"+var+"__"+process+"__"+syst+".gif").Data());
+  c1->SaveAs( ("plots/"+var+"__"+process+"__"+syst+".eps").Data());
 }
 
 void CompareSystPlots(){
 
     std::vector<TString > systlist;
+    //systlist.push_back("W"                  );
     systlist.push_back("lept"               );
     systlist.push_back("trig"               );
     //systlist.push_back("PDF"              );
     systlist.push_back("PU"                 );
+    systlist.push_back("toppt"              );
+    systlist.push_back("btag"               );
+    systlist.push_back("mistag"             );
     systlist.push_back("jes"                );
     systlist.push_back("jer"                );
     systlist.push_back("metuncls"           );
@@ -103,16 +89,17 @@ void CompareSystPlots(){
     systlist.push_back("btag__CSVLFStats2"  );
 */
     std::vector<TString > processlist;
-    processlist.push_back("S1"                   );
+/*    processlist.push_back("S1"                   );
     processlist.push_back("SingleMuA"            );
     processlist.push_back("SingleMuB"            );
     processlist.push_back("SingleMuC"            );
     processlist.push_back("SingleMuD"            );
     processlist.push_back("TTbar_Madgraph"       );
-    processlist.push_back("WJets"                );
-    //processlist.push_back("Wminus_Powheg"      );
-    //processlist.push_back("Wplus_Powheg"       );
-    processlist.push_back("DYJetsToLL_M-10To50"  );
+*/    processlist.push_back("WExclb"                );
+    processlist.push_back("WExclc"                );
+    processlist.push_back("WExcll"                );
+    processlist.push_back("WExcl"                );
+/*    processlist.push_back("DYJetsToLL_M-10To50"  );
     processlist.push_back("DYJetsToLL_M-50"      );
     processlist.push_back("T_s"                  );
     processlist.push_back("T_t"                  );
@@ -126,17 +113,12 @@ void CompareSystPlots(){
     processlist.push_back("QCD_B"                );
     processlist.push_back("QCD_C"                );
     processlist.push_back("QCD_D"                );
-
+*/
     std::vector<TString > varlist;
-    varlist.push_back("JetPt_mujets_afterleptsel"   );
-    varlist.push_back("LeptPt_mujets_afterleptsel"  );
-    varlist.push_back("mWT_mujets_afterleptsel"     );
-    varlist.push_back("MET_mujets_afterleptsel"     );
-    varlist.push_back("LeptPt_mujets_1bjetregion"   );
-    varlist.push_back("mWT_mujets_1bjetregion"      );
-    varlist.push_back("MET_mujets_1bjetregion"      );
     varlist.push_back("mWT_mujets_signalregion"     );
     varlist.push_back("MET_mujets_signalregion"     );
+    varlist.push_back("mWT_mujets_Wregion_highpt"   );
+    varlist.push_back("MET_mujets_Wregion_highpt"   );
 
     for(unsigned int ivar = 0; ivar < varlist.size(); ivar++)
     {
@@ -145,7 +127,6 @@ void CompareSystPlots(){
             for(unsigned int iprocess = 0; iprocess < processlist.size(); iprocess++)
             {
                 CompareSystPlots(varlist[ivar], systlist[isyst], processlist[iprocess]);
-                //CompareSystPlots("JetPt_mujets_afterleptsel", "jer", "TTbar_Madgraph");
             }
         }
     }
