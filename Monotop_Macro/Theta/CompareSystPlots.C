@@ -1,4 +1,3 @@
-
 #include "TString.h"
 #include "TH1F.h"
 #include "TStyle.h"
@@ -61,24 +60,24 @@ void CompareSystPlots(TString var, TString syst, TString process){
   qw->AddEntry(hist_comp___plus,    (var+"__"+process+"__"+syst+"__plus").Data()  , "l");
 
   qw->Draw();
-  c1->SaveAs( ("plots/"+var+"__"+process+"__"+syst+".eps").Data());
+  c1->SaveAs( ("plots/"+var+"__"+process+"__"+syst+".png").Data());
 }
 
 void CompareSystPlots(){
 
     std::vector<TString > systlist;
     //systlist.push_back("W"                  );
-    systlist.push_back("lept"               );
-    systlist.push_back("trig"               );
+    //systlist.push_back("lept"               );
+    //systlist.push_back("trig"               );
     //systlist.push_back("PDF"              );
     systlist.push_back("PU"                 );
-    systlist.push_back("toppt"              );
+/*    systlist.push_back("toppt"              );
     systlist.push_back("btag"               );
     systlist.push_back("mistag"             );
     systlist.push_back("jes"                );
     systlist.push_back("jer"                );
     systlist.push_back("metuncls"           );
-/*    systlist.push_back("btag__JES"          );
+*//*    systlist.push_back("btag__JES"          );
     systlist.push_back("btag__CSVLF"        );
     systlist.push_back("btag__CSVHFStats1"  );
     systlist.push_back("btag__CSVHFStats2"  );
@@ -89,17 +88,17 @@ void CompareSystPlots(){
     systlist.push_back("btag__CSVLFStats2"  );
 */
     std::vector<TString > processlist;
-/*    processlist.push_back("S1"                   );
+    //processlist.push_back("S1"                   );
     processlist.push_back("SingleMuA"            );
     processlist.push_back("SingleMuB"            );
     processlist.push_back("SingleMuC"            );
     processlist.push_back("SingleMuD"            );
     processlist.push_back("TTbar_Madgraph"       );
-*/    processlist.push_back("WExclb"                );
+    processlist.push_back("WExclb"                );
     processlist.push_back("WExclc"                );
     processlist.push_back("WExcll"                );
-    processlist.push_back("WExcl"                );
-/*    processlist.push_back("DYJetsToLL_M-10To50"  );
+    //processlist.push_back("WExcl"                );
+    processlist.push_back("DYJetsToLL_M-10To50"  );
     processlist.push_back("DYJetsToLL_M-50"      );
     processlist.push_back("T_s"                  );
     processlist.push_back("T_t"                  );
@@ -113,12 +112,12 @@ void CompareSystPlots(){
     processlist.push_back("QCD_B"                );
     processlist.push_back("QCD_C"                );
     processlist.push_back("QCD_D"                );
-*/
+
     std::vector<TString > varlist;
     varlist.push_back("mWT_mujets_signalregion"     );
-    varlist.push_back("MET_mujets_signalregion"     );
+    //varlist.push_back("MET_mujets_signalregion"     );
     varlist.push_back("mWT_mujets_Wregion_highpt"   );
-    varlist.push_back("MET_mujets_Wregion_highpt"   );
+    //varlist.push_back("MET_mujets_Wregion_highpt"   );
 
     for(unsigned int ivar = 0; ivar < varlist.size(); ivar++)
     {

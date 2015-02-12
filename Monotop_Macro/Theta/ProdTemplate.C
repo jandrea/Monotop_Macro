@@ -49,15 +49,19 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
           distrib_signal.push_back( (TH1F*)distrib__Monotop);
       }
 
-          TString inputdistribname    = inputdistrib+"__"+sampleList[i];
-          TH1F* tmp_inputdistrib      = (TH1F*)inputfile->Get(inputdistribname)->Clone() ;
-          TString outputdistribname   = outputdistrib+"__"+thetaSampleList[i];
-          tmp_inputdistrib->SetName(outputdistribname );
-          distrib_MC.push_back( (TH1F*)tmp_inputdistrib);
+      //if (inputdistrib == "mWT_mujets_ttbarregion_highpt" && (sampleList[i] == "QCD_A" || sampleList[i] == "QCD_B" || sampleList[i] == "QCD_C" || sampleList[i] == "QCD_D") ) continue;
+
+      TString inputdistribname    = inputdistrib+"__"+sampleList[i];
+      TH1F* tmp_inputdistrib      = (TH1F*)inputfile->Get(inputdistribname)->Clone() ;
+      TString outputdistribname   = outputdistrib+"__"+thetaSampleList[i];
+      tmp_inputdistrib->SetName(outputdistribname );
+      distrib_MC.push_back( (TH1F*)tmp_inputdistrib);
   }
 
   for(unsigned int i=0; i<sampleList.size(); i++)
   {
+      if (sampleList[i] == "QCD_A" || sampleList[i] == "QCD_B" || sampleList[i] == "QCD_C" || sampleList[i] == "QCD_D") continue;
+
       for(unsigned int j=0; j<stytList.size(); j++)
       {
           if (i < signalList.size())
@@ -129,9 +133,12 @@ void ProdTemplate(){
 
   std::vector<TString> signalList;
   std::vector<TString> thetaSignalList;
-  //signalList.push_back("S1_1000_100"        );      thetaSignalList.push_back("S1res1000inv100" );
-  //signalList.push_back("S1_1000_800"        );      thetaSignalList.push_back("S1res1000inv800" );
-  signalList.push_back("S1_500_100"         );      thetaSignalList.push_back("S1res500inv100"  );
+  //signalList.push_back("S1_1000_100"    );      thetaSignalList.push_back("S1res1000inv100" );
+  //signalList.push_back("S1_1000_800"    );      thetaSignalList.push_back("S1res1000inv800" );
+  signalList.push_back("S1_500_100"     );      thetaSignalList.push_back("S1res500inv100"  );
+  //signalList.push_back("S4_400"         );      thetaSignalList.push_back("S4inv400"        );
+  //signalList.push_back("S4_600"         );      thetaSignalList.push_back("S4inv600"        );
+  //signalList.push_back("S4_700"         );      thetaSignalList.push_back("S4inv700"        );
 
 
   std::vector<TString> sampleList;
@@ -172,7 +179,7 @@ void ProdTemplate(){
   systlist.push_back("trig"             );          thetaSystlist.push_back("trig"           );
   //systlist.push_back("W"                );          thetaSystlist.push_back("W"              );
   //systlist.push_back("PDF"            );
-  //systlist.push_back("PU"               );          thetaSystlist.push_back("PU"             );
+  systlist.push_back("PU"               );          thetaSystlist.push_back("PU"             );
   systlist.push_back("jes"              );          thetaSystlist.push_back("jes"            );
   systlist.push_back("jer"              );          thetaSystlist.push_back("jer"            );
   systlist.push_back("metuncls"         );          thetaSystlist.push_back("metuncls"       );
@@ -195,8 +202,8 @@ void ProdTemplate(){
   systlist.push_back("btag__CSVLFStats2");          thetaSystlist.push_back("btagCSVLFStats2");
 */
 
- // ProdTemplate("mWT_mujets_signalregion", "mWTmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged_woWCorr.root" );
+  ProdTemplate("mWT_mujets_signalregion", "mWTmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged_woWCorr.root" );
   ProdTemplate("mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged_woWCorr.root" );
-//  ProdTemplate("mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged_woWCorr.root" );
+  ProdTemplate("mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged_woWCorr.root" );
 
 }

@@ -11,12 +11,22 @@
 #include <iostream>
 #include <vector>
 
+double getSFfit( TFile* inputfile_prefit, TFile* inputfile_postfit, TString inputdistrib, TString thetainputdistrib, TString sample, TString thetasample)
+{
+   TString whistoname_prefit  = inputdistrib+"__"+sample;
+   TH1F*       whisto_prefit  = (TH1F*)inputfile_prefit->Get(whistoname_prefit)->Clone();
 
-void PlotFitResults(  std::vector<TString> signalSample_list, std::vector<TString> mcSample_list, std::vector<TString> thetaSample_list, std::vector<int> colorVector, bool usePostFit, bool useWFlavourSplitting, bool displaySignal, TString inputdistrib , TString thetainputdistrib , TString inputfilename, TString region){
+   TString whistoname_postfit = thetainputdistrib+"__"+thetasample;
+   TH1F*       whisto_postfit = (TH1F*)inputfile_postfit->Get(whistoname_postfit)->Clone();
 
-  Int_t stati=0;
-  Bool_t  fit=1;
-  Bool_t logy=0;
+   double SF = 0;
+   if( whisto_postfit != 0) SF = whisto_postfit->Integral()/whisto_prefit->Integral();
+
+   return SF;
+}
+
+
+void Macro_CheckFit(std::vector<TString> signalSample_list, std::vector<TString> mcSample_list, std::vector<TString> thetaSample_list, std::vector<int> colorVector, bool usePostFit, bool displaySignal, TString inputdistrib , TString thetainputdistrib, TString region, TString var, TString outputdistrib){
 
   bool setlogy = 1;
 
@@ -162,21 +172,32 @@ void PlotFitResults(  std::vector<TString> signalSample_list, std::vector<TStrin
   c1->SetBottomMargin(0.3);
   c1->SetLogy(setlogy);
   c1->cd();
-  TFile * inputfile_fit ;
-  if(usePostFit)    inputfile_fit = new TFile("histos-mle_bkp.root");
-  else              inputfile_fit = new TFile(inputfilename);
 
-  TFile * inputfile_data          = new TFile(inputfilename );
+  TFile * inputfile_prefit ;
+  TFile * inputfile_postfit ;
+  inputfile_prefit  = new TFile("../TreeReader/outputroot_withSyst/histo_merged_woWCorr.root");
+  inputfile_postfit = new TFile("histos-mle_bkp.root");
 
-  TString dataAname         = inputdistrib+"__SingleMuA";
-  TString dataBname         = inputdistrib+"__SingleMuB";
-  TString dataCname         = inputdistrib+"__SingleMuC";
-  TString dataDname         = inputdistrib+"__SingleMuD";
+  vector<double> SF_fit;
+  for (short unsigned int imc = 0; imc < mcSample_list.size(); imc++)
+  {
+    if (usePostFit)
+    {
+      SF_fit.push_back(getSFfit( inputfile_prefit, inputfile_postfit, inputdistrib, thetainputdistrib, mcSample_list[imc], thetaSample_list[imc]));
+      //cout << "SF_fit(" << thetaSample_list[imc] << ") = " << getSFfit( inputfile_prefit, inputfile_postfit, inputdistrib, thetainputdistrib, mcSample_list[imc], thetaSample_list[imc]) << endl;
+    }
+    else SF_fit.push_back(1);
+  }
 
-  TH1F * distrib__RUNA  	= (TH1F*)inputfile_data->Get(dataAname)->Clone();
-  TH1F * distrib__RUNB  	= (TH1F*)inputfile_data->Get(dataBname)->Clone();
-  TH1F * distrib__RUNC  	= (TH1F*)inputfile_data->Get(dataCname)->Clone();
-  TH1F * distrib__RUND  	= (TH1F*)inputfile_data->Get(dataDname)->Clone();
+  TString dataAname         = outputdistrib+"__SingleMuA";
+  TString dataBname         = outputdistrib+"__SingleMuB";
+  TString dataCname         = outputdistrib+"__SingleMuC";
+  TString dataDname         = outputdistrib+"__SingleMuD";
+
+  TH1F * distrib__RUNA  	= (TH1F*)inputfile_prefit->Get(dataAname)->Clone();
+  TH1F * distrib__RUNB  	= (TH1F*)inputfile_prefit->Get(dataBname)->Clone();
+  TH1F * distrib__RUNC  	= (TH1F*)inputfile_prefit->Get(dataCname)->Clone();
+  TH1F * distrib__RUND  	= (TH1F*)inputfile_prefit->Get(dataDname)->Clone();
 
   TH1F * histo_data  	    = (TH1F*)distrib__RUNA;
          histo_data->Add(distrib__RUNB);
@@ -187,16 +208,14 @@ void PlotFitResults(  std::vector<TString> signalSample_list, std::vector<TStrin
   std::vector<TH1F *> histo_mcSamples;
   std::vector<TH1F *> signalSamples;
 
-  TString   inputdistrib_signal = inputdistrib;
-  if(usePostFit)  mcSample_list = thetaSample_list;
-  if(usePostFit)  inputdistrib  = thetainputdistrib;
-
   for(unsigned int imc = 0; imc < mcSample_list.size(); imc++){
 
-    TString histo_mc_name   = inputdistrib+"__"+mcSample_list[imc];
-    TH1F * histo_tmp = (TH1F*)inputfile_fit->Get(histo_mc_name);
+    TString histo_mc_name   = outputdistrib+"__"+mcSample_list[imc];
+    TH1F * histo_tmp = (TH1F*)inputfile_prefit->Get(histo_mc_name);
+    histo_tmp->Scale(SF_fit[imc]);
     histo_mcSamples.push_back(histo_tmp);
   }
+
   THStack *the_stack_histo= new THStack();
   for(unsigned int imc = 0; imc< histo_mcSamples.size(); imc++){
     histo_mcSamples[imc]->SetFillStyle(1001);
@@ -214,6 +233,7 @@ void PlotFitResults(  std::vector<TString> signalSample_list, std::vector<TStrin
   else                                                          the_stack_histo->SetMaximum(the_stack_histo->GetMaximum()+0.1*the_stack_histo->GetMaximum());
 
   if(setlogy) {the_stack_histo->SetMinimum(1.); the_stack_histo->SetMaximum(1000000);}
+  if(var == "DeltaPhiLJ") the_stack_histo->GetXaxis()->SetRangeUser(0, 3.14);
 
   histo_data->SetMarkerStyle(20);
   histo_data->SetMarkerSize(1.2);
@@ -222,15 +242,13 @@ void PlotFitResults(  std::vector<TString> signalSample_list, std::vector<TStrin
 
   if (displaySignal)
   {
-    TFile * inputfile_signal  = new TFile(inputfilename );
-
     for( short unsigned int isig = 0; isig < signalSample_list.size(); isig++)
     {
-        TString signalname      = inputdistrib_signal+"__"+signalSample_list[isig];
-        TH1F * distrib__signal  = (TH1F*)inputfile_signal->Get(signalname)->Clone();
+        TString signalname      = outputdistrib+"__"+signalSample_list[isig];
+        TH1F * distrib__signal  = (TH1F*)inputfile_prefit->Get(signalname)->Clone();
         if(distrib__signal != 0)
         {
-cout << "histo: " << signalname << " | integral = " << distrib__signal->Integral() << endl;
+            //cout << "histo: " << signalname << " | integral = " << distrib__signal->Integral() << endl;
             distrib__signal->SetLineColor((int) isig + 2);
             distrib__signal->SetLineStyle(2);
             distrib__signal->SetLineWidth(3);
@@ -240,16 +258,13 @@ cout << "histo: " << signalname << " | integral = " << distrib__signal->Integral
     }
   }
 
+
   //--------------------------
   //MC systematic plot
   //--------------------------
   TH1F * histo_syst_MC   = (TH1F*)(the_stack_histo->GetHistogram() )->Clone();
   for(unsigned int imc=0; imc< histo_mcSamples.size(); imc++){
     histo_syst_MC->Add(histo_mcSamples[imc]);
-  }
-
-  for (int ibin=0; ibin<histo_syst_MC->GetNbinsX(); ibin++) {
-    //histo_syst_MC->SetBinError(ibin, histo_syst_MC->GetBinError(ibin)+histo_syst_MC->GetBinError(ibin)*0.025);
   }
 
   TGraphErrors *thegraph = new TGraphErrors(histo_syst_MC);
@@ -281,6 +296,7 @@ cout << "histo: " << signalname << " | integral = " << distrib__signal->Integral
   text2->SetNDC();
   text2->SetTextAlign(13);
   text2->SetX(0.18);
+  if (var == "DeltaPhiLJ") text2->SetX(0.70);
   text2->SetY(0.92);
   //text2->SetLineWidth(2);
   text2->SetTextFont(42);
@@ -288,7 +304,9 @@ cout << "histo: " << signalname << " | integral = " << distrib__signal->Integral
   //    text2->SetTextSizePixels(24);// dflt=28
   text2->Draw();
 
-  TLegend*  qw = new TLegend(.75,.60,.90,.90);
+  TLegend*  qw;
+  if( var == "DeltaPhiLJ")  qw = new TLegend(.35,.60,.50,.90);
+  else                      qw = new TLegend(.75,.60,.90,.90);
 
   qw->SetShadowColor(0);
   qw->SetFillColor(0);
@@ -315,7 +333,6 @@ cout << "histo: " << signalname << " | integral = " << distrib__signal->Integral
         qw->AddEntry( signalSamples[isig],signalSample_list[isig]	    ,"l");
     }
   }
-
 
   qw->Draw();
 
@@ -351,7 +368,10 @@ cout << "histo: " << signalname << " | integral = " << distrib__signal->Integral
   histo_ratio_data->SetMinimum(0.5);
   histo_ratio_data->SetMaximum(1.5);
   histo_ratio_data->GetXaxis()->SetTitleOffset(1.2);
-  histo_ratio_data->GetXaxis()->SetTitle("m(W)_{T} [GeV]");
+  if      (var == "mWT") histo_ratio_data->GetXaxis()->SetTitle("m(W)_{T} [GeV]");
+  else if (var == "MET") histo_ratio_data->GetXaxis()->SetTitle("MET [GeV]");
+  else if (var == "pTW") histo_ratio_data->GetXaxis()->SetTitle("p(W)_{T} [GeV]");
+  else if (var == "DeltaPhiLJ") { histo_ratio_data->GetXaxis()->SetTitle("#Delta #phi (lep - lead. jet) "); histo_ratio_data->GetXaxis()->SetRangeUser(0, 3.14); }
   histo_ratio_data->GetXaxis()->SetLabelSize(0.04);
   histo_ratio_data->GetYaxis()->SetLabelSize(0.03);
   histo_ratio_data->GetYaxis()->SetNdivisions(6);
@@ -361,8 +381,8 @@ cout << "histo: " << signalname << " | integral = " << distrib__signal->Integral
   thegraph_ratio->Draw("e2same");
 
   TString outputname;
-  if (!usePostFit) outputname = "PreFit_mWT_mujets";
-  else             outputname = "PostFit_mWT_mujets";
+  if (!usePostFit) outputname = "PreFit_"+var+"_mujets";
+  else             outputname = "PostFit_"+var+"_mujets";
 
   TString endname;
   //if (setlogy) endname = "_logY.pdf";
@@ -373,10 +393,8 @@ cout << "histo: " << signalname << " | integral = " << distrib__signal->Integral
 }
 
 
-void PlotFitResults(){
+void Macro_CheckFit(){
 
-
-  bool useWFlavourSplitting = true;
   bool usePostFit = true;
   bool displaySignal = true;
 
@@ -386,54 +404,54 @@ void PlotFitResults(){
 
   if( displaySignal )
   {
-    signalSample_list.push_back("S1_1000_100");
-    signalSample_list.push_back("S1_1000_800");
-    signalSample_list.push_back("S1_500_100");
-    //signalSample_list.push_back("S4_400");
-    //signalSample_list.push_back("S4_600");
-    //signalSample_list.push_back("S4_700");
+    //signalSample_list.push_back("S1_1000_100");
+    //signalSample_list.push_back("S1_1000_800");
+    //signalSample_list.push_back("S1_500_100");
+    signalSample_list.push_back("S4_400");
+    signalSample_list.push_back("S4_600");
+    signalSample_list.push_back("S4_700");
   }
 
 
-   //-------------------------
+  //-------------------------
   //define list of MC samples
-  std::vector<TString> mcSample_list;
   std::vector<TString> thetaSample_list;
+  std::vector<TString> mcSample_list;
   std::vector<int> colorVector;
-  mcSample_list.push_back("TTbar_Madgraph");            thetaSample_list.push_back("TTbarMadgraph");         colorVector.push_back(kRed+1);
+  mcSample_list.push_back("TTbar_Madgraph");     thetaSample_list.push_back("TTbarMadgraph");   colorVector.push_back(kRed+1);
+  mcSample_list.push_back("WExclb");             thetaSample_list.push_back("WExclb");          colorVector.push_back(kGreen-2);
+  mcSample_list.push_back("WExclc");             thetaSample_list.push_back("WExclc");          colorVector.push_back(kGreen);
+  mcSample_list.push_back("WExcll");             thetaSample_list.push_back("WExcll");          colorVector.push_back(kGreen+4);
+  mcSample_list.push_back("DYJetsToLL_M-10To50");thetaSample_list.push_back("DY10To50");        colorVector.push_back(kAzure-2);
+  mcSample_list.push_back("DYJetsToLL_M-50");    thetaSample_list.push_back("DY50");            colorVector.push_back(kAzure-2);
+  mcSample_list.push_back("T_s");                thetaSample_list.push_back("Ts");              colorVector.push_back(kRed+2);
+  mcSample_list.push_back("T_t");                thetaSample_list.push_back("Tt");              colorVector.push_back(kRed+2);
+  mcSample_list.push_back("T_tW");               thetaSample_list.push_back("TtW");             colorVector.push_back(kRed+2);
+  mcSample_list.push_back("Tbar_t");             thetaSample_list.push_back("Tbart");           colorVector.push_back(kRed+2);
+  mcSample_list.push_back("Tbar_tW");            thetaSample_list.push_back("TbartW");          colorVector.push_back(kRed+2);
+  mcSample_list.push_back("WZ");                 thetaSample_list.push_back("WZ");              colorVector.push_back(13);
+  mcSample_list.push_back("WW");                 thetaSample_list.push_back("WW");              colorVector.push_back(13);
+  mcSample_list.push_back("ZZ");                 thetaSample_list.push_back("ZZ");              colorVector.push_back(13);
 
-  if( useWFlavourSplitting )
-  {
-        mcSample_list.push_back("WExclb");              thetaSample_list.push_back("WExclb");                colorVector.push_back(kGreen-2);
-        mcSample_list.push_back("WExclc");              thetaSample_list.push_back("WExclc");                colorVector.push_back(kGreen);
-        mcSample_list.push_back("WExcll");              thetaSample_list.push_back("WExcll");                colorVector.push_back(kGreen+4);
-  }
-  else
-  {
-      mcSample_list.push_back("WExcl");                 thetaSample_list.push_back("WExcl");                 colorVector.push_back(kGreen+2);
-  }
-
-
-  mcSample_list.push_back("DYJetsToLL_M-10To50");       thetaSample_list.push_back("DY10To50");              colorVector.push_back(kAzure-2);
-  mcSample_list.push_back("DYJetsToLL_M-50");           thetaSample_list.push_back("DY50");                  colorVector.push_back(kAzure-2);
-  mcSample_list.push_back("T_s");                       thetaSample_list.push_back("Ts");                    colorVector.push_back(kRed+2);
-  mcSample_list.push_back("T_t");                       thetaSample_list.push_back("Tt");                    colorVector.push_back(kRed+2);
-  mcSample_list.push_back("T_tW");                      thetaSample_list.push_back("TtW");                   colorVector.push_back(kRed+2);
-  mcSample_list.push_back("Tbar_t");                    thetaSample_list.push_back("Tbart");                 colorVector.push_back(kRed+2);
-  mcSample_list.push_back("Tbar_tW");                   thetaSample_list.push_back("TbartW");                colorVector.push_back(kRed+2);
-  mcSample_list.push_back("WZ");                        thetaSample_list.push_back("WZ");                    colorVector.push_back(13);
-  mcSample_list.push_back("WW");                        thetaSample_list.push_back("WW");                    colorVector.push_back(13);
-  mcSample_list.push_back("ZZ");                        thetaSample_list.push_back("ZZ");                    colorVector.push_back(13);
-
-  mcSample_list.push_back("QCD_A");                     thetaSample_list.push_back("QCDA");                  colorVector.push_back(kYellow+1);
-  mcSample_list.push_back("QCD_B");                     thetaSample_list.push_back("QCDB");                  colorVector.push_back(kYellow+1);
-  mcSample_list.push_back("QCD_C");                     thetaSample_list.push_back("QCDC");                  colorVector.push_back(kYellow+1);
-  mcSample_list.push_back("QCD_D");                     thetaSample_list.push_back("QCDD");                  colorVector.push_back(kYellow+1);
+  mcSample_list.push_back("QCD_A");             thetaSample_list.push_back("QCDA");            colorVector.push_back(kYellow+1);
+  mcSample_list.push_back("QCD_B");             thetaSample_list.push_back("QCDB");            colorVector.push_back(kYellow+1);
+  mcSample_list.push_back("QCD_C");             thetaSample_list.push_back("QCDC");            colorVector.push_back(kYellow+1);
+  mcSample_list.push_back("QCD_D");             thetaSample_list.push_back("QCDD");            colorVector.push_back(kYellow+1);
 
 
-  PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector,  usePostFit, useWFlavourSplitting, displaySignal, "mWT_mujets_signalregion", "mWTmujetsSignalregion", "../TreeReader/outputroot_withSyst/histo_merged.root","signalregion");
-  //PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector,  usePostFit, useWFlavourSplitting, displaySignal, "mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", "../TreeReader/outputroot_withSyst/histo_merged.root", "TTbarregion");
-  //PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector,  usePostFit, useWFlavourSplitting, displaySignal, "mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", "../TreeReader/outputroot_withSyst/histo_merged.root", "Wregion");
+//--------------------------//
+//------- Delta Phi --------//
+//--------------------------//
+  //Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_signalregion", "mWTmujetsSignalregion", "signalregion", "DeltaPhiLJ", "DeltaPhiLJ_mujets_signalregion");
+  //Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", "TTbarregion", "DeltaPhiLJ", "DeltaPhiLJ_mujets_ttbarregion_highpt");
+  //Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", "Wregion", "DeltaPhiLJ", "DeltaPhiLJ_mujets_Wregion_highpt");
 
+
+//--------------------------//
+//---------- MET -----------//
+//--------------------------//
+  Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_signalregion", "mWTmujetsSignalregion", "signalregion", "MET", "MET_mujets_signalregion");
+  //Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", "TTbarregion", "MET", "MET_mujets_ttbarregion_highpt");
+  //Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", "Wregion", "MET", "MET_mujets_Wregion_highpt");
 
 }

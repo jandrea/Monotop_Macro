@@ -3,6 +3,12 @@ options = Options()
 options.set('minimizer', 'strategy', 'newton_vanilla')
 
 benchmark='S1res500inv100'
+#benchmark='S1res1000inv100'
+#benchmark='S1res1000inv800'
+#benchmark='S4inv400'
+#benchmark='S4inv600'
+#benchmark='S4inv700'
+#benchmarks='S*inv*'
 
 # for model building:
 def get_model():
@@ -51,10 +57,11 @@ def get_model():
     model.add_lognormal_uncertainty('WZ_rate',              math.log(1.30), 'WZ'            )
     model.add_lognormal_uncertainty('ZZ_rate',              math.log(1.30), 'ZZ'            )
     model.add_lognormal_uncertainty('WW_rate',              math.log(1.30), 'WW'            )
-    model.add_lognormal_uncertainty('QCDA_rate',            math.log(1.50), 'QCDA'          )
-    model.add_lognormal_uncertainty('QCDB_rate',            math.log(1.50), 'QCDB'          )
-    model.add_lognormal_uncertainty('QCDC_rate',            math.log(1.50), 'QCDC'          )
-    model.add_lognormal_uncertainty('QCDD_rate',            math.log(1.50), 'QCDD'          )
+    
+#    model.add_lognormal_uncertainty('QCDA_rate',            math.log(1.50), 'QCDA'          )
+#    model.add_lognormal_uncertainty('QCDB_rate',            math.log(1.50), 'QCDB'          )
+#    model.add_lognormal_uncertainty('QCDC_rate',            math.log(1.50), 'QCDC'          )
+#    model.add_lognormal_uncertainty('QCDD_rate',            math.log(1.50), 'QCDD'          )
 #    model.add_lognormal_uncertainty('W',                    math.log(2.00), 'WJets'         )
 
     for p in model.processes:
@@ -64,9 +71,11 @@ def get_model():
 	if p == 'QCDD': continue
 	model.add_lognormal_uncertainty('lumi',        math.log(1.026), p)
 
-#    for q in model.processes:
-#        if q != 'WJets': continue
-#	model.add_lognormal_uncertainty('W',           math.log(2.00), q)
+    for q in model.processes:
+        if q == 'QCDA': model.add_lognormal_uncertainty('QCDA_rate',            math.log(1.50), 'QCDA'          )
+        if q == 'QCDB': model.add_lognormal_uncertainty('QCDB_rate',            math.log(1.50), 'QCDB'          )
+        if q == 'QCDC': model.add_lognormal_uncertainty('QCDC_rate',            math.log(1.50), 'QCDC'          )
+        if q == 'QCDD': model.add_lognormal_uncertainty('QCDD_rate',            math.log(1.50), 'QCDD'          )
                                
     return model
 
@@ -99,17 +108,15 @@ print ("Determine nuisance parameters and their uncertainties")
 parameter_values = {}
 parameter_uncert = {}
 
-#for p in model.get_parameters([]):
 for p in model.get_parameters([benchmark]):
         parameter_values[p] = fit[benchmark][p][0][0]
         parameter_uncert[p] = fit[benchmark][p][0][1]
         print [p, "%.4f" %parameter_values[p], "%.4f" %parameter_uncert[p] ]
 
-# parameter_values['beta_signal'] =  res['Monotop'][0][0]
 print ("Create postfit histograms")
 
 histos = evaluate_prediction(model, parameter_values, include_signal = False)
-write_histograms_to_rootfile(histos, 'histos-mle_'+benchmark+'.root')
+write_histograms_to_rootfile(histos, 'histos-mle.root')
 
 
 # 2.a. Bayesian limits
@@ -118,7 +125,7 @@ write_histograms_to_rootfile(histos, 'histos-mle_'+benchmark+'.root')
 # process all signals defined as signal processes before; see Section "Common Parameters"
 # on the theta auto intro doxygen page for details)
 
-######plot_exp, plot_obs = bayesian_limits(model, options = options)
+plot_exp, plot_obs = bayesian_limits(model, options = options)
 
 # plot_exp and plot_obs are instances of plotutil.plotdata. they contain x/y values and
 # bands. You can do many things with these objects such as inspect the x/y/ban
@@ -127,8 +134,8 @@ write_histograms_to_rootfile(histos, 'histos-mle_'+benchmark+'.root')
 # to apply your own plotting routines or present the result in a text Table.
 
 
-######plot_exp.write_txt('bayesian_limits_expected.txt')
-######plot_obs.write_txt('bayesian_limits_observed.txt')
+plot_exp.write_txt('limits/bayesian_limits_expected_'+benchmark+'.txt')
+plot_obs.write_txt('limits/bayesian_limits_observed_'+benchmark+'.txt')
 
 # 2.b. CLs limits
 # calculate cls limit plots. The interface is very similar to bayesian_limits. However, there are a few
@@ -142,7 +149,7 @@ write_histograms_to_rootfile(histos, 'histos-mle_'+benchmark+'.root')
 
 # as for the bayesian limits: write the result to a text file
 
-########plot_exp.write_txt('cls_limits_expected.txt')
-########plot_obs.write_txt('cls_limits_observed.txt')
+########plot_exp.write_txt('limits/cls_limits_expected_'+benchmark+'.txt')
+########plot_obs.write_txt('limits/cls_limits_observed_'+benchmark+'.txt')
 
 report.write_html('htmlout')
