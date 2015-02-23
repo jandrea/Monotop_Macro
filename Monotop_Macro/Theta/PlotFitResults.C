@@ -18,7 +18,8 @@ void PlotFitResults(  std::vector<TString> signalSample_list, std::vector<TStrin
   Bool_t  fit=1;
   Bool_t logy=0;
 
-  bool setlogy = 1;
+  bool setlogy = 0;
+  if (displaySignal) setlogy = 1;
 
   gStyle->SetCanvasBorderMode(0);
   gStyle->SetCanvasColor(0); // must be kWhite but I dunno how to do that in PyROOT
@@ -157,13 +158,12 @@ void PlotFitResults(  std::vector<TString> signalSample_list, std::vector<TStrin
   // ROOT . gStyle . SetTimeOffset(Double_t toffset);
   // ROOT . gStyle . SetHistMinimumZero(kTRUE);
 
-
   TCanvas *c1 = new TCanvas("c1","c1", 1000, 800);
   c1->SetBottomMargin(0.3);
   c1->SetLogy(setlogy);
   c1->cd();
   TFile * inputfile_fit ;
-  if(usePostFit)    inputfile_fit = new TFile("histos-mle_bkp.root");
+  if(usePostFit)    inputfile_fit = new TFile("histos-mle.root");
   else              inputfile_fit = new TFile(inputfilename);
 
   TFile * inputfile_data          = new TFile(inputfilename );
@@ -361,14 +361,16 @@ cout << "histo: " << signalname << " | integral = " << distrib__signal->Integral
   thegraph_ratio->Draw("e2same");
 
   TString outputname;
-  if (!usePostFit) outputname = "PreFit_mWT_mujets";
-  else             outputname = "PostFit_mWT_mujets";
+  if (!usePostFit) outputname = "PreFit_mWT_mujets_Iso0p5";
+  else             outputname = "PostFit_mWT_mujets_Iso0p5";
 
-  TString endname;
-  //if (setlogy) endname = "_logY.pdf";
-  if (setlogy) endname = "_logY.png";
-  else         endname = ".png";
-  c1->SaveAs( ("plots_fits/"+outputname+"_"+region+endname).Data());
+  TString endname_png;
+  TString endname_pdf;
+  if (setlogy) { endname_png = "_logY.png"; endname_pdf = "_logY.pdf"; }
+  else         { endname_png = ".png";      endname_pdf = ".pdf"; }
+
+  //c1->SaveAs( ("plots_fits/"+outputname+"_"+region+endname_png).Data());
+  c1->SaveAs( ("plots_fits/"+outputname+"_"+region+endname_pdf).Data());
 
 }
 
@@ -377,7 +379,7 @@ void PlotFitResults(){
 
 
   bool useWFlavourSplitting = true;
-  bool usePostFit = true;
+  bool usePostFit = false;
   bool displaySignal = true;
 
   //-------------------------
@@ -386,12 +388,12 @@ void PlotFitResults(){
 
   if( displaySignal )
   {
-    signalSample_list.push_back("S1_1000_100");
-    signalSample_list.push_back("S1_1000_800");
-    signalSample_list.push_back("S1_500_100");
-    //signalSample_list.push_back("S4_400");
-    //signalSample_list.push_back("S4_600");
-    //signalSample_list.push_back("S4_700");
+    //signalSample_list.push_back("S1_1000_100");
+    //signalSample_list.push_back("S1_1000_800");
+    //signalSample_list.push_back("S1_500_100");
+    signalSample_list.push_back("S4_400");
+    signalSample_list.push_back("S4_600");
+    signalSample_list.push_back("S4_700");
   }
 
 
@@ -431,7 +433,8 @@ void PlotFitResults(){
   mcSample_list.push_back("QCD_D");                     thetaSample_list.push_back("QCDD");                  colorVector.push_back(kYellow+1);
 
 
-  PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector,  usePostFit, useWFlavourSplitting, displaySignal, "mWT_mujets_signalregion", "mWTmujetsSignalregion", "../TreeReader/outputroot_withSyst/histo_merged.root","signalregion");
+  PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector,  usePostFit, useWFlavourSplitting, displaySignal, "DeltaPhiLMet_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion", "../TreeReader/outputroot_withSyst/histo_merged.root","Selectedsignalregion");
+  //PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector,  usePostFit, useWFlavourSplitting, displaySignal, "mWT_mujets_signalregion", "mWTmujetsSignalregion", "../TreeReader/outputroot_withSyst/histo_merged.root","signalregion");
   //PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector,  usePostFit, useWFlavourSplitting, displaySignal, "mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", "../TreeReader/outputroot_withSyst/histo_merged.root", "TTbarregion");
   //PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector,  usePostFit, useWFlavourSplitting, displaySignal, "mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", "../TreeReader/outputroot_withSyst/histo_merged.root", "Wregion");
 

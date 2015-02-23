@@ -2,10 +2,10 @@ options = Options()
 
 options.set('minimizer', 'strategy', 'newton_vanilla')
 
-benchmark='S1res500inv100'
+#benchmark='S1res500inv100'
 #benchmark='S1res1000inv100'
 #benchmark='S1res1000inv800'
-#benchmark='S4inv400'
+benchmark='S4inv400'
 #benchmark='S4inv600'
 #benchmark='S4inv700'
 #benchmarks='S*inv*'
@@ -29,7 +29,7 @@ def get_model():
 
     # define what the signal processes are. All other processes are assumed to make up the 
     # 'background-only' model.
-    model.set_signal_processes([benchmark])
+    model.set_signal_processes('S4*')
 
 
 
@@ -43,10 +43,9 @@ def get_model():
     # will be 100% correlated.
 
     model.add_lognormal_uncertainty('TTbarMadgraph_rate',   math.log(1.30), 'TTbarMadgraph' )
-#    model.add_lognormal_uncertainty('WExcl_rate',           math.log(20.00),'WExcl'         )
-    model.add_lognormal_uncertainty('WExclb_rate',          math.log(20.00),'WExclb'        )
-    model.add_lognormal_uncertainty('WExclc_rate',          math.log(20.00),'WExclc'        )
-    model.add_lognormal_uncertainty('WExcll_rate',          math.log(20.00),'WExcll'        )
+    model.add_lognormal_uncertainty('WExclb_rate',          math.log(2.00), 'WExclb'        )
+    model.add_lognormal_uncertainty('WExclc_rate',          math.log(2.00), 'WExclc'        )
+    model.add_lognormal_uncertainty('WExcll_rate',          math.log(2.00), 'WExcll'        )
     model.add_lognormal_uncertainty('DY10To50_rate',        math.log(1.30), 'DY10To50'      )
     model.add_lognormal_uncertainty('DY50_rate',            math.log(1.30), 'DY50'          )
     model.add_lognormal_uncertainty('Ts_rate',              math.log(1.30), 'Ts'            )
@@ -57,12 +56,8 @@ def get_model():
     model.add_lognormal_uncertainty('WZ_rate',              math.log(1.30), 'WZ'            )
     model.add_lognormal_uncertainty('ZZ_rate',              math.log(1.30), 'ZZ'            )
     model.add_lognormal_uncertainty('WW_rate',              math.log(1.30), 'WW'            )
-    
-#    model.add_lognormal_uncertainty('QCDA_rate',            math.log(1.50), 'QCDA'          )
-#    model.add_lognormal_uncertainty('QCDB_rate',            math.log(1.50), 'QCDB'          )
-#    model.add_lognormal_uncertainty('QCDC_rate',            math.log(1.50), 'QCDC'          )
-#    model.add_lognormal_uncertainty('QCDD_rate',            math.log(1.50), 'QCDD'          )
-#    model.add_lognormal_uncertainty('W',                    math.log(2.00), 'WJets'         )
+
+    #model.distribution.set_distribution_parameters('WExclb_rate', mean=0.0,width=0.0, range =[0.0,0.0])
 
     for p in model.processes:
 	if p == 'QCDA': continue
@@ -93,7 +88,8 @@ print ("------------------------------------------------------------------")
 
 print ("Run MLE")
 
-signal_shapes = {benchmark: [benchmark]}
+#signal_shapes = {[benchmarks]}
+signal_shapes = model.signal_process_groups
                     
 fit = mle(model, input = 'data', n = 1, signal_process_groups = signal_shapes, with_covariance=False, with_error=True, ks = True, chi2 = True, options = options)
 
@@ -109,9 +105,9 @@ parameter_values = {}
 parameter_uncert = {}
 
 for p in model.get_parameters([benchmark]):
-        parameter_values[p] = fit[benchmark][p][0][0]
-        parameter_uncert[p] = fit[benchmark][p][0][1]
-        print [p, "%.4f" %parameter_values[p], "%.4f" %parameter_uncert[p] ]
+    parameter_values[p] = fit[benchmark][p][0][0]
+    parameter_uncert[p] = fit[benchmark][p][0][1]
+    print [p, "%.4f" %parameter_values[p], "%.4f" %parameter_uncert[p] ]
 
 print ("Create postfit histograms")
 
@@ -134,8 +130,8 @@ plot_exp, plot_obs = bayesian_limits(model, options = options)
 # to apply your own plotting routines or present the result in a text Table.
 
 
-plot_exp.write_txt('limits/bayesian_limits_expected_'+benchmark+'.txt')
-plot_obs.write_txt('limits/bayesian_limits_observed_'+benchmark+'.txt')
+plot_exp.write_txt('limits/bayesian_limits_expected_.txt')
+plot_obs.write_txt('limits/bayesian_limits_observed_.txt')
 
 # 2.b. CLs limits
 # calculate cls limit plots. The interface is very similar to bayesian_limits. However, there are a few
@@ -153,3 +149,4 @@ plot_obs.write_txt('limits/bayesian_limits_observed_'+benchmark+'.txt')
 ########plot_obs.write_txt('limits/cls_limits_observed_'+benchmark+'.txt')
 
 report.write_html('htmlout')
+
