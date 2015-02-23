@@ -49,8 +49,6 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
           distrib_signal.push_back( (TH1F*)distrib__Monotop);
       }
 
-      //if (inputdistrib == "mWT_mujets_ttbarregion_highpt" && (sampleList[i] == "QCD_A" || sampleList[i] == "QCD_B" || sampleList[i] == "QCD_C" || sampleList[i] == "QCD_D") ) continue;
-
       TString inputdistribname    = inputdistrib+"__"+sampleList[i];
       TH1F* tmp_inputdistrib      = (TH1F*)inputfile->Get(inputdistribname)->Clone() ;
       TString outputdistribname   = outputdistrib+"__"+thetaSampleList[i];
@@ -64,7 +62,9 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
 
       for(unsigned int j=0; j<stytList.size(); j++)
       {
-          if (i < signalList.size())
+          if( (stytList[j]=="mass" || stytList[j]=="scale" || stytList[j]=="matching" || stytList[j]=="toppt") && sampleList[i] != "TTbar_Madgraph") continue;
+
+          if (i < signalList.size() && stytList[j] != "mass" && stytList[j] != "scale" && stytList[j] != "matching")
           {
               TString signalnameplus                = inputdistrib+"__"+signalList[i]+"__"+stytList[j]+"__plus";
               TString signalnameminus               = inputdistrib+"__"+signalList[i]+"__"+stytList[j]+"__minus";
@@ -77,27 +77,59 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
               distrib_signal_sys.push_back( (TH1F*)tmp_inputsignaldistribplus );
               distrib_signal_sys.push_back( (TH1F*)tmp_inputsignaldistribminus);
           }
-          if(stytList[j] == "scale"    && sampleList[i] !="TT") continue;
-          if(stytList[j] == "matching" && sampleList[i] !="TT") continue;
-          //cout << "  " << (inputdistrib+"__"+sampleList[i]+"__"+stytList[j]) << endl;
 
-          TString inputdistribnameplus    = inputdistrib+"__"+sampleList[i]+"__"+stytList[j]+"__plus";
-          TString inputdistribnameminus   = inputdistrib+"__"+sampleList[i]+"__"+stytList[j]+"__minus";
-          TH1F* tmp_inputdistribplus      = (TH1F*)inputfile->Get(inputdistribnameplus)->Clone() ;
-          TH1F* tmp_inputdistribminus     = (TH1F*)inputfile->Get(inputdistribnameminus)->Clone() ;
-          TString outputdistribnameplus   = outputdistrib+"__"+thetaSampleList[i]+"__"+thetaStytList[j]+"__plus";
-          TString outputdistribnameminus  = outputdistrib+"__"+thetaSampleList[i]+"__"+thetaStytList[j]+"__minus";
-          tmp_inputdistribminus->SetName(outputdistribnameminus );
-          tmp_inputdistribplus->SetName(outputdistribnameplus   );
-          distrib_MC_sys.push_back( (TH1F*)tmp_inputdistribplus );
-          distrib_MC_sys.push_back( (TH1F*)tmp_inputdistribminus);
+          if( sampleList[i] == "TTbar_Madgraph" && (stytList[j] == "mass" || stytList[j] == "scale" || stytList[j] == "matching") )
+          {
+              TString inputdistribnameplus;
+              TString inputdistribnameminus;
+              if(stytList[j] == "mass")
+              {
+                  inputdistribnameplus    = inputdistrib+"__TTMSDecays_mass175_5";
+                  inputdistribnameminus   = inputdistrib+"__TTMSDecays_mass173_5";
+              }
+              else if(stytList[j] == "scale")
+              {
+                  inputdistribnameplus    = inputdistrib+"__TTMSDecays_scaleup";
+                  inputdistribnameminus   = inputdistrib+"__TTMSDecays_scaledown";
+              }
+              else if(stytList[j] == "matching")
+              {
+                  inputdistribnameplus    = inputdistrib+"__TTMSDecays_matchingup";
+                  inputdistribnameminus   = inputdistrib+"__TTMSDecays_matchingdown";
+              }
+              else cout << "There is a problem at line " << __LINE__ << " : Please check TTbar systematics" << endl;
+
+              TH1F* tmp_inputdistribplus      = (TH1F*)inputfile->Get(inputdistribnameplus)->Clone() ;
+              TH1F* tmp_inputdistribminus     = (TH1F*)inputfile->Get(inputdistribnameminus)->Clone() ;
+              TString outputdistribnameplus   = outputdistrib+"__"+thetaSampleList[i]+"__"+thetaStytList[j]+"__plus";
+              TString outputdistribnameminus  = outputdistrib+"__"+thetaSampleList[i]+"__"+thetaStytList[j]+"__minus";
+              tmp_inputdistribminus->SetName(outputdistribnameminus );
+              tmp_inputdistribplus->SetName(outputdistribnameplus   );
+              distrib_MC_sys.push_back( (TH1F*)tmp_inputdistribplus );
+              distrib_MC_sys.push_back( (TH1F*)tmp_inputdistribminus);
+          }
+          else
+          {
+              TString inputdistribnameplus    = inputdistrib+"__"+sampleList[i]+"__"+stytList[j]+"__plus";
+              TString inputdistribnameminus   = inputdistrib+"__"+sampleList[i]+"__"+stytList[j]+"__minus";
+              TH1F* tmp_inputdistribplus      = (TH1F*)inputfile->Get(inputdistribnameplus)->Clone() ;
+              TH1F* tmp_inputdistribminus     = (TH1F*)inputfile->Get(inputdistribnameminus)->Clone() ;
+              TString outputdistribnameplus   = outputdistrib+"__"+thetaSampleList[i]+"__"+thetaStytList[j]+"__plus";
+              TString outputdistribnameminus  = outputdistrib+"__"+thetaSampleList[i]+"__"+thetaStytList[j]+"__minus";
+              tmp_inputdistribminus->SetName(outputdistribnameminus );
+              tmp_inputdistribplus->SetName(outputdistribnameplus   );
+              distrib_MC_sys.push_back( (TH1F*)tmp_inputdistribplus );
+              distrib_MC_sys.push_back( (TH1F*)tmp_inputdistribminus);
+          }
       }
   }
 
   TString outputfilename;
   if      (inputdistrib == "mWT_mujets_Wregion_highpt")     outputfilename = "inputTheta_Wregion";
   else if (inputdistrib == "mWT_mujets_ttbarregion_highpt") outputfilename = "inputTheta_ttbarregion";
-  else if (inputdistrib == "mWT_mujets_signalregion")       outputfilename = "inputTheta_signalregion";
+  else if (inputdistrib == "mWT_mujets_signalregion")       outputfilename = "inputTheta_signalregion_mWT";
+  else if (inputdistrib == "MET_mujets_signalregion")       outputfilename = "inputTheta_signalregion_MET";
+  else if (inputdistrib == "DeltaPhiLJ_mujets_signalregion")outputfilename = "inputTheta_signalregion_DeltaPhiLJ";
   else                                                      outputfilename = "inputTheta";
 
   outputfilename+=".root";
@@ -135,8 +167,8 @@ void ProdTemplate(){
   std::vector<TString> thetaSignalList;
   //signalList.push_back("S1_1000_100"    );      thetaSignalList.push_back("S1res1000inv100" );
   //signalList.push_back("S1_1000_800"    );      thetaSignalList.push_back("S1res1000inv800" );
-  signalList.push_back("S1_500_100"     );      thetaSignalList.push_back("S1res500inv100"  );
-  //signalList.push_back("S4_400"         );      thetaSignalList.push_back("S4inv400"        );
+  //signalList.push_back("S1_500_100"     );      thetaSignalList.push_back("S1res500inv100"  );
+  signalList.push_back("S4_400"         );      thetaSignalList.push_back("S4inv400"        );
   //signalList.push_back("S4_600"         );      thetaSignalList.push_back("S4inv600"        );
   //signalList.push_back("S4_700"         );      thetaSignalList.push_back("S4inv700"        );
 
@@ -184,8 +216,9 @@ void ProdTemplate(){
   systlist.push_back("jer"              );          thetaSystlist.push_back("jer"            );
   systlist.push_back("metuncls"         );          thetaSystlist.push_back("metuncls"       );
 
-  //systlist.push_back("scale"          );
-  //systlist.push_back("matching"       );
+  systlist.push_back("mass"             );          thetaSystlist.push_back("mass"           );
+  systlist.push_back("scale"            );          thetaSystlist.push_back("scale"          );
+  systlist.push_back("matching"         );          thetaSystlist.push_back("matching"       );
   systlist.push_back("toppt"            );          thetaSystlist.push_back("toppt"          );
 
   systlist.push_back("btag"             );          thetaSystlist.push_back("btag"           );
@@ -202,8 +235,12 @@ void ProdTemplate(){
   systlist.push_back("btag__CSVLFStats2");          thetaSystlist.push_back("btagCSVLFStats2");
 */
 
-  ProdTemplate("mWT_mujets_signalregion", "mWTmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged_woWCorr.root" );
-  ProdTemplate("mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged_woWCorr.root" );
-  ProdTemplate("mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged_woWCorr.root" );
+  //ProdTemplate("mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root" );
+
+  ProdTemplate("MET_mujets_signalregion", "METmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root" );
+  ProdTemplate("DeltaPhiLJ_mujets_signalregion", "DeltaPhiLJmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root" );
+  ProdTemplate("mWT_mujets_signalregion", "mWTmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root" );
+  ProdTemplate("mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root" );
+  ProdTemplate("mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root" );
 
 }
