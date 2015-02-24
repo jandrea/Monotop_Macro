@@ -12,7 +12,7 @@
 #include <vector>
 
 
-void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TString> signalList, std::vector<TString> thetaSignalList, std::vector<TString> sampleList, std::vector<TString> thetaSampleList, std::vector<TString> stytList, std::vector<TString> thetaStytList, TString intputfilename){
+void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TString> signalList, std::vector<TString> thetaSignalList, std::vector<TString> sampleList, std::vector<TString> thetaSampleList, std::vector<TString> stytList, std::vector<TString> thetaStytList, TString intputfilename, std::vector<double> scaleCMStoATLAS, bool rescaleToATLAS ){
 
 
   TFile * inputfile	  = new TFile( intputfilename.Data() );
@@ -44,7 +44,7 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
       {
           TString signalname          = inputdistrib+"__"+signalList[i];
           TH1F * distrib__Monotop     = (TH1F*)inputfile->Get(signalname)->Clone();
-          distrib__Monotop->Scale(1.372/0.6);
+          if(rescaleToATLAS) distrib__Monotop->Scale(scaleCMStoATLAS[i]);
           TString outputsignalname    = outputdistrib+"__"+thetaSignalList[i];
           distrib__Monotop->SetName(outputsignalname );
           distrib_signal.push_back( (TH1F*)distrib__Monotop);
@@ -71,8 +71,8 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
               TString signalnameminus               = inputdistrib+"__"+signalList[i]+"__"+stytList[j]+"__minus";
               TH1F* tmp_inputsignaldistribminus     = (TH1F*)inputfile->Get(signalnameplus)->Clone() ;
               TH1F* tmp_inputsignaldistribplus      = (TH1F*)inputfile->Get(signalnameminus)->Clone() ;
-              tmp_inputsignaldistribminus->Scale(1.372/0.6);
-              tmp_inputsignaldistribplus->Scale(1.372/0.6);
+              if(rescaleToATLAS) tmp_inputsignaldistribminus->Scale(scaleCMStoATLAS[i]);
+              if(rescaleToATLAS) tmp_inputsignaldistribplus->Scale(scaleCMStoATLAS[i]);
               TString outputsignaldistribnameplus   = outputdistrib+"__"+thetaSignalList[i]+"__"+thetaStytList[j]+"__plus";
               TString outputsignaldistribnameminus  = outputdistrib+"__"+thetaSignalList[i]+"__"+thetaStytList[j]+"__minus";
               tmp_inputsignaldistribminus->SetName(outputsignaldistribnameminus );
@@ -165,15 +165,17 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
 void ProdTemplate(){
 
   bool useWFlavourSplitting = true;
+  bool rescaleToATLAS       = true;
 
   std::vector<TString> signalList;
   std::vector<TString> thetaSignalList;
-  //signalList.push_back("S1_1000_100"    );      thetaSignalList.push_back("S1res1000inv100" );
-  //signalList.push_back("S1_1000_800"    );      thetaSignalList.push_back("S1res1000inv800" );
-  //signalList.push_back("S1_500_100"     );      thetaSignalList.push_back("S1res500inv100"  );
-  signalList.push_back("S4_400"         );      thetaSignalList.push_back("S4inv400"        );
-  //signalList.push_back("S4_600"         );      thetaSignalList.push_back("S4inv600"        );
-  //signalList.push_back("S4_700"         );      thetaSignalList.push_back("S4inv700"        );
+  std::vector<double>  scaleCMStoATLAS;
+  //signalList.push_back("S1_1000_100"    );    thetaSignalList.push_back("S1res1000inv100" );
+  //signalList.push_back("S1_1000_800"    );    thetaSignalList.push_back("S1res1000inv800" );
+  //signalList.push_back("S1_500_100"     );    thetaSignalList.push_back("S1res500inv100"  );
+  signalList.push_back("S4_400"         );    thetaSignalList.push_back("S4inv400"        );   scaleCMStoATLAS.push_back(1.372/0.60);
+  signalList.push_back("S4_600"         );    thetaSignalList.push_back("S4inv600"        );   scaleCMStoATLAS.push_back(0.3192/0.14);
+  signalList.push_back("S4_700"         );    thetaSignalList.push_back("S4inv700"        );   scaleCMStoATLAS.push_back(0.1698/0.074);
 
 
   std::vector<TString> sampleList;
@@ -244,14 +246,14 @@ void ProdTemplate(){
   // ------------------------------------------------------- //
 
 
-  ProdTemplate("mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root" );
-  ProdTemplate("MET_mujets_Selectedsignalregion", "METmujetsSelectedSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root" );
-  ProdTemplate("DeltaPhiLJ_mujets_Selectedsignalregion", "DeltaPhiLJmujetsSelectedSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root" );
+  ProdTemplate("mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS );
+  ProdTemplate("MET_mujets_Selectedsignalregion", "METmujetsSelectedSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
+  ProdTemplate("DeltaPhiLJ_mujets_Selectedsignalregion", "DeltaPhiLJmujetsSelectedSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
 
-  //ProdTemplate("MET_mujets_signalregion", "METmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root" );
-  //ProdTemplate("DeltaPhiLJ_mujets_signalregion", "DeltaPhiLJmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root" );
-  //ProdTemplate("mWT_mujets_signalregion", "mWTmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root" );
-  ProdTemplate("mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root" );
-  ProdTemplate("mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root" );
+  //ProdTemplate("MET_mujets_signalregion", "METmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
+  //ProdTemplate("DeltaPhiLJ_mujets_signalregion", "DeltaPhiLJmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
+  //ProdTemplate("mWT_mujets_signalregion", "mWTmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
+  ProdTemplate("mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
+  ProdTemplate("mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
 
 }
