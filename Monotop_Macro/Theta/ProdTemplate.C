@@ -10,7 +10,44 @@
 #include "THStack.h"
 #include <iostream>
 #include <vector>
+/*
+TH1F* getQCDsystematic(TString plusORminus, TString inputdistrib, TString outputdistrib)
+{
+    TFile* qcdfile;
+    qcdfile	  = new TFile("../TreeReader/outputroot_withSyst/histo_merged.root");
+    TString QCDAname, QCDBname, QCDCname, QCDDname;
 
+    if (plusORminus != "")
+    {
+        QCDAname   = inputdistrib+"__QCD_A__"+plusORminus;
+        QCDBname   = inputdistrib+"__QCD_B__"+plusORminus;
+        QCDCname   = inputdistrib+"__QCD_C__"+plusORminus;
+        QCDDname   = inputdistrib+"__QCD_D__"+plusORminus;
+    }
+    else
+    {
+        QCDAname   = inputdistrib+"__QCD_A";
+        QCDBname   = inputdistrib+"__QCD_B";
+        QCDCname   = inputdistrib+"__QCD_C";
+        QCDDname   = inputdistrib+"__QCD_D";
+    }
+
+    TH1F * distrib__QCDA  	= (TH1F*)qcdfile->Get(QCDAname)->Clone();
+    TH1F * distrib__QCDB  	= (TH1F*)qcdfile->Get(QCDBname)->Clone();
+    TH1F * distrib__QCDC  	= (TH1F*)qcdfile->Get(QCDCname)->Clone();
+    TH1F * distrib__QCDD  	= (TH1F*)qcdfile->Get(QCDDname)->Clone();
+
+    TH1F * distrib__QCD  	= (TH1F*)distrib__QCDA;
+           distrib__QCD->Add(distrib__QCDB);
+           distrib__QCD->Add(distrib__QCDC);
+           distrib__QCD->Add(distrib__QCDD);
+
+    if (plusORminus != "")  distrib__QCD->SetName((outputdistrib+"__QCD__iso__"+plusORminus).Data());
+    else                    distrib__QCD->SetName((outputdistrib+"__QCD").Data());
+
+    return distrib__QCD;
+}
+*/
 
 void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TString> signalList, std::vector<TString> thetaSignalList, std::vector<TString> sampleList, std::vector<TString> thetaSampleList, std::vector<TString> stytList, std::vector<TString> thetaStytList, TString intputfilename, std::vector<double> scaleCMStoATLAS, bool rescaleToATLAS ){
 
@@ -31,6 +68,27 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
          distrib__DATA->Add(distrib__RUNB);
          distrib__DATA->Add(distrib__RUNC);
          distrib__DATA->Add(distrib__RUND);
+/*
+  TString QCDAname         = inputdistrib+"__QCD_A";
+  TString QCDBname         = inputdistrib+"__QCD_B";
+  TString QCDCname         = inputdistrib+"__QCD_C";
+  TString QCDDname         = inputdistrib+"__QCD_D";
+
+  TH1F * distrib__QCDA  	= (TH1F*)inputfile->Get(QCDAname)->Clone();
+  TH1F * distrib__QCDB  	= (TH1F*)inputfile->Get(QCDBname)->Clone();
+  TH1F * distrib__QCDC  	= (TH1F*)inputfile->Get(QCDCname)->Clone();
+  TH1F * distrib__QCDD  	= (TH1F*)inputfile->Get(QCDDname)->Clone();
+
+  TH1F * distrib__QCD  	= (TH1F*)distrib__QCDA;
+         distrib__QCD->Add(distrib__QCDB);
+         distrib__QCD->Add(distrib__QCDC);
+         distrib__QCD->Add(distrib__QCDD);
+  distrib__QCD->SetName((outputdistrib+"__QCD").Data());
+*/
+
+  TH1F * distrib__QCD         	= getQCDsystematic(""     , inputdistrib, outputdistrib);
+  //TH1F * distrib__QCD__plus  	= getQCDsystematic("plus" , inputdistrib, outputdistrib);
+  //TH1F * distrib__QCD__minus  	= getQCDsystematic("minus", inputdistrib, outputdistrib);
 
   std::vector< TH1F* > distrib_MC;
   std::vector< TH1F* > distrib_MC_sys;
@@ -49,7 +107,6 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
           distrib__Monotop->SetName(outputsignalname );
           distrib_signal.push_back( (TH1F*)distrib__Monotop);
       }
-
       TString inputdistribname    = inputdistrib+"__"+sampleList[i];
       TH1F* tmp_inputdistrib      = (TH1F*)inputfile->Get(inputdistribname)->Clone() ;
       TString outputdistribname   = outputdistrib+"__"+thetaSampleList[i];
@@ -59,7 +116,7 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
 
   for(unsigned int i=0; i<sampleList.size(); i++)
   {
-      if (sampleList[i] == "QCD_A" || sampleList[i] == "QCD_B" || sampleList[i] == "QCD_C" || sampleList[i] == "QCD_D") continue;
+      //if (sampleList[i] == "QCD_A" || sampleList[i] == "QCD_B" || sampleList[i] == "QCD_C" || sampleList[i] == "QCD_D") continue;
 
       for(unsigned int j=0; j<stytList.size(); j++)
       {
@@ -140,22 +197,31 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
   TFile * outputfile = new TFile(  outputfilename.Data(), "recreate" );
   outputfile->cd();
 
+  //distrib__DATA->Rebin(23);
   distrib__DATA->Write((outputdistrib+"__DATA").Data());
+  //distrib__QCD->Rebin(23);
+  distrib__QCD->Write();
+  distrib__QCD__plus->Write();
+  distrib__QCD__minus->Write();
 
   for(unsigned int i=0; i<distrib_MC.size(); i++)
   {
+      //distrib_MC[i]->Rebin(23);
       distrib_MC[i]->Write();
   }
   for(unsigned int i=0; i<distrib_signal.size(); i++)
   {
+      //distrib_signal[i]->Rebin(23);
       distrib_signal[i]->Write();
   }
   for(unsigned int i=0; i<distrib_signal_sys.size(); i++)
   {
+      //distrib_signal_sys[i]->Rebin(23);
       distrib_signal_sys[i]->Write();
   }
   for(unsigned int i=0; i<distrib_MC_sys.size(); i++)
   {
+      //distrib_MC_sys[i]->Rebin(23);
       distrib_MC_sys[i]->Write();
   }
 
@@ -165,17 +231,23 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
 void ProdTemplate(){
 
   bool useWFlavourSplitting = true;
-  bool rescaleToATLAS       = true;
+  bool rescaleToATLAS       = false;
 
   std::vector<TString> signalList;
   std::vector<TString> thetaSignalList;
   std::vector<double>  scaleCMStoATLAS;
+  signalList.push_back("S1_1300_100_fullSim"   );    thetaSignalList.push_back("S1res1300inv100");
+  //signalList.push_back("S1_1100_100_fullSim"   );    thetaSignalList.push_back("S1res1100inv100");
+  //signalList.push_back("S1_900_100_fullSim"    );    thetaSignalList.push_back("S1res900inv100" );
+  //signalList.push_back("S1_700_100_fullSim"    );    thetaSignalList.push_back("S1res700inv100" );
+  //signalList.push_back("S1_500_100_fullSim"    );    thetaSignalList.push_back("S1res500inv100" );
+  //signalList.push_back("S1_300_100_fullSim"    );    thetaSignalList.push_back("S1res300inv100" );
   //signalList.push_back("S1_1000_100"    );    thetaSignalList.push_back("S1res1000inv100" );
   //signalList.push_back("S1_1000_800"    );    thetaSignalList.push_back("S1res1000inv800" );
-  //signalList.push_back("S1_500_100"     );    thetaSignalList.push_back("S1res500inv100"  );
-  signalList.push_back("S4_400"         );    thetaSignalList.push_back("S4inv400"        );   scaleCMStoATLAS.push_back(1.372/0.60);
-  signalList.push_back("S4_600"         );    thetaSignalList.push_back("S4inv600"        );   scaleCMStoATLAS.push_back(0.3192/0.14);
-  signalList.push_back("S4_700"         );    thetaSignalList.push_back("S4inv700"        );   scaleCMStoATLAS.push_back(0.1698/0.074);
+  //signalList.push_back("S1_500_100"     );    thetaSignalList.push_back("exS1res500inv100"  );   scaleCMStoATLAS.push_back(1.001/5.58);
+  //signalList.push_back("S4_400"         );    thetaSignalList.push_back("S4inv400"        );   scaleCMStoATLAS.push_back(1.372/0.60);
+  //signalList.push_back("S4_600"         );    thetaSignalList.push_back("S4inv600"        );   scaleCMStoATLAS.push_back(0.3192/0.14);
+  //signalList.push_back("S4_700"         );    thetaSignalList.push_back("S4inv700"        );   scaleCMStoATLAS.push_back(0.1698/0.074);
 
 
   std::vector<TString> sampleList;
@@ -203,10 +275,10 @@ void ProdTemplate(){
   sampleList.push_back("WZ"                 );      thetaSampleList.push_back("WZ"              );
   sampleList.push_back("ZZ"                 );      thetaSampleList.push_back("ZZ"              );
   sampleList.push_back("WW"                 );      thetaSampleList.push_back("WW"              );
-  sampleList.push_back("QCD_A"              );      thetaSampleList.push_back("QCDA"            );
-  sampleList.push_back("QCD_B"              );      thetaSampleList.push_back("QCDB"            );
-  sampleList.push_back("QCD_C"              );      thetaSampleList.push_back("QCDC"            );
-  sampleList.push_back("QCD_D"              );      thetaSampleList.push_back("QCDD"            );
+  //sampleList.push_back("QCD_A"              );      thetaSampleList.push_back("QCDA"            );
+  //sampleList.push_back("QCD_B"              );      thetaSampleList.push_back("QCDB"            );
+  //sampleList.push_back("QCD_C"              );      thetaSampleList.push_back("QCDC"            );
+  //sampleList.push_back("QCD_D"              );      thetaSampleList.push_back("QCDD"            );
 
 
   std::vector<TString> systlist;
@@ -222,8 +294,8 @@ void ProdTemplate(){
   systlist.push_back("metuncls"         );          thetaSystlist.push_back("metuncls"       );
 
   //systlist.push_back("mass"             );          thetaSystlist.push_back("mass"           );
-  //systlist.push_back("scale"            );          thetaSystlist.push_back("scale"          );
-  //systlist.push_back("matching"         );          thetaSystlist.push_back("matching"       );
+  systlist.push_back("scale"            );          thetaSystlist.push_back("scale"          );
+  systlist.push_back("matching"         );          thetaSystlist.push_back("matching"       );
   systlist.push_back("toppt"            );          thetaSystlist.push_back("toppt"          );
 
   systlist.push_back("btag"             );          thetaSystlist.push_back("btag"           );
@@ -247,13 +319,14 @@ void ProdTemplate(){
 
 
   ProdTemplate("mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS );
-  ProdTemplate("MET_mujets_Selectedsignalregion", "METmujetsSelectedSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
-  ProdTemplate("DeltaPhiLJ_mujets_Selectedsignalregion", "DeltaPhiLJmujetsSelectedSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
+  ////ProdTemplate("MET_mujets_Selectedsignalregion", "METmujetsSelectedSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
+  ////ProdTemplate("DeltaPhiLJ_mujets_Selectedsignalregion", "DeltaPhiLJmujetsSelectedSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
+  ////ProdTemplate("ptW_mujets_Selectedsignalregion", "ptWmujetsSelectedSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
 
   //ProdTemplate("MET_mujets_signalregion", "METmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
   //ProdTemplate("DeltaPhiLJ_mujets_signalregion", "DeltaPhiLJmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
   //ProdTemplate("mWT_mujets_signalregion", "mWTmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
-  ProdTemplate("mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
-  ProdTemplate("mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
+  ////ProdTemplate("mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
+  ////ProdTemplate("mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS  );
 
 }

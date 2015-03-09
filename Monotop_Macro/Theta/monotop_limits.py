@@ -2,10 +2,10 @@ options = Options()
 
 options.set('minimizer', 'strategy', 'newton_vanilla')
 
-#benchmark='S1res500inv100'
+benchmark='S1res1300inv100'
 #benchmark='S1res1000inv100'
 #benchmark='S1res1000inv800'
-benchmark='S4inv400'
+#benchmark='S4inv400'
 #benchmark='S4inv600'
 #benchmark='S4inv700'
 #benchmarks='S*inv*'
@@ -29,7 +29,7 @@ def get_model():
 
     # define what the signal processes are. All other processes are assumed to make up the 
     # 'background-only' model.
-    model.set_signal_processes('S4*')
+    model.set_signal_processes('S1*')
 
 
 
@@ -60,6 +60,7 @@ def get_model():
     #model.distribution.set_distribution_parameters('WExclb_rate', mean=0.0,width=0.0, range =[0.0,0.0])
 
     for p in model.processes:
+	if p == 'QCD' : continue
 	if p == 'QCDA': continue
 	if p == 'QCDB': continue
 	if p == 'QCDC': continue
@@ -67,6 +68,7 @@ def get_model():
 	model.add_lognormal_uncertainty('lumi',        math.log(1.026), p)
 
     for q in model.processes:
+        if q == 'QCD' : model.add_lognormal_uncertainty('QCDA_rate',            math.log(1.50), 'QCD'           )
         if q == 'QCDA': model.add_lognormal_uncertainty('QCDA_rate',            math.log(1.50), 'QCDA'          )
         if q == 'QCDB': model.add_lognormal_uncertainty('QCDB_rate',            math.log(1.50), 'QCDB'          )
         if q == 'QCDC': model.add_lognormal_uncertainty('QCDC_rate',            math.log(1.50), 'QCDC'          )
@@ -88,8 +90,11 @@ print ("------------------------------------------------------------------")
 
 print ("Run MLE")
 
-#signal_shapes = {[benchmarks]}
-signal_shapes = model.signal_process_groups
+#signal_shapes = {'S4inv400':['S4inv400'],'S4inv600':['S4inv600'],'S4inv700':['S4inv700']}
+signal_shapes = {benchmark:[benchmark]}
+#signal_shapes = {'S1res500inv100':['S1res500inv100']}
+#signal_shapes = {'S4inv400':['S4inv400']}
+#signal_shapes = model.signal_process_groups
                     
 fit = mle(model, input = 'data', n = 1, signal_process_groups = signal_shapes, with_covariance=False, with_error=True, ks = True, chi2 = True, options = options)
 
@@ -121,7 +126,7 @@ write_histograms_to_rootfile(histos, 'histos-mle.root')
 # process all signals defined as signal processes before; see Section "Common Parameters"
 # on the theta auto intro doxygen page for details)
 
-plot_exp, plot_obs = bayesian_limits(model, options = options)
+plot_exp, plot_obs = bayesian_limits(model, options = options, n_toy = 1000, n_data=200)
 
 # plot_exp and plot_obs are instances of plotutil.plotdata. they contain x/y values and
 # bands. You can do many things with these objects such as inspect the x/y/ban

@@ -7,10 +7,11 @@
 using namespace std;
 
 
-void TreeReader::Loop(short int CorrOption, std::vector<TString> datalist, std::vector<TString> datalist_longnames, std::vector<TString> mclist, TString sample, std::vector<TString> thesystlist, TString flavtag)
+void TreeReader::Loop(short int CorrOption, std::vector<TString> datalist, std::vector<TString> datalist_longnames, std::vector<TString> mclist, TString sample, std::vector<TString> thesystlist, TString flavtag, short int QCDsyst)
 {
    TString thesample  = sample;
    TFile * theoutputfile = 0;
+   isQCD    = (sample == "QCD_A"  || sample == "QCD_B"  || sample == "QCD_C"  || sample == "QCD_D" );
    isW      = (sample == "WJets"  || sample == "W0Jets" || sample == "W1Jets" || sample == "W2Jets" || sample == "W3Jets" || sample == "W4Jets");
    isWExcl  = (sample == "W0Jets" || sample == "W1Jets" || sample == "W2Jets" || sample == "W3Jets" || sample == "W4Jets");
    isWIncl  = (sample == "WJets");
@@ -20,16 +21,27 @@ void TreeReader::Loop(short int CorrOption, std::vector<TString> datalist, std::
    else if ( isW && flavtag == "l") sampleroot = thesample+"_lflav";
    else                             sampleroot = thesample;
 
-   if      (CorrOption == 0)  theoutputfile = new TFile( ("outputroot_QCDcorr/histofile_"     +sampleroot+".root" ).Data() , "recreate");
+   double qcdIsoCut = 0.5;
+
+   //if      (CorrOption == 0)  theoutputfile = new TFile( ("outputroot_QCDcorr/histofile_"     +sampleroot+".root" ).Data() , "recreate");
+   if      (CorrOption == 0)  theoutputfile = new TFile( ("outputroot_QCDcorr_iso0p5/histofile_"     +sampleroot+".root" ).Data() , "recreate");
+   //if      (CorrOption == 0)  theoutputfile = new TFile( ("outputroot_QCDcorr_iso0p6/histofile_"     +sampleroot+".root" ).Data() , "recreate");
    else if (CorrOption == 1)  theoutputfile = new TFile( ("outputroot_woQCDcorr/histofile_"   +sampleroot+".root" ).Data() , "recreate");
    else if (CorrOption == 2)  theoutputfile = new TFile( ("outputroot_withQCDcorr/histofile_" +sampleroot+".root" ).Data() , "recreate");
-   else if (CorrOption == 3)  theoutputfile = new TFile( ("outputroot_withSyst/histofile_"    +sampleroot+".root" ).Data() , "recreate");
+   else if (CorrOption == 3)
+   {
+       if (QCDsyst == -1)       { theoutputfile = new TFile( ("outputroot_withSyst/histofile_"    +sampleroot+"__minus.root" ).Data() , "recreate"); qcdIsoCut = 0.6; }
+       else if (QCDsyst == 1)   { theoutputfile = new TFile( ("outputroot_withSyst/histofile_"    +sampleroot+"__plus.root"  ).Data() , "recreate"); qcdIsoCut = 0.4; }
+       else                       theoutputfile = new TFile( ("outputroot_withSyst/histofile_"    +sampleroot+".root"        ).Data() , "recreate");
+   }
    else cout << "ERROR: Wrong value of CorrOption or flavtag! Allowed values: 0,1,2,3 for corrOption and Incl, b, c, l for flavtag (if CorrOption == 3)" << endl;
 
    for(unsigned int i=0; i< systlist.size(); i++){
      TString samplename = "";
-     if( systlist[i]== "") samplename = thesample;
-     else                  samplename = thesample+"__"+systlist[i];
+     if(      systlist[i] == "" && isQCD && QCDsyst == -1) samplename = thesample+"__minus";
+     else if( systlist[i] == "" && isQCD && QCDsyst == 1 ) samplename = thesample+"__plus";
+     else if( systlist[i] == "")                           samplename = thesample;
+     else                                                  samplename = thesample+"__"+systlist[i];
 
      bool     firstinit = false;
      if(i==0) firstinit = true;
@@ -123,6 +135,9 @@ void TreeReader::Loop(short int CorrOption, std::vector<TString> datalist, std::
       //If the event content differs from the output filename then reject the event
       //---------------------------------------------------------------------------
       if(CorrOption != 0 && isW && !match) continue;
+      if(CorrOption == 0 && smalltree_lept_iso[0] < 0.5) continue;
+      if(CorrOption == 3 && isQCD && smalltree_lept_iso[0] < qcdIsoCut) continue;
+
 
       double SFtrigger      = 1;
       double SFtriggerError = 0;
@@ -153,10 +168,17 @@ void TreeReader::Loop(short int CorrOption, std::vector<TString> datalist, std::
       //"leptup", "leptdown", "trigup", "trigdown", "PDFup", "PDFdown"
       //"jesup", "jesdown", "jerup", "jerdown", "metunclsup", "metunclsdown"
       //----------------------------------------------------------------------
-      if      (CorrOption == 0)                                                            applyEventSel(CorrOption, SF_QCD_W, SF_QCD_B, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, thechannel, systlist[0],     thesample, flavtag);
-      else if (CorrOption == 1)                                                            applyEventSel(CorrOption, SF_QCD_W, SF_QCD_B, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, thechannel, systlist[0],     thesample, flavtag);
-      else if (CorrOption == 2)                                                            applyEventSel(CorrOption, SF_QCD_W, SF_QCD_B, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, thechannel, systlist[0],     thesample, flavtag);
-      else if (CorrOption == 3) for(unsigned int isyst=0; isyst< systlist.size(); isyst++) applyEventSel(CorrOption, SF_QCD_W, SF_QCD_B, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, thechannel, systlist[isyst], thesample, flavtag);
+      if      (CorrOption == 0)         applyEventSel(CorrOption, SF_QCD_W, SF_QCD_B, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, thechannel, systlist[0],     thesample, flavtag);
+      else if (CorrOption == 1)         applyEventSel(CorrOption, SF_QCD_W, SF_QCD_B, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, thechannel, systlist[0],     thesample, flavtag);
+      else if (CorrOption == 2)         applyEventSel(CorrOption, SF_QCD_W, SF_QCD_B, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, thechannel, systlist[0],     thesample, flavtag);
+      else if (CorrOption == 3)
+      {
+          for(unsigned int isyst=0; isyst< systlist.size(); isyst++)
+          {
+              //if( (systlist[isyst] == "toppt__plus" || systlist[isyst] == "toppt__minus") && thesample != "TTbar_Madgraph" ) continue;
+              applyEventSel(CorrOption, SF_QCD_W, SF_QCD_B, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, thechannel, systlist[isyst], thesample, flavtag);
+          }
+      }
       else cout << "ERROR: Wrong value of CorrOption! Allowed valued: 0,1,2,3" << endl;
 
 
@@ -397,6 +419,8 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_W, double SF_
          if(sample == "QCD_A" || sample == "QCD_B" || sample == "QCD_C" || sample == "QCD_D")       evtweight = 1;
      }
 
+     if (!isfinite(evtweight)) return false;
+
      if(smalltree_lept_pt[0] > 33 && fabs(smalltree_lept_eta[0]) < 2.1 ){
 
        TLorentzVector lept, met, leadingJet;
@@ -404,7 +428,6 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_W, double SF_
        met.SetPtEtaPhiM(met_pt, 0, met_phi , 0.);
 
        if(iter_jets>0) leadingJet.SetPtEtaPhiM(jet_pt[0], jet_eta[0], jet_phi[0], 0);
-
 
        int njets=0;
        int nbjets = 0;
@@ -454,8 +477,8 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_W, double SF_
        TLorentzVector neutrino;
        neutrino.SetPxPyPzE( met.Px(), met.Py(), sol1, neutrE);
 
-       TLorentzVector theWcand = neutrino + lept;
-
+       TLorentzVector theWcand = neutrino   + lept;
+       TLorentzVector jetLept  = leadingJet + lept;
 
        fillHisto(thechannel, "NJet",       "afterleptsel",  thesample, systtype,   iter_jets, 		        evtweight, flavtag);
        fillHisto(thechannel, "NBJet",      "afterleptsel",  thesample, systtype,   nbjets, 		            evtweight, flavtag);
@@ -520,7 +543,7 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_W, double SF_
           if(sample == "QCD_A" || sample == "QCD_B" || sample == "QCD_C" || sample == "QCD_D")                      evtweight = SF_QCD_B;
           fillHisto(thechannel, "mWT",        "1bjetregion",  thesample, systtype,   mTW,    			            evtweight, flavtag);
           fillHisto(thechannel, "MET",        "1bjetregion",  thesample, systtype,   met_pt, 			            evtweight, flavtag);
-          fillHisto(thechannel, "DeltaPhiLJ", "1bjetregion",  thesample, systtype,   lept.DeltaPhi(leadingJet),     evtweight, flavtag);
+          fillHisto(thechannel, "DeltaPhiLJ", "1bjetregion",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)),evtweight, flavtag);
           fillHisto(thechannel, "DeltaRLJ",   "1bjetregion",  thesample, systtype,   lept.DeltaR(leadingJet), 	    evtweight, flavtag);
           fillHisto(thechannel, "LeptPt",     "1bjetregion",  thesample, systtype,   smalltree_lept_pt[0], 		    evtweight, flavtag);
           fillHisto(thechannel, "LeptEta",    "1bjetregion",  thesample, systtype,   smalltree_lept_eta[0], 	    evtweight, flavtag);
@@ -540,14 +563,15 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_W, double SF_
                 fillHisto(thechannel, "JetPt",  "Wregion_highpt",  thesample, systtype,  jet_pt[ijet] ,                 evtweight, flavtag);
                 fillHisto(thechannel, "JetEta", "Wregion_highpt",  thesample, systtype,  jet_eta[ijet] ,                evtweight, flavtag);
             }
-            fillHisto(thechannel, "ptW",        "Wregion_highpt",  thesample, systtype,   theWcand.Pt(),       	        evtweight, flavtag);
-            fillHisto(thechannel, "mWT_full",   "Wregion_highpt",  thesample, systtype,   mTW,    			            evtweight, flavtag);
-            fillHisto(thechannel, "mWT",        "Wregion_highpt",  thesample, systtype,   mTW,    			            evtweight, flavtag);
-            fillHisto(thechannel, "MET",        "Wregion_highpt",  thesample, systtype,   met_pt, 			            evtweight, flavtag);
-            fillHisto(thechannel, "DeltaPhiLJ", "Wregion_highpt",  thesample, systtype,   lept.DeltaPhi(leadingJet), 	evtweight, flavtag);
-            fillHisto(thechannel, "DeltaRLJ",   "Wregion_highpt",  thesample, systtype,   lept.DeltaR(leadingJet), 	    evtweight, flavtag);
-            fillHisto(thechannel, "LeptPt",     "Wregion_highpt",  thesample, systtype,   smalltree_lept_pt[0], 		evtweight, flavtag);
-            fillHisto(thechannel, "LeptEta",    "Wregion_highpt",  thesample, systtype,   smalltree_lept_eta[0], 		evtweight, flavtag);
+            fillHisto(thechannel, "ptW",        "Wregion_highpt",  thesample, systtype,   theWcand.Pt(),       	            evtweight, flavtag);
+            fillHisto(thechannel, "mWT_full",   "Wregion_highpt",  thesample, systtype,   mTW,    			                evtweight, flavtag);
+            fillHisto(thechannel, "mWT",        "Wregion_highpt",  thesample, systtype,   mTW,    			                evtweight, flavtag);
+            fillHisto(thechannel, "MET",        "Wregion_highpt",  thesample, systtype,   met_pt, 			                evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiLJ", "Wregion_highpt",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)), 	evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiLMet","Wregion_highpt", thesample, systtype,   abs(lept.DeltaPhi(met)),          evtweight, flavtag);
+            fillHisto(thechannel, "DeltaRLJ",   "Wregion_highpt",  thesample, systtype,   lept.DeltaR(leadingJet), 	        evtweight, flavtag);
+            fillHisto(thechannel, "LeptPt",     "Wregion_highpt",  thesample, systtype,   smalltree_lept_pt[0], 		    evtweight, flavtag);
+            fillHisto(thechannel, "LeptEta",    "Wregion_highpt",  thesample, systtype,   smalltree_lept_eta[0], 		    evtweight, flavtag);
           }
 	    }
 
@@ -559,8 +583,8 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_W, double SF_
           if(sample == "QCD_A" || sample == "QCD_B" || sample == "QCD_C" || sample == "QCD_D")          evtweight = SF_QCD_S;
           fillHisto(thechannel, "mWT_full",     "signalregion",  thesample, systtype,   mTW,    		evtweight, flavtag);
           // Manage overflows in SR - put higher values in the last bin by hands
-          if(mTW    >= 300) mTW    = 299.95;
-          if(met_pt >= 300) met_pt = 299.95;
+          if(mTW    >= 500) mTW    = 499.95;
+          if(met_pt >= 500) met_pt = 499.95;
           if(mTW > 40)
           {
             for(int ijet=0; ijet<iter_jets; ijet++)
@@ -569,13 +593,93 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_W, double SF_
                 fillHisto(thechannel, "JetPt",  "signalregion",  thesample, systtype,  jet_pt[ijet] ,             evtweight, flavtag);
                 fillHisto(thechannel, "JetEta", "signalregion",  thesample, systtype,  jet_eta[ijet] ,            evtweight, flavtag);
             }
-            fillHisto(thechannel, "ptW",        "signalregion",  thesample, systtype,   theWcand.Pt(),       	    evtweight, flavtag);
-            fillHisto(thechannel, "mWT",        "signalregion",  thesample, systtype,   mTW,    			        evtweight, flavtag);
-            fillHisto(thechannel, "MET",        "signalregion",  thesample, systtype,   met_pt, 			        evtweight, flavtag);
-            fillHisto(thechannel, "DeltaPhiLJ", "signalregion",  thesample, systtype,   lept.DeltaPhi(leadingJet),  evtweight, flavtag);
-            fillHisto(thechannel, "DeltaRLJ",   "signalregion",  thesample, systtype,   lept.DeltaR(leadingJet), 	evtweight, flavtag);
+            fillHisto(thechannel, "ptW",        "signalregion",  thesample, systtype,   theWcand.Pt(),       	         evtweight, flavtag);
+            fillHisto(thechannel, "mWT",        "signalregion",  thesample, systtype,   mTW,    			             evtweight, flavtag);
+            fillHisto(thechannel, "MET",        "signalregion",  thesample, systtype,   met_pt, 			             evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiLJ", "signalregion",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)),  evtweight, flavtag);
+            fillHisto(thechannel, "DeltaRLJ",   "signalregion",  thesample, systtype,   lept.DeltaR(leadingJet), 	     evtweight, flavtag);
           }
         }
+
+
+        //***********************************
+        //FCNC signal enriched region
+        //***********************************
+        if(jetsup70 && njets == 1 && nbjets == 1 ){
+
+          if(sample == "QCD_A" || sample == "QCD_B" || sample == "QCD_C" || sample == "QCD_D")          evtweight = SF_QCD_S;
+          fillHisto(thechannel, "mWT_full",     "Selectedsignalregion",  thesample, systtype,   mTW,    		evtweight, flavtag);
+          // Manage overflows in SR - put higher values in the last bin by hands
+          if(mTW    >= 500) mTW    = 499.95;
+          if(met_pt >= 500) met_pt = 499.95;
+          if(mTW > 40 && abs(lept.DeltaPhi(leadingJet)) < 1.7 && met_pt > 100 && theWcand.Pt() > 50)
+          {
+            for(int ijet=0; ijet<iter_jets; ijet++)
+            {
+                if(jet_pt[ijet] < 30 || fabs(jet_eta[ijet]) > 2.4) continue;
+                fillHisto(thechannel, "JetPt",      "Selectedsignalregion",  thesample, systtype,  jet_pt[ijet] ,                   evtweight, flavtag);
+                fillHisto(thechannel, "JetEta",     "Selectedsignalregion",  thesample, systtype,  jet_eta[ijet] ,                  evtweight, flavtag);
+            }
+            fillHisto(thechannel, "ptW",            "Selectedsignalregion",  thesample, systtype,   theWcand.Pt(),       	        evtweight, flavtag);
+            fillHisto(thechannel, "mWT",            "Selectedsignalregion",  thesample, systtype,   mTW,    			            evtweight, flavtag);
+            fillHisto(thechannel, "MET",            "Selectedsignalregion",  thesample, systtype,   met_pt, 			            evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiLJ",     "Selectedsignalregion",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)), evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiLMet",   "Selectedsignalregion",  thesample, systtype,   abs(lept.DeltaPhi(met)),        evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiJMet",   "Selectedsignalregion",  thesample, systtype,   abs(leadingJet.DeltaPhi(met)),  evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiLJMet",  "Selectedsignalregion",  thesample, systtype,   abs(jetLept.DeltaPhi(met)),     evtweight, flavtag);
+            fillHisto(thechannel, "DeltaRLJ",       "Selectedsignalregion",  thesample, systtype,   lept.DeltaR(leadingJet), 	    evtweight, flavtag);
+          }
+        }
+
+        //***********************************
+        //ATLAS signal enriched region
+        //***********************************
+        if(njets == 1 && nbjets == 1 ){
+
+          if(sample == "QCD_A" || sample == "QCD_B" || sample == "QCD_C" || sample == "QCD_D")          evtweight = SF_QCD_S;
+          // Manage overflows in SR - put higher values in the last bin by hands
+          if(mTW    >= 500) mTW    = 499.95;
+          if(met_pt >= 500) met_pt = 499.95;
+          if(mWTplusMET > 60 && mTW > 250 && abs(lept.DeltaPhi(leadingJet)) < 1.4)
+          {
+            for(int ijet=0; ijet<iter_jets; ijet++)
+            {
+                if(jet_pt[ijet] < 30 || fabs(jet_eta[ijet]) > 2.4) continue;
+                fillHisto(thechannel, "JetPt",      "ATLASFCNCsignalregion",  thesample, systtype,  jet_pt[ijet] ,                   evtweight, flavtag);
+                fillHisto(thechannel, "JetEta",     "ATLASFCNCsignalregion",  thesample, systtype,  jet_eta[ijet] ,                  evtweight, flavtag);
+            }
+            fillHisto(thechannel, "ptW",            "ATLASFCNCsignalregion",  thesample, systtype,   theWcand.Pt(),       	        evtweight, flavtag);
+            fillHisto(thechannel, "mWT",            "ATLASFCNCsignalregion",  thesample, systtype,   mTW,    			            evtweight, flavtag);
+            fillHisto(thechannel, "MET",            "ATLASFCNCsignalregion",  thesample, systtype,   met_pt, 			            evtweight, flavtag);
+            fillHisto(thechannel, "mWTplusMET",     "ATLASFCNCsignalregion",  thesample, systtype,   mWTplusMET, 		            evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiLJ",     "ATLASFCNCsignalregion",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)), evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiLMet",   "ATLASFCNCsignalregion",  thesample, systtype,   abs(lept.DeltaPhi(met)),        evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiJMet",   "ATLASFCNCsignalregion",  thesample, systtype,   abs(leadingJet.DeltaPhi(met)),  evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiLJMet",  "ATLASFCNCsignalregion",  thesample, systtype,   abs(jetLept.DeltaPhi(met)),     evtweight, flavtag);
+            fillHisto(thechannel, "DeltaRLJ",       "ATLASFCNCsignalregion",  thesample, systtype,   lept.DeltaR(leadingJet), 	    evtweight, flavtag);
+          }
+
+          if(mWTplusMET > 60 && mTW > 210 && abs(lept.DeltaPhi(leadingJet)) < 1.2)
+          {
+            for(int ijet=0; ijet<iter_jets; ijet++)
+            {
+                if(jet_pt[ijet] < 30 || fabs(jet_eta[ijet]) > 2.4) continue;
+                fillHisto(thechannel, "JetPt",      "ATLASRESsignalregion",  thesample, systtype,  jet_pt[ijet] ,                   evtweight, flavtag);
+                fillHisto(thechannel, "JetEta",     "ATLASRESsignalregion",  thesample, systtype,  jet_eta[ijet] ,                  evtweight, flavtag);
+            }
+            fillHisto(thechannel, "ptW",            "ATLASRESsignalregion",  thesample, systtype,   theWcand.Pt(),       	        evtweight, flavtag);
+            fillHisto(thechannel, "mWT",            "ATLASRESsignalregion",  thesample, systtype,   mTW,    			            evtweight, flavtag);
+            fillHisto(thechannel, "MET",            "ATLASRESsignalregion",  thesample, systtype,   met_pt, 			            evtweight, flavtag);
+            fillHisto(thechannel, "mWTplusMET",     "ATLASRESsignalregion",  thesample, systtype,   mWTplusMET, 		            evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiLJ",     "ATLASRESsignalregion",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)), evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiLMet",   "ATLASRESsignalregion",  thesample, systtype,   abs(lept.DeltaPhi(met)),        evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiJMet",   "ATLASRESsignalregion",  thesample, systtype,   abs(leadingJet.DeltaPhi(met)),  evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiLJMet",  "ATLASRESsignalregion",  thesample, systtype,   abs(jetLept.DeltaPhi(met)),     evtweight, flavtag);
+            fillHisto(thechannel, "DeltaRLJ",       "ATLASRESsignalregion",  thesample, systtype,   lept.DeltaR(leadingJet), 	    evtweight, flavtag);
+          }
+
+        }
+
 
         //***********************************
         //ttbar enriched region
@@ -586,12 +690,12 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_W, double SF_
           fillHisto(thechannel, "mWT_full",     "ttbarregion_highpt",  thesample, systtype,   mTW,    			        evtweight, flavtag);
           if(mTW > 40)
           {
-            fillHisto(thechannel, "mWT",        "ttbarregion_highpt",  thesample, systtype,   mTW,    			        evtweight, flavtag);
-            fillHisto(thechannel, "MET",        "ttbarregion_highpt",  thesample, systtype,   met_pt, 			        evtweight, flavtag);
-            fillHisto(thechannel, "LeptPt",     "ttbarregion_highpt",  thesample, systtype,   smalltree_lept_pt[0], 	evtweight, flavtag);
-            fillHisto(thechannel, "LeptEta",    "ttbarregion_highpt",  thesample, systtype,   smalltree_lept_eta[0], 	evtweight, flavtag);
-            fillHisto(thechannel, "DeltaPhiLJ", "ttbarregion_highpt",  thesample, systtype,   lept.DeltaPhi(leadingJet),evtweight, flavtag);
-            fillHisto(thechannel, "DeltaRLJ",   "ttbarregion_highpt",  thesample, systtype,   lept.DeltaR(leadingJet), 	evtweight, flavtag);
+            fillHisto(thechannel, "mWT",        "ttbarregion_highpt",  thesample, systtype,   mTW,    			             evtweight, flavtag);
+            fillHisto(thechannel, "MET",        "ttbarregion_highpt",  thesample, systtype,   met_pt, 			             evtweight, flavtag);
+            fillHisto(thechannel, "LeptPt",     "ttbarregion_highpt",  thesample, systtype,   smalltree_lept_pt[0], 	     evtweight, flavtag);
+            fillHisto(thechannel, "LeptEta",    "ttbarregion_highpt",  thesample, systtype,   smalltree_lept_eta[0], 	     evtweight, flavtag);
+            fillHisto(thechannel, "DeltaPhiLJ", "ttbarregion_highpt",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)),evtweight, flavtag);
+            fillHisto(thechannel, "DeltaRLJ",   "ttbarregion_highpt",  thesample, systtype,   lept.DeltaR(leadingJet), 	     evtweight, flavtag);
           }
         }
 
@@ -657,10 +761,10 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
   //after lepton selection
   addHisto("NJet",      "afterleptsel",  	sample.Data(), syst.Data(),   5,  -0.5,   4.5, flavtag);
   addHisto("NBJet",     "afterleptsel",  	sample.Data(), syst.Data(),   5,  -0.5,   4.5, flavtag);
-  addHisto("mWT",       "afterleptsel",  	sample.Data(), syst.Data(),   15,    0,   300, flavtag);
-  addHisto("mW",        "afterleptsel", 	sample.Data(), syst.Data(),   15,    0,   300, flavtag);
-  addHisto("MET",       "afterleptsel",  	sample.Data(), syst.Data(),   15,    0,   300, flavtag);
-  addHisto("mWTplusMET","afterleptsel",  	sample.Data(), syst.Data(),   15,    0,   300, flavtag);
+  addHisto("mWT",       "afterleptsel",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
+  addHisto("mW",        "afterleptsel", 	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
+  addHisto("MET",       "afterleptsel",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
+  addHisto("mWTplusMET","afterleptsel",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
   addHisto("JetPt",     "afterleptsel",  	sample.Data(), syst.Data(),   10,    0,   300, flavtag);
   addHisto("JetEta",    "afterleptsel",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag);
   addHisto("LeptPt",    "afterleptsel",  	sample.Data(), syst.Data(),   100,  0.,   200, flavtag);
@@ -670,20 +774,21 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
   addHisto("JetPt",     "Wregion_highpt",  	sample.Data(), syst.Data(),   10,    0,   300, flavtag);
   addHisto("JetEta",    "Wregion_highpt",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag);
   addHisto("ptW",       "Wregion_highpt", 	sample.Data(), syst.Data(),   10,    0,   300, flavtag);
-  addHisto("mWT",       "Wregion_highpt",  	sample.Data(), syst.Data(),   13,   40,   300, flavtag);
-  addHisto("mWT_full",  "Wregion_highpt",  	sample.Data(), syst.Data(),   15,    0,   300, flavtag);
-  addHisto("MET",       "Wregion_highpt",  	sample.Data(), syst.Data(),   15,    0,   300, flavtag);
-  addHisto("LeptPt",    "Wregion_highpt",  	sample.Data(), syst.Data(),   100,  0.,   200, flavtag);
+  addHisto("mWT",       "Wregion_highpt",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag);
+  addHisto("mWT_full",  "Wregion_highpt",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
+  addHisto("MET",       "Wregion_highpt",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
+  addHisto("LeptPt",    "Wregion_highpt",  	sample.Data(), syst.Data(),   250,  0.,   500, flavtag);
   addHisto("LeptEta",   "Wregion_highpt",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag);
-  addHisto("DeltaPhiLJ","Wregion_highpt",  	sample.Data(), syst.Data(),   50,    0,  6.28, flavtag);
-  addHisto("DeltaRLJ",  "Wregion_highpt",  	sample.Data(), syst.Data(),   50,    0,  6.28, flavtag);
+  addHisto("DeltaPhiLJ","Wregion_highpt",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaPhiLMet","Wregion_highpt",	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaRLJ",  "Wregion_highpt",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
 
-  addHisto("mWT",       "1bjetregion",  	sample.Data(), syst.Data(),   13,   40,   300, flavtag);
-  addHisto("MET",       "1bjetregion",  	sample.Data(), syst.Data(),   15,    0,   300, flavtag);
+  addHisto("mWT",       "1bjetregion",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag);
+  addHisto("MET",       "1bjetregion",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
   addHisto("LeptPt",    "1bjetregion",  	sample.Data(), syst.Data(),   100,  0.,   200, flavtag);
   addHisto("LeptEta",   "1bjetregion",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag);
-  addHisto("DeltaPhiLJ","1bjetregion",  	sample.Data(), syst.Data(),   50,    0,  6.28, flavtag);
-  addHisto("DeltaRLJ",  "1bjetregion",  	sample.Data(), syst.Data(),   50,    0,  6.28, flavtag);
+  addHisto("DeltaPhiLJ","1bjetregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaRLJ",  "1bjetregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
 
   addHisto("mWT",       "QCDnormWregion",  	sample.Data(), syst.Data(),   50,    0,   300, flavtag);
   addHisto("mWT",       "QCDnormBregion",  	sample.Data(), syst.Data(),   50,    0,   300, flavtag);
@@ -702,22 +807,58 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
   addHisto("JetPt",     "signalregion",  	sample.Data(), syst.Data(),   10,    0,   300, flavtag);
   addHisto("JetEta",    "signalregion",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag);
   addHisto("ptW",       "signalregion", 	sample.Data(), syst.Data(),   10,    0,   300, flavtag);
-  addHisto("mWT",       "signalregion",  	sample.Data(), syst.Data(),   13,   40,   300, flavtag);
-  addHisto("mWT_full",  "signalregion",  	sample.Data(), syst.Data(),   15,    0,   300, flavtag);
-  addHisto("MET",       "signalregion",  	sample.Data(), syst.Data(),   15,    0,   300, flavtag);
-  addHisto("DeltaPhiLJ","signalregion",  	sample.Data(), syst.Data(),   50,    0,  6.28, flavtag);
-  addHisto("DeltaRLJ",  "signalregion",  	sample.Data(), syst.Data(),   50,    0,  6.28, flavtag);
+  addHisto("mWT",       "signalregion",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag);
+  addHisto("mWT_full",  "signalregion",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
+  addHisto("MET",       "signalregion",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
+  addHisto("DeltaPhiLJ","signalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaRLJ",  "signalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
 
-  addHisto("mWT",       "ttbarregion_highpt",  	sample.Data(), syst.Data(),   13,   40,   300, flavtag);
-  addHisto("mWT_full",  "ttbarregion_highpt",  	sample.Data(), syst.Data(),   15,    0,   300, flavtag);
-  addHisto("MET",       "ttbarregion_highpt",  	sample.Data(), syst.Data(),   15,    0,   300, flavtag);
+  addHisto("JetPt",         "Selectedsignalregion",  	sample.Data(), syst.Data(),   10,    0,   300, flavtag);
+  addHisto("JetEta",        "Selectedsignalregion",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag);
+  addHisto("ptW",           "Selectedsignalregion", 	sample.Data(), syst.Data(),   10,    0,   300, flavtag);
+  addHisto("mWT",           "Selectedsignalregion",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag);
+  addHisto("mWT_full",      "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
+  addHisto("MET",           "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
+  addHisto("DeltaPhiLJ",    "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaPhiLMet",  "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaPhiJMet",  "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaPhiLJMet", "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaRLJ",      "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+
+  addHisto("JetPt",         "ATLASFCNCsignalregion",  	sample.Data(), syst.Data(),   10,    0,   300, flavtag);
+  addHisto("JetEta",        "ATLASFCNCsignalregion",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag);
+  addHisto("ptW",           "ATLASFCNCsignalregion", 	sample.Data(), syst.Data(),   10,    0,   300, flavtag);
+  addHisto("mWT",           "ATLASFCNCsignalregion",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag);
+  addHisto("MET",           "ATLASFCNCsignalregion",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
+  addHisto("mWTplusMET",    "ATLASFCNCsignalregion",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
+  addHisto("DeltaPhiLJ",    "ATLASFCNCsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaPhiLMet",  "ATLASFCNCsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaPhiJMet",  "ATLASFCNCsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaPhiLJMet", "ATLASFCNCsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaRLJ",      "ATLASFCNCsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+
+  addHisto("JetPt",         "ATLASRESsignalregion",  	sample.Data(), syst.Data(),   10,    0,   300, flavtag);
+  addHisto("JetEta",        "ATLASRESsignalregion",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag);
+  addHisto("ptW",           "ATLASRESsignalregion", 	sample.Data(), syst.Data(),   10,    0,   300, flavtag);
+  addHisto("mWT",           "ATLASRESsignalregion",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag);
+  addHisto("MET",           "ATLASRESsignalregion",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
+  addHisto("mWTplusMET",    "ATLASRESsignalregion",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
+  addHisto("DeltaPhiLJ",    "ATLASRESsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaPhiLMet",  "ATLASRESsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaPhiJMet",  "ATLASRESsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaPhiLJMet", "ATLASRESsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaRLJ",      "ATLASRESsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+
+  addHisto("mWT",       "ttbarregion_highpt",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag);
+  addHisto("mWT_full",  "ttbarregion_highpt",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
+  addHisto("MET",       "ttbarregion_highpt",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag);
   addHisto("LeptPt",    "ttbarregion_highpt",  	sample.Data(), syst.Data(),   100,  0.,   200, flavtag);
   addHisto("LeptEta",   "ttbarregion_highpt",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag);
-  addHisto("DeltaPhiLJ","ttbarregion_highpt",  	sample.Data(), syst.Data(),   50,    0,  6.28, flavtag);
-  addHisto("DeltaRLJ",  "ttbarregion_highpt",  	sample.Data(), syst.Data(),   50,    0,  6.28, flavtag);
+  addHisto("DeltaPhiLJ","ttbarregion_highpt",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
+  addHisto("DeltaRLJ",  "ttbarregion_highpt",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag);
 
-  addHisto("mWT",       "ttbarregion_lowjetpt", sample.Data(), syst.Data(),   13,   40,   300, flavtag);
-  addHisto("MET",       "ttbarregion_lowjetpt", sample.Data(), syst.Data(),   15,    0,   300, flavtag);
+  addHisto("mWT",       "ttbarregion_lowjetpt", sample.Data(), syst.Data(),   23,   40,   500, flavtag);
+  addHisto("MET",       "ttbarregion_lowjetpt", sample.Data(), syst.Data(),   25,    0,   500, flavtag);
   addHisto("JetPt",     "ttbarregion_lowjetpt", sample.Data(), syst.Data(),   100,   0,   300, flavtag);
   addHisto("JetEta",    "ttbarregion_lowjetpt", sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag);
   addHisto("LeptPt",    "ttbarregion_lowjetpt", sample.Data(), syst.Data(),   100,  0.,   200, flavtag);
@@ -1178,7 +1319,8 @@ double TreeReader::getQCDscalefactor(vector<TString> datalist, vector<TString> d
     TH1F* histo_qcddatadriven = 0;
     for(unsigned int dataSample = 0; dataSample < datalist_longnames.size() ; dataSample++)
     {
-        fileToGetQCDData_name     = "outputroot_QCDcorr/histofile_"+datalist_longnames[dataSample]+".root";
+        //fileToGetQCDData_name     = "outputroot_QCDcorr/histofile_"+datalist_longnames[dataSample]+".root";
+        fileToGetQCDData_name     = "outputroot_QCDcorr_iso0p5/histofile_"+datalist_longnames[dataSample]+".root";
         fileToGetQCDData          = new TFile(fileToGetQCDData_name);
         histo_qcddatadriven_name  = normregion+"__"+datalist_longnames[dataSample];
         histo_qcddatadriven       = (TH1F*)fileToGetQCDData->Get(histo_qcddatadriven_name);
@@ -1224,6 +1366,8 @@ double TreeReader::getQCDscalefactor(vector<TString> datalist, vector<TString> d
     TH1F* histo_mc = 0;
     for(unsigned int mcSample = 0; mcSample < mclist.size() ; mcSample++)
     {
+        // Patch to use TTMSDecays instead of TTbar_Madgraph to make use of the right systematics (match, scale, mass)
+        //if(mclist[0] != "TTbar_Madgraph") mclist[0] = "TTbar_Madgraph";
         //cout << "sample= " << mclist[mcSample] << " | flavtag= " << flavtag << endl;
         if     ( mclist[mcSample] == "WJets" )
         {

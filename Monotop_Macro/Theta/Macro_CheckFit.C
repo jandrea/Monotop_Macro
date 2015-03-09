@@ -20,7 +20,9 @@ double getSFfit( TFile* inputfile_prefit, TFile* inputfile_postfit, TString inpu
    TH1F*       whisto_postfit = (TH1F*)inputfile_postfit->Get(whistoname_postfit)->Clone();
 
    double SF = 0;
-   if( whisto_postfit != 0) SF = whisto_postfit->Integral()/whisto_prefit->Integral();
+   cout << "Yield ( " << inputdistrib << " ) = " << whisto_prefit->Integral() << " and yield ( " << thetainputdistrib << " ) = " << whisto_postfit->Integral() << endl;
+   if( whisto_postfit != 0 && whisto_prefit != 0) SF = whisto_postfit->Integral()/whisto_prefit->Integral();
+   else cout << "Please check the 'getSFfit' function!" << endl;
 
    return SF;
 }
@@ -28,7 +30,8 @@ double getSFfit( TFile* inputfile_prefit, TFile* inputfile_postfit, TString inpu
 
 void Macro_CheckFit(std::vector<TString> signalSample_list, std::vector<TString> mcSample_list, std::vector<TString> thetaSample_list, std::vector<int> colorVector, bool usePostFit, bool displaySignal, TString inputdistrib , TString thetainputdistrib, TString region, TString var, TString outputdistrib){
 
-  bool setlogy = 1;
+  bool setlogy = 0;
+  if (displaySignal) setlogy = 1;
 
   gStyle->SetCanvasBorderMode(0);
   gStyle->SetCanvasColor(0); // must be kWhite but I dunno how to do that in PyROOT
@@ -175,16 +178,20 @@ void Macro_CheckFit(std::vector<TString> signalSample_list, std::vector<TString>
 
   TFile * inputfile_prefit ;
   TFile * inputfile_postfit ;
-  inputfile_prefit  = new TFile("../TreeReader/outputroot_withSyst/histo_merged_woWCorr.root");
-  inputfile_postfit = new TFile("histos-mle_bkp.root");
+  inputfile_prefit  = new TFile("../TreeReader/outputroot_withSyst/histo_merged.root");
+  inputfile_postfit = new TFile("histos-mle_bkp_27_02_15_FCNC.root");
 
+  vector<TString> TMPlist = mcSample_list;
+  if (usePostFit) TMPlist = thetaSample_list;
   vector<double> SF_fit;
-  for (short unsigned int imc = 0; imc < mcSample_list.size(); imc++)
+  for (short unsigned int imc = 0; imc < TMPlist.size(); imc++)
   {
     if (usePostFit)
     {
-      SF_fit.push_back(getSFfit( inputfile_prefit, inputfile_postfit, inputdistrib, thetainputdistrib, mcSample_list[imc], thetaSample_list[imc]));
-      //cout << "SF_fit(" << thetaSample_list[imc] << ") = " << getSFfit( inputfile_prefit, inputfile_postfit, inputdistrib, thetainputdistrib, mcSample_list[imc], thetaSample_list[imc]) << endl;
+        double SF_tmp = getSFfit( inputfile_prefit, inputfile_postfit, inputdistrib, thetainputdistrib, mcSample_list[imc], thetaSample_list[imc]);
+        if (isfinite(SF_tmp) && !isnan(SF_tmp)) SF_fit.push_back(SF_tmp);
+        else                                    SF_fit.push_back(0);
+        cout << "SF_fit(" << thetaSample_list[imc] << ") = " << SF_tmp << endl;
     }
     else SF_fit.push_back(1);
   }
@@ -203,7 +210,6 @@ void Macro_CheckFit(std::vector<TString> signalSample_list, std::vector<TString>
          histo_data->Add(distrib__RUNB);
          histo_data->Add(distrib__RUNC);
          histo_data->Add(distrib__RUND);
-
 
   std::vector<TH1F *> histo_mcSamples;
   std::vector<TH1F *> signalSamples;
@@ -323,7 +329,8 @@ void Macro_CheckFit(std::vector<TString> signalSample_list, std::vector<TString>
     if( (mcSample_list[i] == "DYJetsToLL_M-50" ) || ( mcSample_list[i] == "DY50"         ) ) qw->AddEntry( histo_mcSamples[i],  "DY"		,"f");
     if( (mcSample_list[i] == "T_s" 		       ) || ( mcSample_list[i] == "Ts" 			 ) ) qw->AddEntry( histo_mcSamples[i+4],"single top","f");
     if( (mcSample_list[i] == "WZ"              ) || ( mcSample_list[i] == "WZ"           ) ) qw->AddEntry( histo_mcSamples[i+2],"VV"	    ,"f");
-    if( (mcSample_list[i] == "QCD_A"           ) || ( mcSample_list[i] == "QCDA"         ) ) qw->AddEntry( histo_mcSamples[i+3],"QCD"	    ,"f");
+    if( (mcSample_list[i] == "QCD_A"           )                                           ) qw->AddEntry( histo_mcSamples[i+3],"QCD"	    ,"f");
+    if( (mcSample_list[i] == "QCD"             )                                           ) qw->AddEntry( histo_mcSamples[i],  "QCD"	    ,"f");
   }
 
   if (displaySignal)
@@ -370,7 +377,9 @@ void Macro_CheckFit(std::vector<TString> signalSample_list, std::vector<TString>
   histo_ratio_data->GetXaxis()->SetTitleOffset(1.2);
   if      (var == "mWT") histo_ratio_data->GetXaxis()->SetTitle("m(W)_{T} [GeV]");
   else if (var == "MET") histo_ratio_data->GetXaxis()->SetTitle("MET [GeV]");
-  else if (var == "pTW") histo_ratio_data->GetXaxis()->SetTitle("p(W)_{T} [GeV]");
+  else if (var == "ptW") histo_ratio_data->GetXaxis()->SetTitle("p(W)_{T} [GeV]");
+  else if (var == "JetPt") histo_ratio_data->GetXaxis()->SetTitle("p_{T} (jets) [GeV]");
+  else if (var == "ptLept") histo_ratio_data->GetXaxis()->SetTitle("p_{T} (#mu) [GeV]");
   else if (var == "DeltaPhiLJ") { histo_ratio_data->GetXaxis()->SetTitle("#Delta #phi (lep - lead. jet) "); histo_ratio_data->GetXaxis()->SetRangeUser(0, 3.14); }
   histo_ratio_data->GetXaxis()->SetLabelSize(0.04);
   histo_ratio_data->GetYaxis()->SetLabelSize(0.03);
@@ -384,11 +393,14 @@ void Macro_CheckFit(std::vector<TString> signalSample_list, std::vector<TString>
   if (!usePostFit) outputname = "PreFit_"+var+"_mujets";
   else             outputname = "PostFit_"+var+"_mujets";
 
-  TString endname;
+  TString endname_png;
+  TString endname_pdf;
   //if (setlogy) endname = "_logY.pdf";
-  if (setlogy) endname = "_logY.png";
-  else         endname = ".png";
-  c1->SaveAs( ("plots_fits/"+outputname+"_"+region+endname).Data());
+  if (setlogy) { endname_png = "_logY_withS1.png"; endname_pdf = "_logY_withS1.pdf"; }
+  else         { endname_png = ".png";      endname_pdf = ".pdf"; }
+
+  c1->SaveAs( ("plots_fits/"+outputname+"_"+region+endname_png).Data());
+  c1->SaveAs( ("plots_fits/"+outputname+"_"+region+endname_pdf).Data());
 
 }
 
@@ -433,10 +445,10 @@ void Macro_CheckFit(){
   mcSample_list.push_back("WW");                 thetaSample_list.push_back("WW");              colorVector.push_back(13);
   mcSample_list.push_back("ZZ");                 thetaSample_list.push_back("ZZ");              colorVector.push_back(13);
 
-  mcSample_list.push_back("QCD_A");             thetaSample_list.push_back("QCDA");            colorVector.push_back(kYellow+1);
-  mcSample_list.push_back("QCD_B");             thetaSample_list.push_back("QCDB");            colorVector.push_back(kYellow+1);
-  mcSample_list.push_back("QCD_C");             thetaSample_list.push_back("QCDC");            colorVector.push_back(kYellow+1);
-  mcSample_list.push_back("QCD_D");             thetaSample_list.push_back("QCDD");            colorVector.push_back(kYellow+1);
+  mcSample_list.push_back("QCD_A");             thetaSample_list.push_back("QCD");             colorVector.push_back(kYellow+1);
+  mcSample_list.push_back("QCD_B");                                                            colorVector.push_back(kYellow+1);
+  mcSample_list.push_back("QCD_C");                                                            colorVector.push_back(kYellow+1);
+  mcSample_list.push_back("QCD_D");                                                            colorVector.push_back(kYellow+1);
 
 
 //--------------------------//
@@ -450,8 +462,19 @@ void Macro_CheckFit(){
 //--------------------------//
 //---------- MET -----------//
 //--------------------------//
-  Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_signalregion", "mWTmujetsSignalregion", "signalregion", "MET", "MET_mujets_signalregion");
+  //Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion", "Selectedsignalregion", "MET", "MET_mujets_Selectedsignalregion");
   //Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", "TTbarregion", "MET", "MET_mujets_ttbarregion_highpt");
   //Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", "Wregion", "MET", "MET_mujets_Wregion_highpt");
 
+//--------------------------//
+//---------- pWT -----------//
+//--------------------------//
+  //Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_signalregion", "mWTmujetsSignalregion", "signalregion", "ptW", "ptW_mujets_signalregion");
+  ////Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", "TTbarregion", "ptW", "ptW_mujets_ttbarregion_highpt");
+  //Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", "Wregion", "ptW", "ptW_mujets_Wregion_highpt");
+
+
+  //Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_signalregion", "mWTmujetsSignalregion", "signalregion", "JetPt", "JetPt_mujets_afterleptsel");
+  //Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_signalregion", "mWTmujetsSignalregion", "signalregion", "mWT", "mWT_mujets_signalregion");
+  Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, usePostFit, displaySignal, "mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", "Wregion", "ptLept", "LeptPt_mujets_Wregion_highpt");
 }

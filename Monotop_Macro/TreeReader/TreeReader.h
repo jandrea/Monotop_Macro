@@ -185,13 +185,13 @@ public :
 
 
 
-   TreeReader(short int CorrOption, std::vector<TString> datalist, std::vector<TString> datalist_longnames, std::vector<TString> mclist, TTree *tree=0, TString sample="", std::vector<TString> thesystlist = std::vector<TString>(), TString flavtag = "noflav");
+   TreeReader(short int CorrOption, std::vector<TString> datalist, std::vector<TString> datalist_longnames, std::vector<TString> mclist, TTree *tree=0, TString sample="", std::vector<TString> thesystlist = std::vector<TString>(), TString flavtag = "noflav", short int QCDsyst = 0);
    virtual ~TreeReader();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(short int CorrOption, TString sample, TTree *tree );
-   virtual void     Loop(short int CorrOption, std::vector<TString> datalist, std::vector<TString> datalist_longnames, std::vector<TString> mclist, TString sample, std::vector<TString> thesystlist, TString flavtag);
+   virtual void     Loop(short int CorrOption, std::vector<TString> datalist, std::vector<TString> datalist_longnames, std::vector<TString> mclist, TString sample, std::vector<TString> thesystlist, TString flavtag, short int QCDsyst);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 
@@ -221,6 +221,7 @@ public :
    std::vector<TString> datalist;
    std::vector<TString> datalist_longnames;
    std::vector<TString> mclist;
+   std::vector<TString> signallist;
   int   tree_SampleType;
   int   tree_Channel;
 
@@ -238,7 +239,7 @@ public :
 #endif
 
 #ifdef TreeReader_cxx
-TreeReader::TreeReader(short int CorrOption, std::vector<TString> datalist, std::vector<TString> datalist_longnames, std::vector<TString> mclist, TTree *tree, TString sample, std::vector<TString> thesystlist, TString flavtag) : fChain(0)
+TreeReader::TreeReader(short int CorrOption, std::vector<TString> datalist, std::vector<TString> datalist_longnames, std::vector<TString> mclist, TTree *tree, TString sample, std::vector<TString> thesystlist, TString flavtag, short int QCDsyst) : fChain(0)
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -268,7 +269,7 @@ TreeReader::TreeReader(short int CorrOption, std::vector<TString> datalist, std:
          else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_C")   f = new TFile("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012C.root");
          else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_D")   f = new TFile("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012D.root");
          else if( CorrOption == 2 || CorrOption == 3)                         f = new TFile("../InputFiles/proof_merged_monotop.root");
-         else cout << "ERROR: Wrong value of CorrOption! Allowed values: 0,1,2" << endl;
+         else cout << "ERROR: Wrong value of CorrOption! Allowed values: 0,1,2,3" << endl;
       }
    if     ((CorrOption == 2 || CorrOption == 3) && sample == "QCD_A")   f->GetObject( "SmallTree_NTuple_53X_SingleMuRun2012A" ,tree);
    else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_B")   f->GetObject( "SmallTree_NTuple_53X_SingleMuRun2012B" ,tree);
