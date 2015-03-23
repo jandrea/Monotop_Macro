@@ -7,90 +7,31 @@
 #include "TCanvas.h"
 #include "TGraphErrors.h"
 #include "THStack.h"
-
-
 #include <iostream>
-
 
 
 bool useDDTemplates = false;
 bool applyDD = false;
-
-
-
 
 bool PlotStack(TString varname, TString namechan, TString selection, bool setlogy,
      std::vector<TString> dataSample_list,
      std::vector<TString> channel_list, std::vector<TString> mcSample_list, std::vector<TString > signalSample_list, std::vector<int> colorVector, std::vector< TString > dataDrivenTemplates_list, short int QCDCorr, bool sumChannels){
 
 
-  std::vector<double > sf_DY, sf_DY_err;
-  if(selection == "afterjetsel"){
-    sf_DY.push_back(0.39); sf_DY_err.push_back(0.63);
-    sf_DY.push_back(1.13); sf_DY_err.push_back(0.32);
-    sf_DY.push_back(3.36); sf_DY_err.push_back(1.39);
-    sf_DY.push_back(1.14); sf_DY_err.push_back(0.33);
-  }else if (selection == "afterbjetsel"){
-    sf_DY.push_back(0.39); sf_DY_err.push_back(0.63);
-    sf_DY.push_back(1.13); sf_DY_err.push_back(0.3);
-    sf_DY.push_back(3.36); sf_DY_err.push_back(1.39);
-    sf_DY.push_back(1.14); sf_DY_err.push_back(0.33);
-
-  }else{
-    sf_DY.push_back(1.71); sf_DY_err.push_back(0.44);
-    sf_DY.push_back(0.83); sf_DY_err.push_back(0.15);
-    sf_DY.push_back(1.45); sf_DY_err.push_back(0.39);
-    sf_DY.push_back(1.03); sf_DY_err.push_back(0.17);
-  }
-
-
-  std::vector<double > sf_WZ, sf_WZ_err;
-  if(selection == "afterjetsel"){
-    sf_WZ.push_back(1.01); sf_WZ_err.push_back(0.05);
-    sf_WZ.push_back(1.16); sf_WZ_err.push_back(0.09);
-    sf_WZ.push_back(0.94); sf_WZ_err.push_back(0.07);
-    sf_WZ.push_back(1.13); sf_WZ_err.push_back(0.10);
-  }else if (selection == "afterbjetsel"){
-    sf_WZ.push_back(1.01); sf_WZ_err.push_back(0.05);
-    sf_WZ.push_back(1.16); sf_WZ_err.push_back(0.09);
-    sf_WZ.push_back(0.94); sf_WZ_err.push_back(0.07);
-    sf_WZ.push_back(1.13); sf_WZ_err.push_back(0.10);
-
-  }else{
-    sf_WZ.push_back(1.00); sf_WZ_err.push_back(0.04);
-    sf_WZ.push_back(1.12); sf_WZ_err.push_back(0.06);
-    sf_WZ.push_back(0.92); sf_WZ_err.push_back(0.04);
-    sf_WZ.push_back(1.10); sf_WZ_err.push_back(0.06);
-  }
-
-
-
-   /* sf_DY.push_back(1); sf_DY_err.push_back(0.69);
-    sf_DY.push_back(1); sf_DY_err.push_back(0.22);
-    sf_DY.push_back(1); sf_DY_err.push_back(1.46);
-    sf_DY.push_back(1); sf_DY_err.push_back(1.39);
-    sf_WZ.push_back(1); sf_WZ_err.push_back(0.05);
-    sf_WZ.push_back(1); sf_WZ_err.push_back(0.07);
-    sf_WZ.push_back(1); sf_WZ_err.push_back(0.04);
-    sf_WZ.push_back(1); sf_WZ_err.push_back(0.07);*/
-
-
   TString channel = "";
   if(!sumChannels ) channel = namechan;
 
-
-
   TString filename;
 
-  if( QCDCorr == 0) filename = "../TreeReader/outputroot_QCDcorr/histo_merged.root";
+  //if( QCDCorr == 0) filename = "../TreeReader/outputroot_QCDcorr_iso0p6/histo_merged.root";
+  if( QCDCorr == 0) filename = "../TreeReader/outputroot_QCDcorr_iso0p5/histo_merged.root";
+  //if( QCDCorr == 0) filename = "../TreeReader/outputroot_QCDcorr/histo_merged.root";
   if( QCDCorr == 1) filename = "../TreeReader/outputroot_woQCDcorr/histo_merged.root";
   if( QCDCorr == 2) filename = "../TreeReader/outputroot_withQCDcorr/histo_merged.root";
   if( QCDCorr == 3) filename = "../TreeReader/outputroot_withSyst/histo_merged.root";
 
-
   Int_t stati=0;
   Bool_t  fit=1;
-
 
   //-----------------------------------
   //define the canvas
@@ -222,19 +163,13 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
   // Postscript options:
   gStyle->SetPaperSize(20.,20.);
 
-
-
   //TCanvas *c1 = new TCanvas("c1", "c1",10,32,782,552);
   TCanvas *c1 = new TCanvas("c1","c1", 1000, 800);
   c1->SetBottomMargin(0.3);
   c1->SetLogy(setlogy);
   c1->cd();
 
-
-
   TFile * filechannel = new TFile(filename);
-
-
 
   TH1F *histo_data = 0;
   std::vector<TH1F *> histo_mcSamples;
@@ -321,30 +256,8 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
 
     }
 
-
-
-    //------------------------
-    //loop over signal samples
-    //------------------------
-
-    for(unsigned int isign = 0; isign < signalSample_list.size(); isign++){
-      TString histo_mc_name   = varname+"_"+channel_list[ichan]+"_"+selection+ "__"+ signalSample_list[isign];
-      TH1F * histo_tmp = (TH1F*)filechannel->Get(histo_mc_name);
-      if(histo_tmp == 0)  cout << "  no existing histo with name  " << histo_mc_name << endl;
-      if(niter_chan == 0){
-        histo_mcSignal.push_back(histo_tmp);
-      }else{
-        histo_mcSignal[isign]->Add(histo_mcSignal[isign], histo_tmp);
-      }
-    }
-
-
-
-
     niter_chan++;
-  }
-
-  double nDY = 0;
+  }// loop over the channels
 
   THStack *the_stack_histo= new THStack();
   for(unsigned int imc = 0; imc< histo_mcSamples.size(); imc++){
@@ -354,12 +267,9 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
     histo_mcSamples[imc]->SetLineColor(colorVector[imc]);
     if(imc < histo_mcSamples.size() && colorVector[imc] != colorVector[imc+1] )  histo_mcSamples[imc]->SetLineColor(1);
     if(imc ==  histo_mcSamples.size()) histo_mcSamples[imc]->SetLineColor(1);
-    if(mcSample_list[imc] == "DYToLL_M10-50" || mcSample_list[imc] == "DYToLL_M-50" ) {
-      nDY += histo_mcSamples[imc]->Integral();
-      if(useDDTemplates) continue;
-    }
     the_stack_histo->Add(histo_mcSamples[imc]);
   }
+
   //---------------------------
   //include data driven templates
   //---------------------------
@@ -377,9 +287,7 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
 
     histo_dd->SetFillStyle(1001);
     histo_dd->SetFillColor(kAzure-2);
-    cout << "nDY " << nDY << endl;
     cout << "histo_dd->Integral() " << histo_dd->Integral() << endl;
-    if(histo_dd->Integral() > 0.0001) histo_dd->Scale(nDY/histo_dd->Integral());
     the_stack_histo->Add(histo_dd);
   }
 
@@ -391,7 +299,7 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
   if(histo_data->GetMaximum() > the_stack_histo->GetMaximum() ) the_stack_histo->SetMaximum(histo_data->GetMaximum()+0.3*histo_data->GetMaximum());
   else the_stack_histo->SetMaximum(the_stack_histo->GetMaximum()+0.3*the_stack_histo->GetMaximum());
 
-  if(setlogy) the_stack_histo->SetMinimum(1000);
+  if(setlogy) the_stack_histo->SetMinimum(1);
 
   histo_data->SetMarkerStyle(20);
   histo_data->SetMarkerSize(1.2);
@@ -399,13 +307,39 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
   histo_data->Draw("epsame");
 
   //--------------------------
+  //Add signal plots
+  //--------------------------
+  for(unsigned int isign = 0; isign < signalSample_list.size(); isign++)
+  {
+    TString histo_signal_name   = varname+"_mujets_"+selection+ "__"+ signalSample_list[isign];
+    TH1F * histo_signal = (TH1F*)filechannel->Get(histo_signal_name);
+    histo_mcSignal.push_back(histo_signal);
+    if(isign == 0)
+    {
+        histo_signal->SetLineColor(kRed);
+    }
+    else if(isign == 1)
+    {
+        histo_signal->SetLineColor(kBlue);
+    }
+    else if(isign == 2)
+    {
+        histo_signal->SetLineColor(kGreen);
+    }
+    else histo_signal->SetLineColor(kOrange);
+
+    histo_signal->SetLineStyle(2);
+    histo_signal->SetLineWidth(2);
+    //histo_signal->Draw("hsame");
+  }
+
+
+  //--------------------------
   //MC systematic plot
   //--------------------------
   TH1F * histo_syst_MC   = (TH1F*)(the_stack_histo->GetHistogram() )->Clone();
   for(unsigned int imc=0; imc< histo_mcSamples.size(); imc++){
-    if(useDDTemplates){
-      if  (mcSample_list[imc] != "DYToLL_M10-50" && mcSample_list[imc] != "DYToLL_M-50" ) histo_syst_MC->Add(histo_mcSamples[imc]);
-    }else histo_syst_MC->Add(histo_mcSamples[imc]);
+    histo_syst_MC->Add(histo_mcSamples[imc]);
   }
 
 
@@ -478,28 +412,41 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
   {
         for(unsigned int i=0; i<mcSample_list.size(); i++){
             if(mcSample_list[i] == "TTbar_Madgraph"		        ) qw->AddEntry( histo_mcSamples[0],	    "t#bar{t}"	,"f");
-            if(mcSample_list[i] == "T_s" 			            ) qw->AddEntry( histo_mcSamples[6],	    "single top","f");
+            if(mcSample_list[i] == "T_s" 			            ) qw->AddEntry( histo_mcSamples[10],    "single top","f");
             //if(mcSample_list[i] == "TTWJets_8TeVmadgraph"   	) qw->AddEntry( histo_mcSamples[1],	    "t#bar{t}V"	,"f");
-            if(mcSample_list[i] == "DYJetsToLL_M-50" 	        ) qw->AddEntry( histo_mcSamples[3],	    "DY"		,"f");
-            if(mcSample_list[i] == "WJets"           	  	    ) qw->AddEntry( histo_mcSamples[1],	    "W+jets"	,"f");
+            if(mcSample_list[i] == "DYJetsToLL_M-50" 	        ) qw->AddEntry( histo_mcSamples[5],	    "DY"		,"f");
+            if(mcSample_list[i] == "WExclb"           	  	    ) qw->AddEntry( histo_mcSamples[1],	    "W+bjets"	,"f");
+            if(mcSample_list[i] == "WExclc"           	  	    ) qw->AddEntry( histo_mcSamples[2],	    "W+cjets"	,"f");
+            if(mcSample_list[i] == "WExcll"           	  	    ) qw->AddEntry( histo_mcSamples[3],	    "W+ljets"	,"f");
             //if(mcSample_list[i] == "Wminus_Powheg"       	    ) qw->AddEntry( histo_mcSamples[1],	    "W+jets"	,"f");
-            if(mcSample_list[i] == "WW"             		    ) qw->AddEntry( histo_mcSamples[11],	"VV"	    ,"f");
-            if(mcSample_list[i] == "QCD_Pt-120to170"            ) qw->AddEntry( histo_mcSamples[16],	"QCD"	    ,"f");
+            if(mcSample_list[i] == "WW"             		    ) qw->AddEntry( histo_mcSamples[13],	"VV"	    ,"f");
+            if(mcSample_list[i] == "QCD_Pt-120to170"            ) qw->AddEntry( histo_mcSamples[20],	"QCD"	    ,"f");
         }
   }
   else if (QCDCorr == 2 || QCDCorr == 3)
   {
         for(unsigned int i=0; i<mcSample_list.size(); i++){
             if(mcSample_list[i] == "TTbar_Madgraph"		        ) qw->AddEntry( histo_mcSamples[0],	    "t#bar{t}"	,"f");
-            if(mcSample_list[i] == "T_s" 			            ) qw->AddEntry( histo_mcSamples[6],	    "single top","f");
+            if(mcSample_list[i] == "T_s" 			            ) qw->AddEntry( histo_mcSamples[10],    "single top","f");
             //if(mcSample_list[i] == "TTWJets_8TeVmadgraph"   	) qw->AddEntry( histo_mcSamples[1],	    "t#bar{t}V"	,"f");
-            if(mcSample_list[i] == "DYJetsToLL_M-50" 	        ) qw->AddEntry( histo_mcSamples[3],	    "DY"		,"f");
-            if(mcSample_list[i] == "WJets"           	  	    ) qw->AddEntry( histo_mcSamples[1],	    "W+jets"	,"f");
+            if(mcSample_list[i] == "DYJetsToLL_M-50" 	        ) qw->AddEntry( histo_mcSamples[5],	    "DY"		,"f");
+            if(mcSample_list[i] == "WExclb"           	  	    ) qw->AddEntry( histo_mcSamples[1],	    "W+bjets"	,"f");
+            if(mcSample_list[i] == "WExclc"           	  	    ) qw->AddEntry( histo_mcSamples[2],	    "W+cjets"	,"f");
+            if(mcSample_list[i] == "WExcll"           	  	    ) qw->AddEntry( histo_mcSamples[3],	    "W+ljets"	,"f");
             //if(mcSample_list[i] == "Wminus_Powheg"   	  	    ) qw->AddEntry( histo_mcSamples[1],	    "W+jets"	,"f");
-            if(mcSample_list[i] == "WW"             		    ) qw->AddEntry( histo_mcSamples[11],	"VV"	    ,"f");
-            if(mcSample_list[i] == "QCD_A"                      ) qw->AddEntry( histo_mcSamples[16],	"QCD"	    ,"f");
+            if(mcSample_list[i] == "WW"             		    ) qw->AddEntry( histo_mcSamples[13],	"VV"	    ,"f");
+//            if(mcSample_list[i] == "QCD_A"                      ) qw->AddEntry( histo_mcSamples[17],	"QCD"	    ,"f");
         }
   }
+/*
+  if (QCDCorr == 1 || QCDCorr == 2 || QCDCorr == 3)
+  {
+        for(unsigned int i=0; i<histo_mcSignal.size(); i++)
+        {
+            qw->AddEntry( histo_mcSignal[i],	    signalSample_list[i]	,"l");
+        }
+  }
+*/
 
   qw->Draw();
 
@@ -543,12 +490,15 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
   else if(varname == "mWT")	        histo_ratio_data->GetXaxis()->SetTitle("m(W)_{T} [GeV]");
   else if(varname == "mWTplusMET")  histo_ratio_data->GetXaxis()->SetTitle("m(W)_{T} + missing E_{T} [GeV]");
   else if(varname == "mW")	        histo_ratio_data->GetXaxis()->SetTitle("m(W) [GeV]");
+  else if(varname == "ptW")	        histo_ratio_data->GetXaxis()->SetTitle("pT(W) [GeV]");
+  else if(varname == "etaW")	    histo_ratio_data->GetXaxis()->SetTitle("#eta(W) ");
   else if(varname == "JetPt")	    histo_ratio_data->GetXaxis()->SetTitle("pT(jets) [GeV]");
   else if(varname == "JetEta")	    histo_ratio_data->GetXaxis()->SetTitle("#eta(jets) [GeV]");
   else if(varname == "LeptPt")	    histo_ratio_data->GetXaxis()->SetTitle("pT(lepton) [GeV]");
   else if(varname == "LeptEta")	    histo_ratio_data->GetXaxis()->SetTitle("#eta(lepton)");
   else if(varname == "LeptIso")	    histo_ratio_data->GetXaxis()->SetTitle("iso(lepton)");
   else if(varname == "BJetCSV")     histo_ratio_data->GetXaxis()->SetTitle("CSV discriminator");
+  else if(varname == "LeadJetBtagDiscr")     histo_ratio_data->GetXaxis()->SetTitle("Btag discriminator(lead jet)");
 
   histo_ratio_data->SetMinimum(0.5);
   histo_ratio_data->SetMaximum(1.5);
@@ -564,18 +514,28 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
 
   thegraph_ratio->Draw("e2same");
 
-  TString end_name;
-  if(setlogy) end_name="_Logy.gif";
-  else end_name=".gif";
-  //if(setlogy) end_name="_Logy.eps";
-  //else end_name=".eps";
+  TString end_name_png=".png", end_name_pdf=".pdf", end_name_C=".C", end_name_root=".root";
 
   TString outputname;
-  if(QCDCorr == 0)      outputname = "plots_QCDcorr/"+varname+"_"+namechan+"_"+selection+end_name;
-  else if(QCDCorr == 1) outputname = "plots_woQCDcorr/"+varname+"_"+namechan+"_"+selection+end_name;
+  //if(QCDCorr == 0)      outputname = "plots_QCDcorr/"    +varname+"_"+namechan+"_"+selection;
+  if(QCDCorr == 0)      outputname = "plots_AN/isoInv0p5/new"    +varname+"_"+namechan+"_"+selection;
+  //if(QCDCorr == 0)      outputname = "plots_QCDcorr_iso0p6/"    +varname+"_"+namechan+"_"+selection;
+  else if(QCDCorr == 1) outputname = "plots_AN/withoutQCDCorr/"  +varname+"_"+namechan+"_"+selection;
+  else if(QCDCorr == 2) outputname = "plots_AN/withQCDCorr/new"+varname+"_"+namechan+"_"+selection;
+  else if(QCDCorr == 3) outputname = "plots_AN/withSyst/"   +varname+"_"+namechan+"_"+selection;
+/*
+  if(QCDCorr == 0)      outputname = "plots_QCDcorr_iso0p5/"    +varname+"_"+namechan+"_"+selection+end_name;
+  else if(QCDCorr == 1) outputname = "plots_woQCDcorr/"  +varname+"_"+namechan+"_"+selection+end_name;
   else if(QCDCorr == 2) outputname = "plots_withQCDcorr/"+varname+"_"+namechan+"_"+selection+end_name;
-
-  c1->SaveAs(outputname.Data());
-
+  else if(QCDCorr == 3) outputname = "plots_withSyst/"   +varname+"_"+namechan+"_"+selection+end_name;
+*/
+  if(setlogy) c1->SaveAs((outputname+"_Logy").Data());
+  else
+  {
+              c1->SaveAs((outputname+end_name_png).Data());
+              c1->SaveAs((outputname+end_name_pdf).Data());
+              c1->SaveAs((outputname+end_name_C).Data());
+              c1->SaveAs((outputname+end_name_root).Data());
+  }
 
 }

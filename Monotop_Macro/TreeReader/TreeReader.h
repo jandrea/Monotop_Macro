@@ -200,7 +200,7 @@ public :
    void             fillHisto(TString channel, TString var, TString selstep, TString sample, TString syst, float val, float weight, TString flavtag);
    void             scaleHisto(TString channel, TString sample, TH1F* histoWCorrWeights);
 
-   bool             applyEventSel(short int CorrOption, double SF_QCD_W, double SF_QCD_B, double SF_QCD_S, double SF_QCD_TT, double SFtrigger, double SFtriggerError, TString channel, TString systtype, TString sample, TString flavtag);
+   bool             applyEventSel(short int CorrOption, double SF_QCD_L, double SF_QCD_W, double SF_QCD_B, double SF_QCD_S, double SF_QCD_TT, double SFtrigger, double SFtriggerError, TString channel, TString systtype, TString sample, TString flavtag, short int QCDsyst);
    void             SetUpCSVreweighting();
    double           GetCSVweight(const int iSys, int jet_n, float *jet_pt,float *jet_eta,float *jet_btagdiscri,int *jet_flav);
    TH1F*            getWCorrWeights(vector<TString> datalist, vector<TString> mclist, TString normregion, TString flavtag);
@@ -246,11 +246,13 @@ TreeReader::TreeReader(short int CorrOption, std::vector<TString> datalist, std:
    if (tree == 0) {
       TFile *f = 0;
       if(CorrOption == 0){
-          f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles_IsoSup0p4/proof_IsoSup0p4_merged.root");
+          //f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles_IsoSup0p4/proof_IsoSup0p4_merged.root");
+          f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven.root");
       }else if(CorrOption == 1){
           f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles/proof_merged_monotop.root");
       }else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_A"){
-          f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012A.root");
+          f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven.root");
+          //f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012A.root");
       }else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_B"){
           f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012B.root");
       }else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_C"){
@@ -262,16 +264,19 @@ TreeReader::TreeReader(short int CorrOption, std::vector<TString> datalist, std:
       }else cout << "ERROR: Wrong value of CorrOption! Allowed values: 0,1,2" << endl;
 
       if (!f || !f->IsOpen()) {
-         if(CorrOption == 0)                                                  f = new TFile("../InputFiles_IsoSup0p4/proof_IsoSup0p4_merged.root");
+         //if(CorrOption == 0)                                                  f = new TFile("../InputFiles_IsoSup0p4/proof_IsoSup0p4_merged.root");
+         if(CorrOption == 0)                                                  f = new TFile("proof_QCDdatadriven.root");
          else if(CorrOption == 1)                                             f = new TFile("../InputFiles/proof_merged_monotop.root");
-         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_A")   f = new TFile("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012A.root");
+         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_A")   f = new TFile("proof_QCDdatadriven.root");
+         //else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_A")   f = new TFile("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012A.root");
          else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_B")   f = new TFile("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012B.root");
          else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_C")   f = new TFile("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012C.root");
          else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_D")   f = new TFile("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012D.root");
          else if( CorrOption == 2 || CorrOption == 3)                         f = new TFile("../InputFiles/proof_merged_monotop.root");
          else cout << "ERROR: Wrong value of CorrOption! Allowed values: 0,1,2,3" << endl;
       }
-   if     ((CorrOption == 2 || CorrOption == 3) && sample == "QCD_A")   f->GetObject( "SmallTree_NTuple_53X_SingleMuRun2012A" ,tree);
+   if     ((CorrOption == 2 || CorrOption == 3) && sample == "QCD_A")   f->GetObject( "SmallTree_QCDdatadriven" ,tree);
+   //if     ((CorrOption == 2 || CorrOption == 3) && sample == "QCD_A")   f->GetObject( "SmallTree_NTuple_53X_SingleMuRun2012A" ,tree);
    else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_B")   f->GetObject( "SmallTree_NTuple_53X_SingleMuRun2012B" ,tree);
    else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_C")   f->GetObject( "SmallTree_NTuple_53X_SingleMuRun2012C" ,tree);
    else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_D")   f->GetObject( "SmallTree_NTuple_53X_SingleMuRun2012D" ,tree);

@@ -19,7 +19,7 @@ void CompareSystPlots(TString var, TString syst, TString process){
   gStyle->SetOptStat(0); // To display the mean and RMS:   SetOptStat("mr");
 
 
-  TFile * inputfile_fit = new TFile("../TreeReader/outputroot_withSyst/histo_merged_woWCorr.root");
+  TFile * inputfile_fit = new TFile("../TreeReader/outputroot_withSyst/histo_merged.root");
 
   TString histoname         = var+"__"+process;
   TString histoname_minus   = var+"__"+process+"__"+syst+"__minus";
@@ -67,12 +67,12 @@ void CompareSystPlots(){
 
     std::vector<TString > systlist;
     //systlist.push_back("W"                  );
-    //systlist.push_back("lept"               );
+    systlist.push_back("lept"               );
     //systlist.push_back("trig"               );
     //systlist.push_back("PDF"              );
-    systlist.push_back("PU"                 );
-/*    systlist.push_back("toppt"              );
-    systlist.push_back("btag"               );
+    //systlist.push_back("PU"                 );
+    //systlist.push_back("toppt"              );
+/*    systlist.push_back("btag"               );
     systlist.push_back("mistag"             );
     systlist.push_back("jes"                );
     systlist.push_back("jer"                );
@@ -89,12 +89,12 @@ void CompareSystPlots(){
 */
     std::vector<TString > processlist;
     //processlist.push_back("S1"                   );
-    processlist.push_back("SingleMuA"            );
+/*    processlist.push_back("SingleMuA"            );
     processlist.push_back("SingleMuB"            );
     processlist.push_back("SingleMuC"            );
     processlist.push_back("SingleMuD"            );
-    processlist.push_back("TTbar_Madgraph"       );
-    processlist.push_back("WExclb"                );
+*/    processlist.push_back("TTbar_Madgraph"       );
+/*    processlist.push_back("WExclb"                );
     processlist.push_back("WExclc"                );
     processlist.push_back("WExcll"                );
     //processlist.push_back("WExcl"                );
@@ -112,7 +112,7 @@ void CompareSystPlots(){
     processlist.push_back("QCD_B"                );
     processlist.push_back("QCD_C"                );
     processlist.push_back("QCD_D"                );
-
+*/
     std::vector<TString > varlist;
     varlist.push_back("mWT_mujets_signalregion"     );
     //varlist.push_back("MET_mujets_signalregion"     );

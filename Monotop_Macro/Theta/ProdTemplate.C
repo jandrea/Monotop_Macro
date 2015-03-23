@@ -33,14 +33,14 @@ TH1F* getQCDsystematic(TString plusORminus, TString inputdistrib, TString output
     }
 
     TH1F * distrib__QCDA  	= (TH1F*)qcdfile->Get(QCDAname)->Clone();
-    TH1F * distrib__QCDB  	= (TH1F*)qcdfile->Get(QCDBname)->Clone();
-    TH1F * distrib__QCDC  	= (TH1F*)qcdfile->Get(QCDCname)->Clone();
-    TH1F * distrib__QCDD  	= (TH1F*)qcdfile->Get(QCDDname)->Clone();
+    //TH1F * distrib__QCDB  	= (TH1F*)qcdfile->Get(QCDBname)->Clone();
+    //TH1F * distrib__QCDC  	= (TH1F*)qcdfile->Get(QCDCname)->Clone();
+    //TH1F * distrib__QCDD  	= (TH1F*)qcdfile->Get(QCDDname)->Clone();
 
     TH1F * distrib__QCD  	= (TH1F*)distrib__QCDA;
-           distrib__QCD->Add(distrib__QCDB);
-           distrib__QCD->Add(distrib__QCDC);
-           distrib__QCD->Add(distrib__QCDD);
+    //       distrib__QCD->Add(distrib__QCDB);
+    //       distrib__QCD->Add(distrib__QCDC);
+    //       distrib__QCD->Add(distrib__QCDD);
 
     if (plusORminus != "")  distrib__QCD->SetName((outputdistrib+"__QCD__iso__"+plusORminus).Data());
     else                    distrib__QCD->SetName((outputdistrib+"__QCD").Data());
@@ -70,8 +70,8 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
          distrib__DATA->Add(distrib__RUND);
 
   TH1F * distrib__QCD         	= getQCDsystematic(""     , inputdistrib, outputdistrib);
-  TH1F * distrib__QCD__plus  	= getQCDsystematic("plus" , inputdistrib, outputdistrib);
-  TH1F * distrib__QCD__minus  	= getQCDsystematic("minus", inputdistrib, outputdistrib);
+  //TH1F * distrib__QCD__plus  	= getQCDsystematic("plus" , inputdistrib, outputdistrib);
+  //TH1F * distrib__QCD__minus  	= getQCDsystematic("minus", inputdistrib, outputdistrib);
 
   std::vector< TH1F* > distrib_MC;
   std::vector< TH1F* > distrib_MC_sys;
@@ -182,14 +182,14 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
   {
       distrib__DATA->Rebin(distrib__DATA->GetNbinsX());
       distrib__QCD->Rebin(distrib__QCD->GetNbinsX());
-      distrib__QCD__plus->Rebin(distrib__QCD__plus->GetNbinsX());
-      distrib__QCD__minus->Rebin(distrib__QCD__minus->GetNbinsX());
+     // distrib__QCD__plus->Rebin(distrib__QCD__plus->GetNbinsX());
+     // distrib__QCD__minus->Rebin(distrib__QCD__minus->GetNbinsX());
   }
 
   distrib__DATA->Write((outputdistrib+"__DATA").Data());
   distrib__QCD->Write();
-  distrib__QCD__plus->Write();
-  distrib__QCD__minus->Write();
+ // distrib__QCD__plus->Write();
+ // distrib__QCD__minus->Write();
 
   for(unsigned int i=0; i<distrib_MC.size(); i++)
   {
@@ -198,19 +198,16 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
   }
   for(unsigned int i=0; i<distrib_signal.size(); i++)
   {
-      //distrib_signal[i]->Rebin(23);
       if(doCutnCount) distrib_signal[i]->Rebin(distrib_signal[i]->GetNbinsX());
       distrib_signal[i]->Write();
   }
   for(unsigned int i=0; i<distrib_signal_sys.size(); i++)
   {
-      //distrib_signal_sys[i]->Rebin(23);
       if(doCutnCount) distrib_signal_sys[i]->Rebin(distrib_signal_sys[i]->GetNbinsX());
       distrib_signal_sys[i]->Write();
   }
   for(unsigned int i=0; i<distrib_MC_sys.size(); i++)
   {
-      //distrib_MC_sys[i]->Rebin(23);
       if(doCutnCount) distrib_MC_sys[i]->Rebin(distrib_MC_sys[i]->GetNbinsX());
       distrib_MC_sys[i]->Write();
   }
@@ -227,7 +224,7 @@ void ProdTemplate(){
   std::vector<TString> signalList;
   std::vector<TString> thetaSignalList;
   std::vector<double>  scaleCMStoATLAS;
-  signalList.push_back("S1_500_100_fullSim");  thetaSignalList.push_back("S1res500inv100");
+  signalList.push_back("S4_100_fastSim");  thetaSignalList.push_back("S4inv100");
   scaleCMStoATLAS.push_back(1.001/11.79);
   std::vector<TString> sampleList;
   std::vector<TString> thetaSampleList;
@@ -282,15 +279,15 @@ void ProdTemplate(){
 
 
   //ProdTemplate("mWT_mujets_ATLASRESsignalregion", "mWTmujetsATLASRESSignalregion",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  ////ProdTemplate("mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  ////ProdTemplate("MET_mujets_Selectedsignalregion", "METmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  ////ProdTemplate("DeltaPhiLJ_mujets_Selectedsignalregion", "DeltaPhiLJmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  ////ProdTemplate("ptW_mujets_Selectedsignalregion", "ptWmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
+  ProdTemplate("mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
+  ProdTemplate("MET_mujets_Selectedsignalregion", "METmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
+  ProdTemplate("DeltaPhiLJ_mujets_Selectedsignalregion", "DeltaPhiLJmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
+  //ProdTemplate("ptW_mujets_Selectedsignalregion", "ptWmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
 
-  ProdTemplate("MET_mujets_signalregion", "METmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
+  //ProdTemplate("MET_mujets_signalregion", "METmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   //ProdTemplate("DeltaPhiLJ_mujets_signalregion", "DeltaPhiLJmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   //ProdTemplate("mWT_mujets_signalregion", "mWTmujetsSignalregion", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  ////ProdTemplate("mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  ////ProdTemplate("mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
+  ProdTemplate("mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
+  ProdTemplate("mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
 
 }

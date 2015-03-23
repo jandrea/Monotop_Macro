@@ -1,0 +1,20 @@
+#!/bin/bash
+
+rootenv
+
+for mInv in `seq 100 300 1000`;do
+    benchmark='S4inv'${mInv}
+    echo $benchmark
+    sed -ri "s%  signalList\.push.*%  signalList\.push_back(\"S4_${mInv}_fastSim\");  thetaSignalList\.push_back(\"S4inv${mInv}\");%g" ProdTemplate.C
+    root -l -q ProdTemplate.C+
+    sed -ri "s%benchmark=.*%benchmark=\'${benchmark}\'%g" monotop_limits.py
+    rm -rf inputTheta_merged.root
+    rm -rf monotop_limits/
+    echo "BENCHMARK= " $benchmark
+    #hadd inputTheta_merged.root inputTheta_mWT_mujets_Selectedsignalregion.root inputTheta_MET_mujets_Selectedsignalregion.root inputTheta_ptW_mujets_Selectedsignalregion.root inputTheta_DeltaPhiLJ_mujets_Selectedsignalregion.root inputTheta_Wregion.root inputTheta_ttbarregion.root 
+    hadd inputTheta_merged.root inputTheta_mWT_mujets_Selectedsignalregion.root inputTheta_MET_mujets_Selectedsignalregion.root inputTheta_Wregion.root inputTheta_ttbarregion.root inputTheta_DeltaPhiLJ_mujets_Selectedsignalregion.root 
+    #mv inputTheta_mWT_mujets_Selectedsignalregion.root inputTheta_merged.root
+    #mv inputTheta_mWT_mujets_ATLASRESsignalregion.root inputTheta_merged.root
+    time theta monotop_limits.py 
+done
+

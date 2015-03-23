@@ -15,12 +15,12 @@
 
     /////////////////////////////////////////
     //////   QCDCorr possible values   //////
-    ////   0 : QCD region (iso > 0.4)    ////
+    ////   0 : QCD region (iso > 0.5)    ////
     ///    1 : Analysis wo QCD correction ///
     //     2 : Analysis with QCD correction /
     ///    3 : Analysis with systematics  ///
     /////////////////////////////////////////
-    short int QCDCorr = 1;
+    short int QCDCorr = 2;
 
 
   //---------------------------
@@ -83,7 +83,15 @@
         //mcSample_list.push_back("TTWJets_8TeVmadgraph");      colorVector.push_back(kRed+3);
         //mcSample_list.push_back("TTZJets_8TeVmadgraph_v2");   colorVector.push_back(kRed+3);
         //mcSample_list.push_back("TZJetsTo3LNuB");             colorVector.push_back(kMagenta);
-        mcSample_list.push_back("WJets");                       colorVector.push_back(kGreen+2);
+        //mcSample_list.push_back("WJets");                       colorVector.push_back(kGreen+2);
+        //mcSample_list.push_back("W1Jets");                       colorVector.push_back(kGreen);
+        //mcSample_list.push_back("W2Jets");                       colorVector.push_back(kGreen+2);
+        //mcSample_list.push_back("W3Jets");                       colorVector.push_back(kGreen+4);
+        //mcSample_list.push_back("W4Jets");                       colorVector.push_back(kGreen-2);
+        //mcSample_list.push_back("WExcl");                       colorVector.push_back(kGreen-2);
+        mcSample_list.push_back("WExclb");                       colorVector.push_back(kGreen-2);
+        mcSample_list.push_back("WExclc");                       colorVector.push_back(kGreen);
+        mcSample_list.push_back("WExcll");                       colorVector.push_back(kGreen+4);
         //mcSample_list.push_back("Wminus_Powheg");             colorVector.push_back(kGreen+2);
         //mcSample_list.push_back("Wplus_Powheg");              colorVector.push_back(kGreen+2);
         mcSample_list.push_back("DYJetsToLL_M-10To50");         colorVector.push_back(kAzure-2);
@@ -113,9 +121,9 @@
   if(QCDCorr == 2 || QCDCorr == 3)
   {
         mcSample_list.push_back("QCD_A");     colorVector.push_back(kYellow+1);
-        mcSample_list.push_back("QCD_B");     colorVector.push_back(kYellow+1);
-        mcSample_list.push_back("QCD_C");     colorVector.push_back(kYellow+1);
-        mcSample_list.push_back("QCD_D");     colorVector.push_back(kYellow+1);
+        //mcSample_list.push_back("QCD_B");     colorVector.push_back(kYellow+1);
+        //mcSample_list.push_back("QCD_C");     colorVector.push_back(kYellow+1);
+        //mcSample_list.push_back("QCD_D");     colorVector.push_back(kYellow+1);
   }
 
 
@@ -123,16 +131,18 @@
  //-----------------------------
  //define list of signal samples
   std::vector<TString> signalSample_list;
-
+/*
   if(QCDCorr == 0)
   {
         signalSample_list.push_back("S1_1000_100");
   }
-  if(QCDCorr == 1 || QCDCorr == 2)
+  if(QCDCorr == 1 || QCDCorr == 2 || QCDCorr == 3)
   {
-        signalSample_list.push_back("S1");
+        signalSample_list.push_back("S1_1000_100");
+        signalSample_list.push_back("S1_1000_800");
+        signalSample_list.push_back("S1_500_100");
   }
-
+*/
 
 
  //--------------------------
@@ -140,8 +150,8 @@
  std::vector<TString> syst_list;
  syst_list.push_back("leptup");
  syst_list.push_back("leptdown");
- //syst_list.push_back("trigup");
- //syst_list.push_back("trigdown");
+ syst_list.push_back("trigup");
+ syst_list.push_back("trigdown");
  //syst_list.push_back("PDFup");
  //syst_list.push_back("PDFdown");
  syst_list.push_back("PUup");
@@ -159,30 +169,44 @@
  //define list of systematics
  std::vector<TString> selectionStep_list;
  //selectionStep_list.push_back("afterleptsel");
- selectionStep_list.push_back("1bjetregion");
- //selectionStep_list.push_back("qcdregion");
+ //selectionStep_list.push_back("1bjetregion");
+ //selectionStep_list.push_back("qcdLregion");
+ //selectionStep_list.push_back("qcdWregion");
+ //selectionStep_list.push_back("qcdTTregion");
+ //selectionStep_list.push_back("qcdSregion");
  //selectionStep_list.push_back("afterbjetsel");
  //selectionStep_list.push_back("afterMWsel");
  //selectionStep_list.push_back("ttbarregion_lowjetpt");
- //selectionStep_list.push_back("signalregion");
+ //selectionStep_list.push_back("QCDnormLregion");
+ //selectionStep_list.push_back("QCDnormWregion");
+ //selectionStep_list.push_back("QCDnormSregion");
+ //selectionStep_list.push_back("QCDnormTTregion");
+ //selectionStep_list.push_back("Selectedsignalregion");
+ selectionStep_list.push_back("signalregion");
  //selectionStep_list.push_back("ttbarregion_highpt");
- //selectionStep_list.push_back("Wenriched_highpt");
+ selectionStep_list.push_back("Wregion_highpt");
+
+
  //------------------------
  //define list of variables
  std::vector<TString> variables_list;
-// variables_list.push_back("NJet");
-// variables_list.push_back("NBJet");
- variables_list.push_back("mWT");
-// variables_list.push_back("mWTplusMET");
+ //variables_list.push_back("NJet");
+ //variables_list.push_back("NBJet");
+ //variables_list.push_back("mWT");
+ variables_list.push_back("mWT_full");
+ //variables_list.push_back("MET");
+ //variables_list.push_back("ptW");
+ //variables_list.push_back("etaW");
+ //variables_list.push_back("LeptPt");
+ //variables_list.push_back("LeptEta");
+ //variables_list.push_back("JetPt");
+ //variables_list.push_back("JetEta");
+ //variables_list.push_back("LeadJetBtagDiscr");
 // variables_list.push_back("mW");
- variables_list.push_back("MET");
- variables_list.push_back("LeptPt");
- variables_list.push_back("LeptEta");
+// variables_list.push_back("mWTplusMET");
 // variables_list.push_back("LeptIso");
-// variables_list.push_back("JetPt");
-// variables_list.push_back("JetEta");
- variables_list.push_back("DeltaPhiLJ");
- variables_list.push_back("DeltaRLJ");
+ //variables_list.push_back("DeltaPhiLJ");
+ //variables_list.push_back("DeltaRLJ");
 /* variables_list.push_back("JetPt1");
  variables_list.push_back("JetEta1");
  variables_list.push_back("JetPt2");
