@@ -13,7 +13,7 @@
 #include <TFile.h>
 #include <TH2F.h>
 #include <TH2.h>
-#include <TH1F.h>
+#include <TH1D.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <TFile.h>
@@ -112,6 +112,9 @@ public :
    Float_t         smalltree_weight_PUup;
    Float_t         smalltree_weight_PUdown;
    Float_t         smalltree_evtweight;
+   Float_t         smalltree_evtweight_nominal;
+   Float_t         smalltree_evtweight_minus;
+   Float_t         smalltree_evtweight_plus;
    Float_t         smalltree_weight_toppt;
    Int_t           smalltree_IChannel;
 
@@ -179,41 +182,47 @@ public :
    TBranch        *b_smalltree_weight_PUup;   //!
    TBranch        *b_smalltree_weight_PUdown;   //!
    TBranch        *b_smalltree_evtweight;   //!
+   TBranch        *b_smalltree_evtweight_nominal;   //!
+   TBranch        *b_smalltree_evtweight_minus;   //!
+   TBranch        *b_smalltree_evtweight_plus;   //!
    TBranch        *b_smalltree_weight_toppt;   //!
    TBranch        *b_smalltree_IChannel;   //!
 
 
 
 
-   TreeReader(short int CorrOption, std::vector<TString> datalist, std::vector<TString> datalist_longnames, std::vector<TString> mclist, TTree *tree=0, TString sample="", std::vector<TString> thesystlist = std::vector<TString>(), TString flavtag = "noflav", short int QCDsyst = 0);
+   TreeReader(short int CorrOption, std::vector<TString> datalist, std::vector<TString> datalist_longnames, std::vector<TString> mclist, TTree *tree=0, TString sample="", std::vector<TString> thesystlist = std::vector<TString>(), TString flavtag = "noflav", short int systType = 0);
    virtual ~TreeReader();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(short int CorrOption, TString sample, TTree *tree );
-   virtual void     Loop(short int CorrOption, std::vector<TString> datalist, std::vector<TString> datalist_longnames, std::vector<TString> mclist, TString sample, std::vector<TString> thesystlist, TString flavtag, short int QCDsyst);
+   virtual void     Loop(short int CorrOption, std::vector<TString> datalist, std::vector<TString> datalist_longnames, std::vector<TString> mclist, TString sample, std::vector<TString> thesystlist, TString flavtag, short int systType);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 
-   void             initializeHisto(TString sample, TString syst, bool isfirstset, TString flavtag);
-   void             addHisto( TString var, TString selstep, TString sample, TString syst, int nbins, float min, float max, TString flavtag);
-   void             fillHisto(TString channel, TString var, TString selstep, TString sample, TString syst, float val, float weight, TString flavtag);
-   void             scaleHisto(TString channel, TString sample, TH1F* histoWCorrWeights);
+   void             initializeHisto(TString sample, TString syst, bool isfirstset, TString flavtag, short int systType);
+   void             addHisto( TString var, TString selstep, TString sample, TString syst, int nbins, float min, float max, TString flavtag, short int systType);
+   void             fillHisto(TString channel, TString var, TString selstep, TString sample, TString syst, float val, float weight, TString flavtag, short int systType);
+   void             scaleHisto(TString channel, TString sample, TH1D* histoWCorrWeights);
 
-   bool             applyEventSel(short int CorrOption, double SF_QCD_L, double SF_QCD_W, double SF_QCD_B, double SF_QCD_S, double SF_QCD_TT, double SFtrigger, double SFtriggerError, TString channel, TString systtype, TString sample, TString flavtag, short int QCDsyst);
+   bool             applyEventSel(short int CorrOption, double SF_QCD_L, double SF_QCD_W, double SF_QCD_B, double SF_QCD_S, double SF_QCD_TT, double SFtrigger, double SFtriggerError, TString channel, TString systtype, TString sample, TString flavtag, short int systType);
    void             SetUpCSVreweighting();
    double           GetCSVweight(const int iSys, int jet_n, float *jet_pt,float *jet_eta,float *jet_btagdiscri,int *jet_flav);
-   TH1F*            getWCorrWeights(vector<TString> datalist, vector<TString> mclist, TString normregion, TString flavtag);
+   TH1D*            getWCorrWeights();
    double           getQCDscalefactor(vector<TString> datalist, vector<TString> datalist_longnames, vector<TString> mclist, TString normregion, TString flavtag);
    vector<double>   getY( TGraphAsymmErrors* graph, double Wvalue);
    vector<double>   getSFtrigger( TGraphAsymmErrors* ratioPlot, double pT, double eta);
+   double           getW_SF(double mTW, short int systType);
 
    //void writeHisto();
 
-   std::vector<TH1F*> histo_list_mujets;
+   std::vector<TTree*> theTree_list;
+   std::map<TString,TTree*> theTree_map;
+
+
+   std::vector<TH1D*> histo_list_mujets;
    std::map<std::string, int> histo_map_mujets;
-
-
    int numb_histo;
 
    void deleteHisto();
@@ -226,6 +235,10 @@ public :
   int   tree_Channel;
 
   float tree_EvtWeight;
+  float tree_met;
+  float tree_wMass;
+  float tree_deltaPhilb;
+  float tree_wPt;
 
   float isoEl, isoMu;
 
@@ -239,7 +252,7 @@ public :
 #endif
 
 #ifdef TreeReader_cxx
-TreeReader::TreeReader(short int CorrOption, std::vector<TString> datalist, std::vector<TString> datalist_longnames, std::vector<TString> mclist, TTree *tree, TString sample, std::vector<TString> thesystlist, TString flavtag, short int QCDsyst) : fChain(0)
+TreeReader::TreeReader(short int CorrOption, std::vector<TString> datalist, std::vector<TString> datalist_longnames, std::vector<TString> mclist, TTree *tree, TString sample, std::vector<TString> thesystlist, TString flavtag, short int systType) : fChain(0)
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -247,39 +260,30 @@ TreeReader::TreeReader(short int CorrOption, std::vector<TString> datalist, std:
       TFile *f = 0;
       if(CorrOption == 0){
           //f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles_IsoSup0p4/proof_IsoSup0p4_merged.root");
-          f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven.root");
+          f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven_iso0p5.root");
       }else if(CorrOption == 1){
           f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles/proof_merged_monotop.root");
-      }else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_A"){
-          f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven.root");
-          //f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012A.root");
-      }else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_B"){
-          f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012B.root");
-      }else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_C"){
-          f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012C.root");
-      }else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_D"){
-          f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012D.root");
+      }else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD" && systType == -1){
+          f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven_iso0p6.root");
+      }else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD" && systType == 1){
+          f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven_iso0p4.root");
+      }else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD"){
+          f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven_iso0p5.root");
       }else if (CorrOption == 2 || CorrOption == 3){
           f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles/proof_merged_monotop.root");
       }else cout << "ERROR: Wrong value of CorrOption! Allowed values: 0,1,2" << endl;
 
       if (!f || !f->IsOpen()) {
          //if(CorrOption == 0)                                                  f = new TFile("../InputFiles_IsoSup0p4/proof_IsoSup0p4_merged.root");
-         if(CorrOption == 0)                                                  f = new TFile("proof_QCDdatadriven.root");
+         if(CorrOption == 0)                                                  f = new TFile("proof_QCDdatadriven_iso0p5.root");
          else if(CorrOption == 1)                                             f = new TFile("../InputFiles/proof_merged_monotop.root");
-         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_A")   f = new TFile("proof_QCDdatadriven.root");
-         //else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_A")   f = new TFile("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012A.root");
-         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_B")   f = new TFile("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012B.root");
-         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_C")   f = new TFile("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012C.root");
-         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_D")   f = new TFile("../InputFiles_IsoSup0p4/proof_NTuple_53X_SingleMuRun2012D.root");
+         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD" && systType == -1) f = new TFile("proof_QCDdatadriven_iso0p6.root");
+         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD" && systType ==  1) f = new TFile("proof_QCDdatadriven_iso0p4.root");
+         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD")     f = new TFile("proof_QCDdatadriven_iso0p5.root");
          else if( CorrOption == 2 || CorrOption == 3)                         f = new TFile("../InputFiles/proof_merged_monotop.root");
          else cout << "ERROR: Wrong value of CorrOption! Allowed values: 0,1,2,3" << endl;
       }
-   if     ((CorrOption == 2 || CorrOption == 3) && sample == "QCD_A")   f->GetObject( "SmallTree_QCDdatadriven" ,tree);
-   //if     ((CorrOption == 2 || CorrOption == 3) && sample == "QCD_A")   f->GetObject( "SmallTree_NTuple_53X_SingleMuRun2012A" ,tree);
-   else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_B")   f->GetObject( "SmallTree_NTuple_53X_SingleMuRun2012B" ,tree);
-   else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_C")   f->GetObject( "SmallTree_NTuple_53X_SingleMuRun2012C" ,tree);
-   else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD_D")   f->GetObject( "SmallTree_NTuple_53X_SingleMuRun2012D" ,tree);
+   if     ((CorrOption == 2 || CorrOption == 3) && sample == "QCD")     f->GetObject( "SmallTree_QCDdatadriven" ,tree);
    else                                                                 f->GetObject(("SmallTree_"+sample).Data()             ,tree);
 
    }
@@ -341,7 +345,14 @@ void TreeReader::Init(short int CorrOption, TString sample,  TTree *tree)
    fCurrent = -1;
    fChain->SetMakeClass(1);
 
-   fChain->SetBranchAddress("smalltree_evtweight",     &smalltree_evtweight,        &b_smalltree_evtweight);
+   if(sample == "QCD")
+   {
+       fChain->SetBranchAddress("smalltree_evtweight_nominal",  &smalltree_evtweight_nominal,  &b_smalltree_evtweight_nominal);
+       fChain->SetBranchAddress("smalltree_evtweight_minus",    &smalltree_evtweight_minus,    &b_smalltree_evtweight_minus);
+       fChain->SetBranchAddress("smalltree_evtweight_plus",     &smalltree_evtweight_plus,     &b_smalltree_evtweight_plus);
+   }
+   else fChain->SetBranchAddress("smalltree_evtweight",&smalltree_evtweight,        &b_smalltree_evtweight);
+
    fChain->SetBranchAddress("smalltree_nlepton",       &smalltree_nlepton,          &b_smalltree_nlepton);
    fChain->SetBranchAddress("smalltree_lept_pt",        smalltree_lept_pt,          &b_smalltree_lept_pt);
    fChain->SetBranchAddress("smalltree_lept_eta",       smalltree_lept_eta,         &b_smalltree_lept_eta);
@@ -357,7 +368,7 @@ void TreeReader::Init(short int CorrOption, TString sample,  TTree *tree)
    fChain->SetBranchAddress("smalltree_met_pt",        &smalltree_met_pt,           &b_smalltree_met_pt);
    fChain->SetBranchAddress("smalltree_met_phi",       &smalltree_met_phi,          &b_smalltree_met_phi);
 
-   if(CorrOption != 0 && sample != "QCD_A" && sample != "QCD_B" && sample != "QCD_C" && sample != "QCD_D")
+   if(CorrOption != 0 && sample != "QCD")
    {
 
         fChain->SetBranchAddress("smalltree_jet_btagdiscri_up",     smalltree_jet_btagdiscri_up,        &b_smalltree_jet_btagdiscri_up);

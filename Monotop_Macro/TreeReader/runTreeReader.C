@@ -75,9 +75,6 @@
     std::vector<TString > mclist_longnames;
     mclist_longnames.push_back("NTuple_53X_TTJetsMadgraphZ2"            );
     mclist_longnames.push_back("NTuple_53X_WJetsToLNu"                  );
-    //mclist_longnames.push_back("NTuple_53X_TTWJets_8TeVmadgraph"      );
-    //mclist_longnames.push_back("NTuple_53X_TTZJets_8TeVmadgraph_v2"   );
-    //mclist_longnames.push_back("NTuple_53X_TZJetsTo3LNuB"             );
     mclist_longnames.push_back("NTuple_53X_DYJetsToLL_M-10To50"         );
     mclist_longnames.push_back("NTuple_53X_DYJetsToLL_M-50"             );
     mclist_longnames.push_back("NTuple_53X_T_s-channel"                 );
@@ -105,8 +102,6 @@
     mclist.push_back("W2Jets"               );
     mclist.push_back("W3Jets"               );
     mclist.push_back("W4Jets"               );
-    //mclist.push_back("Wminus_Powheg"      );
-    //mclist.push_back("Wplus_Powheg"       );
     mclist.push_back("DYJetsToLL_M-10To50"  );
     mclist.push_back("DYJetsToLL_M-50"      );
     mclist.push_back("T_s"                  );
@@ -118,6 +113,7 @@
     mclist.push_back("WW"                   );
     mclist.push_back("ZZ"                   );
 
+
     std::vector<TString > qcdlist;
     qcdlist.push_back("QCD_Pt-20to30"   );
     qcdlist.push_back("QCD_Pt-30to50"   );
@@ -128,19 +124,17 @@
     qcdlist.push_back("QCD_Pt-300to470" );
 
     std::vector<TString > qcdcorrectedlist;
-    qcdcorrectedlist.push_back("QCD_A");
-    //qcdcorrectedlist.push_back("QCD_B");
-    //qcdcorrectedlist.push_back("QCD_C");
-    //qcdcorrectedlist.push_back("QCD_D");
+    qcdcorrectedlist.push_back("QCD");
 
     std::vector<TString > signallist;
-    signallist.push_back("S1_1000_100");
+/*    signallist.push_back("S1_1000_100");
     signallist.push_back("S1_1000_800");
     signallist.push_back("S1_500_100");
     signallist.push_back("S4_400");
     signallist.push_back("S4_600");
     signallist.push_back("S4_700");
-
+*/
+    signallist.push_back("S1_1500_100_fullSim");
     signallist.push_back("S1_1300_100_fullSim");
     signallist.push_back("S1_1100_100_fullSim");
     signallist.push_back("S1_900_100_fullSim");
@@ -202,11 +196,12 @@
         delete tree_;
     }
 
+    //for (unsigned int imc = 0; imc < 1; imc++)
     for (unsigned int imc = 0; imc < mclist.size(); imc++)
     {
         if (mclist[imc] != "WJets" && mclist[imc] != "W0Jets" && mclist[imc] != "W1Jets" && mclist[imc] != "W2Jets" && mclist[imc] != "W3Jets" && mclist[imc] != "W4Jets")
         {
-            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist, "noflav", 0);
+            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc] ,systlist, "noflav", 0);
             tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], systlist, "noflav", 0);
             delete tree_;
         }
@@ -215,6 +210,18 @@
 //            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist, "allflav", 0);
 //            tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], systlist, "allflav", 0);
 //            delete tree_;
+
+            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], emptysystlist, "b", -1);
+            tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], emptysystlist, "b", -1);
+            delete tree_;
+
+            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], emptysystlist, "c", -1);
+            tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], emptysystlist, "c", -1);
+            delete tree_;
+
+            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], emptysystlist, "l", -1);
+            tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], emptysystlist, "l", -1);
+            delete tree_;
 
             TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist, "b", 0);
             tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], systlist, "b", 0);
@@ -226,6 +233,18 @@
 
             TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], systlist, "l", 0);
             tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], systlist, "l", 0);
+            delete tree_;
+
+            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], emptysystlist, "b", 1);
+            tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], emptysystlist, "b", 1);
+            delete tree_;
+
+            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], emptysystlist, "c", 1);
+            tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], emptysystlist, "c", 1);
+            delete tree_;
+
+            TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, mclist[imc], emptysystlist, "l", 1);
+            tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, mclist[imc], emptysystlist, "l", 1);
             delete tree_;
         }
     }
@@ -247,15 +266,19 @@
         delete tree_;
     }
   }
-
+/*
   if(CorrOption == 2 || CorrOption == 3)
   {
     for (unsigned int iqcd = 0; iqcd < qcdcorrectedlist.size(); iqcd++)
     {
-        TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, qcdcorrectedlist[iqcd], systlist, "noflav", 0);
-        tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, qcdcorrectedlist[iqcd], systlist, "noflav", 0);
+        TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, qcdcorrectedlist[iqcd], emptysystlist, "noflav", 0);
+        tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, qcdcorrectedlist[iqcd], emptysystlist, "noflav", 0);
         delete tree_;
-/*
+
+        TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, qcdcorrectedlist[iqcd], emptysystlist, "noflav", -2);
+        tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, qcdcorrectedlist[iqcd], emptysystlist, "noflav", -2);
+        delete tree_;
+
         TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, qcdcorrectedlist[iqcd], emptysystlist, "noflav", -1);
         tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, qcdcorrectedlist[iqcd], emptysystlist, "noflav", -1);
         delete tree_;
@@ -263,9 +286,13 @@
         TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, qcdcorrectedlist[iqcd], emptysystlist, "noflav", 1);
         tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, qcdcorrectedlist[iqcd], emptysystlist, "noflav", 1);
         delete tree_;
-*/    }
-  }
 
+        TreeReader * tree_ = new TreeReader(CorrOption, datalist, datalist_longnames, mclist,  tree, qcdcorrectedlist[iqcd], emptysystlist, "noflav", 2);
+        tree_.Loop(CorrOption, datalist, datalist_longnames, mclist, qcdcorrectedlist[iqcd], emptysystlist, "noflav", 2);
+        delete tree_;
+    }
+  }
+*/
   if(CorrOption == 3)
   {
       for(unsigned short int itt = 0; itt < TTsystlist.size(); itt++)

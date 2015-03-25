@@ -108,6 +108,9 @@ void TreeReader::Init(TString sample,  TTree *tree)
 
 void createQCDfromData()
 {
+
+    double InvertedIso = 0.5;
+
     std::vector<TString> samplelist;
     samplelist.push_back("NTuple_53X_SingleMuRun2012A"   );
     samplelist.push_back("NTuple_53X_SingleMuRun2012B"   );
@@ -127,7 +130,10 @@ void createQCDfromData()
     samplelist.push_back("NTuple_53X_ZZJetsIncl"         );
 
 
-    TFile * theoutputfile = new TFile( "proof_QCDdatadriven.root", "recreate");
+    TFile * theoutputfile;
+    if(InvertedIso == 0.4)      theoutputfile= new TFile( "proof_QCDdatadriven_iso0p4.root", "recreate");
+    else if(InvertedIso == 0.5) theoutputfile= new TFile( "proof_QCDdatadriven_iso0p5.root", "recreate");
+    else if(InvertedIso == 0.6) theoutputfile= new TFile( "proof_QCDdatadriven_iso0p6.root", "recreate");
     TTree* tree = 0;
 
     // Declaration of leaf types
@@ -147,24 +153,28 @@ void createQCDfromData()
     Int_t          tree_jet_flav[100];   //[smalltree_njets]
     Float_t        tree_met_pt;
     Float_t        tree_met_phi;
-    Float_t        tree_evtweight;
+    Float_t        tree_evtweight_nominal;
+    Float_t        tree_evtweight_minus;
+    Float_t        tree_evtweight_plus;
 
     TTree* outputTree = new TTree("SmallTree_QCDdatadriven", "SmallTree_QCDdatadriven");
-    outputTree->Branch("smalltree_evtweight",     &tree_evtweight,        "smalltree_evtweight"     );
-    outputTree->Branch("smalltree_nlepton",       &tree_nlepton,          "smalltree_nlepton/I"       );
-    outputTree->Branch("smalltree_lept_pt",       &tree_lept_pt,          "smalltree_lept_pt"       );
-    outputTree->Branch("smalltree_lept_eta",      &tree_lept_eta,         "smalltree_lept_eta"      );
-    outputTree->Branch("smalltree_lept_phi",      &tree_lept_phi,         "smalltree_lept_phi"      );
-    outputTree->Branch("smalltree_lept_iso",      &tree_lept_iso,         "smalltree_lept_iso"      );
-    outputTree->Branch("smalltree_lept_flav",     &tree_lept_flav,        "smalltree_lept_flav/I"     );
-    outputTree->Branch("smalltree_njets",         &tree_njets,            "smalltree_njets/I"         );
-    outputTree->Branch("smalltree_jet_pt",        &tree_jet_pt,           "smalltree_jet_pt"        );
-    outputTree->Branch("smalltree_jet_eta",       &tree_jet_eta,          "smalltree_jet_eta"       );
-    outputTree->Branch("smalltree_jet_phi",       &tree_jet_phi,          "smalltree_jet_phi"       );
-    outputTree->Branch("smalltree_jet_flav",      &tree_jet_flav,         "smalltree_jet_flav/I"      );
-    outputTree->Branch("smalltree_jet_btagdiscri",&tree_jet_btagdiscri,   "smalltree_jet_btagdiscri");
-    outputTree->Branch("smalltree_met_pt",        &tree_met_pt,           "smalltree_met_pt"        );
-    outputTree->Branch("smalltree_met_phi",       &tree_met_phi,          "smalltree_met_phi"       );
+    outputTree->Branch("smalltree_evtweight_nominal",   &tree_evtweight_nominal,"smalltree_evtweight_nominal" );
+    outputTree->Branch("smalltree_evtweight_minus",     &tree_evtweight_minus,  "smalltree_evtweight_minus"   );
+    outputTree->Branch("smalltree_evtweight_plus",      &tree_evtweight_plus,   "smalltree_evtweight_plus"    );
+    outputTree->Branch("smalltree_nlepton",             &tree_nlepton,          "smalltree_nlepton/I"         );
+    outputTree->Branch("smalltree_lept_pt",             &tree_lept_pt,          "smalltree_lept_pt"       );
+    outputTree->Branch("smalltree_lept_eta",            &tree_lept_eta,         "smalltree_lept_eta"      );
+    outputTree->Branch("smalltree_lept_phi",            &tree_lept_phi,         "smalltree_lept_phi"      );
+    outputTree->Branch("smalltree_lept_iso",            &tree_lept_iso,         "smalltree_lept_iso"      );
+    outputTree->Branch("smalltree_lept_flav",           &tree_lept_flav,        "smalltree_lept_flav/I"     );
+    outputTree->Branch("smalltree_njets",               &tree_njets,            "smalltree_njets/I"         );
+    outputTree->Branch("smalltree_jet_pt",              &tree_jet_pt,           "smalltree_jet_pt"        );
+    outputTree->Branch("smalltree_jet_eta",             &tree_jet_eta,          "smalltree_jet_eta"       );
+    outputTree->Branch("smalltree_jet_phi",             &tree_jet_phi,          "smalltree_jet_phi"       );
+    outputTree->Branch("smalltree_jet_flav",            &tree_jet_flav,         "smalltree_jet_flav/I"      );
+    outputTree->Branch("smalltree_jet_btagdiscri",      &tree_jet_btagdiscri,   "smalltree_jet_btagdiscri");
+    outputTree->Branch("smalltree_met_pt",              &tree_met_pt,           "smalltree_met_pt"        );
+    outputTree->Branch("smalltree_met_phi",             &tree_met_phi,          "smalltree_met_phi"       );
 
     for (unsigned int i = 0; i < samplelist.size(); i++)
     {
@@ -192,8 +202,18 @@ void createQCDfromData()
            // cout << "pT(muon)= " << tree_->smalltree_lept_pt[0] << endl;
            // cout << "MET     = " << tree_->smalltree_met_pt << endl;
            // cout << "Nlepton     = " << tree_->smalltree_nlepton << endl;
-            if(isData) tree_evtweight   =   tree_->smalltree_evtweight;
-            else       tree_evtweight   = - tree_->smalltree_evtweight;
+            if(isData)
+            {
+                tree_evtweight_nominal =   tree_->smalltree_evtweight;
+                tree_evtweight_minus   =   tree_->smalltree_evtweight;
+                tree_evtweight_plus    =   tree_->smalltree_evtweight;
+            }
+            else
+            {
+                tree_evtweight_nominal = - tree_->smalltree_evtweight;
+                tree_evtweight_minus   = - 2*tree_->smalltree_evtweight;
+                tree_evtweight_plus    = 0;
+            }
             //if (tree_evtweight < 0) cout << "Evt_weight_bgkd= " << tree_evtweight << endl;
             tree_nlepton        = tree_->smalltree_nlepton;
             //cout << "Evtweight_ex   = " << tree_->smalltree_evtweight << endl;
@@ -224,7 +244,7 @@ void createQCDfromData()
             tree_met_pt         = tree_->smalltree_met_pt;
             tree_met_phi        = tree_->smalltree_met_phi;
 
-            if(tree_lept_iso[0] < 0.5) continue;
+            if(tree_lept_iso[0] < InvertedIso) continue;
             outputTree->Fill();
         }
 
