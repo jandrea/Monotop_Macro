@@ -117,6 +117,7 @@ public :
    Float_t         smalltree_evtweight_plus;
    Float_t         smalltree_weight_toppt;
    Int_t           smalltree_IChannel;
+   Int_t           smalltree_nvertex;
 
    // List of branches
    TBranch        *b_smalltree_nlepton;   //!
@@ -187,6 +188,7 @@ public :
    TBranch        *b_smalltree_evtweight_plus;   //!
    TBranch        *b_smalltree_weight_toppt;   //!
    TBranch        *b_smalltree_IChannel;   //!
+   TBranch        *b_smalltree_nvertex;   //!
 
 
 
@@ -204,6 +206,7 @@ public :
    void             initializeHisto(TString sample, TString syst, bool isfirstset, TString flavtag, short int systType);
    void             addHisto( TString var, TString selstep, TString sample, TString syst, int nbins, float min, float max, TString flavtag, short int systType);
    void             fillHisto(TString channel, TString var, TString selstep, TString sample, TString syst, float val, float weight, TString flavtag, short int systType);
+   void             manageOverflows();
    void             scaleHisto(TString channel, TString sample, TH1D* histoWCorrWeights);
 
    bool             applyEventSel(short int CorrOption, double SF_QCD_L, double SF_QCD_W, double SF_QCD_B, double SF_QCD_S, double SF_QCD_TT, double SFtrigger, double SFtriggerError, TString channel, TString systtype, TString sample, TString flavtag, short int systType);
@@ -285,7 +288,6 @@ TreeReader::TreeReader(short int CorrOption, std::vector<TString> datalist, std:
       }
    if     ((CorrOption == 2 || CorrOption == 3) && sample == "QCD")     f->GetObject( "SmallTree_QCDdatadriven" ,tree);
    else                                                                 f->GetObject(("SmallTree_"+sample).Data()             ,tree);
-
    }
 
 
@@ -413,14 +415,15 @@ void TreeReader::Init(short int CorrOption, TString sample,  TTree *tree)
         fChain->SetBranchAddress("smalltree_weight_trigdown",      &smalltree_weight_trigdown,          &b_smalltree_weight_trigdown);
         fChain->SetBranchAddress("smalltree_weight_leptup",        &smalltree_weight_leptup,            &b_smalltree_weight_leptup);
         fChain->SetBranchAddress("smalltree_weight_leptdown",      &smalltree_weight_leptdown,          &b_smalltree_weight_leptdown);
-      //fChain->SetBranchAddress("smalltree_weight_PDFup",        &smalltree_weight_PDFup,             &b_smalltree_weight_PDFup);
-      //fChain->SetBranchAddress("smalltree_weight_PDFdown",      &smalltree_weight_PDFdown,           &b_smalltree_weight_PDFdown);
-        fChain->SetBranchAddress("smalltree_weight_PUup",         &smalltree_weight_PUup,              &b_smalltree_weight_PUup);
-        fChain->SetBranchAddress("smalltree_weight_PUdown",       &smalltree_weight_PUdown,            &b_smalltree_weight_PUdown);
+        fChain->SetBranchAddress("smalltree_weight_PDFup",         &smalltree_weight_PDFup,             &b_smalltree_weight_PDFup);
+        fChain->SetBranchAddress("smalltree_weight_PDFdown",       &smalltree_weight_PDFdown,           &b_smalltree_weight_PDFdown);
+        fChain->SetBranchAddress("smalltree_weight_PUup",          &smalltree_weight_PUup,              &b_smalltree_weight_PUup);
+        fChain->SetBranchAddress("smalltree_weight_PUdown",        &smalltree_weight_PUdown,            &b_smalltree_weight_PUdown);
         fChain->SetBranchAddress("smalltree_weight_toppt",         &smalltree_weight_toppt,             &b_smalltree_weight_toppt);
         fChain->SetBranchAddress("smalltree_metnosmear_pt",        &smalltree_metnosmear_pt,            &b_smalltree_metnosmear_pt);
         fChain->SetBranchAddress("smalltree_metnosmear_phi",       &smalltree_metnosmear_phi,           &b_smalltree_metnosmear_phi);
     //   fChain->SetBranchAddress("smalltree_IChannel",            &smalltree_IChannel,                 &b_smalltree_IChannel);
+        fChain->SetBranchAddress("smalltree_nvertex",              &smalltree_nvertex,                  &b_smalltree_nvertex);
    }
    Notify();
    nWZsample = 0;

@@ -23,9 +23,7 @@ void TreeReader::Loop(short int CorrOption, std::vector<TString> datalist, std::
 
    double qcdIsoCut = 0.5;
 
-   //if      (CorrOption == 0)  theoutputfile = new TFile( ("outputroot_QCDcorr/histofile_"     +sampleroot+".root" ).Data() , "recreate");
    if      (CorrOption == 0)  theoutputfile = new TFile( ("outputroot_QCDcorr_iso0p5/histofile_"     +sampleroot+".root" ).Data() , "recreate");
-   //if      (CorrOption == 0)  theoutputfile = new TFile( ("outputroot_QCDcorr_iso0p6/histofile_"     +sampleroot+".root" ).Data() , "recreate");
    else if (CorrOption == 1)  theoutputfile = new TFile( ("outputroot_woQCDcorr/histofile_"   +sampleroot+".root" ).Data() , "recreate");
    else if (CorrOption == 2)
    {
@@ -87,15 +85,10 @@ void TreeReader::Loop(short int CorrOption, std::vector<TString> datalist, std::
    if ((CorrOption == 2 || CorrOption == 3) && isQCD)
    {
        SF_QCD_L  = getQCDscalefactor(datalist, datalist_longnames, mclist, "mWT_mujets_QCDnormLregion" , flavtag );
-cout << "SF_QCD_L= " << SF_QCD_L << endl;
        SF_QCD_W  = getQCDscalefactor(datalist, datalist_longnames, mclist, "mWT_mujets_QCDnormWregion" , flavtag );
-cout << "SF_QCD_W= " << SF_QCD_W << endl;
        SF_QCD_B  = getQCDscalefactor(datalist, datalist_longnames, mclist, "mWT_mujets_QCDnormBregion" , flavtag );
-cout << "SF_QCD_B= " << SF_QCD_B << endl;
        SF_QCD_S  = getQCDscalefactor(datalist, datalist_longnames, mclist, "mWT_mujets_QCDnormSregion" , flavtag );
-cout << "SF_QCD_S= " << SF_QCD_S << endl;
        SF_QCD_TT = getQCDscalefactor(datalist, datalist_longnames, mclist, "mWT_mujets_QCDnormTTregion", flavtag );
-cout << "SF_QCD_TT= " << SF_QCD_TT << endl;
    }
 
    TGraphAsymmErrors* ratio_eta_0to0p9;
@@ -138,9 +131,10 @@ cout << "SF_QCD_TT= " << SF_QCD_TT << endl;
           //---------------
           //W flavour study
           //---------------
-          if      ( hasBjet && !hasCjet) isBflavour = true;
+          if      ( hasBjet)             isBflavour = true;
           else if (!hasBjet &&  hasCjet) isCflavour = true;
           else if (!hasBjet && !hasCjet) isLflavour = true;
+          else cout << "WARNING: This event has been rejected!" << endl;
 
           //---------------------------------------
           //Test the match with the output filename
@@ -195,7 +189,7 @@ cout << "SF_QCD_TT= " << SF_QCD_TT << endl;
       {
           for(unsigned int isyst=0; isyst< systlist.size(); isyst++)
           {
-              //if( (systlist[isyst] == "toppt__plus" || systlist[isyst] == "toppt__minus") && thesample != "TTbar_Madgraph" ) continue;
+             // if( (systlist[isyst] == "toppt__plus" || systlist[isyst] == "toppt__minus") && thesample != "TTMSDecays_central" ) continue;
               applyEventSel(CorrOption, SF_QCD_L, SF_QCD_W, SF_QCD_B, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, thechannel, systlist[isyst], thesample, flavtag, systType);
           }
       }
@@ -203,21 +197,23 @@ cout << "SF_QCD_TT= " << SF_QCD_TT << endl;
 
 
    }
-
 /*
-   if ( CorrOption == 3 && isW )
+
+   if ( CorrOption == 3 )
    {
-       TString sampleTag;
-       if (isWExcl) sampleTag = "WExcl";
-       else         sampleTag = "WIncl";
        TH1D* histoWCorrWeights = getWCorrWeights();
-       TString nosyst;
-       if (flavtag == "b" || flavtag == "c" || flavtag == "l") nosyst = sampleTag+flavtag;
-       else                                                    nosyst = sampleTag;
+
+       TCanvas *c1 = new TCanvas("c1","c1", 1000, 800);
+       c1->cd();
+       histoWCorrWeights->Draw();
+       c1->SaveAs("WtailCorrWeights.root");
+       c1->Close();
 
        //scaleHisto("mujets", nosyst.Data(),     histoWCorrWeights);
    }
 */
+
+   manageOverflows();
 
    cout << endl;
    theoutputfile->Write();
@@ -444,7 +440,7 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
          else if(sample == "QCD" && systType == -2)   QCDContamweight = smalltree_evtweight_minus;
          else if(sample == "QCD" && systType ==  2)   QCDContamweight = smalltree_evtweight_plus;
          if(sample == "QCD" )                         evtweight = QCDContamweight;
- if (QCDContamweight != 1) cout << "Evtweight= " << QCDContamweight << endl;
+ //if (QCDContamweight != 1) cout << "Evtweight= " << QCDContamweight << endl;
      }
      if (!isfinite(evtweight)) return false;
 
@@ -453,6 +449,7 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
 
      if(smalltree_lept_pt[0] > 33 && fabs(smalltree_lept_eta[0]) < 2.1 ){
 
+       fillHisto(thechannel, "NVtx",        "",  thesample, systtype, smalltree_nvertex ,  evtweight, flavtag, systType);
        fillHisto(thechannel, "CutFlow",     "",  thesample, systtype, 2 ,  evtweight, flavtag, systType);
        TLorentzVector lept, met, leadingJet;
        lept.SetPtEtaPhiM(smalltree_lept_pt[0], smalltree_lept_eta[0],  smalltree_lept_phi[0], 0.);
@@ -462,7 +459,7 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
        if(iter_jets>0) leadingJet.SetPtEtaPhiM(jet_pt[0], jet_eta[0], jet_phi[0], 0);
        if(CorrOption != 0 && (sample == "QCD"))          evtweight = QCDContamweight*SF_QCD_L;
        //if(CorrOption == 3 && isW && mTW > 375){if(mTW > 500) mTW = 499.5; evtweight *= getW_SF(mTW, systType);cout << "SF= " <<  getW_SF(mTW, systType) << " | evtweight= " << evtweight << endl; }
-       if(CorrOption == 3 && isW && mTW > 375 && systtype == ""){if(mTW > 500) mTW = 499.5; evtweight *= getW_SF(mTW, systType); }
+//       //if(CorrOption == 3 && isW && mTW >= 460 && systtype == "")                evtweight *= getW_SF(mTW, systType);
 
        int njets=0;
        int nbjets = 0;
@@ -513,7 +510,7 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
        TLorentzVector theWcand = neutrino   + lept;
        TLorentzVector jetLept  = leadingJet + lept;
 
-       fillHisto(thechannel, "NJet",       "afterleptsel",  thesample, systtype,   iter_jets, 		        evtweight, flavtag, systType);
+       fillHisto(thechannel, "NJet",       "afterleptsel",  thesample, systtype,   njets,   		        evtweight, flavtag, systType);
        fillHisto(thechannel, "NBJet",      "afterleptsel",  thesample, systtype,   nbjets, 		            evtweight, flavtag, systType);
 
        fillHisto(thechannel, "ptW",        "afterleptsel",  thesample, systtype,   theWcand.Pt(),       	evtweight, flavtag, systType);
@@ -596,7 +593,7 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
 
           if(sample == "QCD")                          evtweight = QCDContamweight*SF_QCD_W;
           fillHisto(thechannel, "mWT_full",   "Wregion_highpt",  thesample, systtype,   mTW,    			                evtweight, flavtag, systType);
-          if(mTW > 40)
+          if(mTW > 375)
           {
             fillHisto(thechannel, "CutFlow",     "",  thesample, systtype, 12 ,  evtweight, flavtag, systType);
             for(int ijet=0; ijet<iter_jets; ijet++)
@@ -605,9 +602,9 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
                 fillHisto(thechannel, "JetPt",  "Wregion_highpt",  thesample, systtype,  jet_pt[ijet] ,                 evtweight, flavtag, systType);
                 fillHisto(thechannel, "JetEta", "Wregion_highpt",  thesample, systtype,  jet_eta[ijet] ,                evtweight, flavtag, systType);
             }
-            fillHisto(thechannel, "NJet",       "Wregion_highpt",  thesample, systtype,   iter_jets, 		                evtweight, flavtag, systType);
+            fillHisto(thechannel, "NJet",       "Wregion_highpt",  thesample, systtype,   njets, 		                    evtweight, flavtag, systType);
             fillHisto(thechannel, "NBJet",      "Wregion_highpt",  thesample, systtype,   nbjets, 		                    evtweight, flavtag, systType);
-            fillHisto(thechannel, "LeadJetBtagDiscr","Wregion_highpt",thesample, systtype,  jet_btagdiscri[0] ,             evtweight, flavtag, systType);
+            fillHisto(thechannel, "LeadJetBtagDiscr","Wregion_highpt",thesample, systtype,jet_btagdiscri[0] ,               evtweight, flavtag, systType);
             fillHisto(thechannel, "ptW",        "Wregion_highpt",  thesample, systtype,   theWcand.Pt(),       	            evtweight, flavtag, systType);
             fillHisto(thechannel, "etaW",       "Wregion_highpt",  thesample, systtype,   theWcand.Eta(),       	        evtweight, flavtag, systType);
             //if(CorrOption == 3 && isW && mTW > 375 && systtype ==""){if(mTW > 500) mTW = 499.5; cout << "SF= " <<  getW_SF(mTW, systType) << " | evtweight= " << evtweight << endl; }
@@ -629,8 +626,8 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
           if(sample == "QCD")          evtweight = QCDContamweight*SF_QCD_S;
           fillHisto(thechannel, "mWT_full",     "signalregion",  thesample, systtype,   mTW,    		evtweight, flavtag, systType);
           // Manage overflows in SR - put higher values in the last bin by hands
-          if(mTW    >= 500) mTW    = 499.95;
-          if(met_pt >= 500) met_pt = 499.95;
+ //         if(mTW    >= 500) mTW    = 499.95;
+ //         if(met_pt >= 500) met_pt = 499.95;
           if(mTW > 40)
           {
             for(int ijet=0; ijet<iter_jets; ijet++)
@@ -639,11 +636,11 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
                 fillHisto(thechannel, "JetPt",  "signalregion",  thesample, systtype,  jet_pt[ijet] ,             evtweight, flavtag, systType);
                 fillHisto(thechannel, "JetEta", "signalregion",  thesample, systtype,  jet_eta[ijet] ,            evtweight, flavtag, systType);
             }
-            fillHisto(thechannel, "NJet",       "signalregion",  thesample, systtype,   iter_jets, 		          evtweight, flavtag, systType);
+            fillHisto(thechannel, "NJet",       "signalregion",  thesample, systtype,   njets,  		          evtweight, flavtag, systType);
             fillHisto(thechannel, "NBJet",      "signalregion",  thesample, systtype,   nbjets, 		          evtweight, flavtag, systType);
 
-            fillHisto(thechannel, "LeptPt",     "signalregion",  thesample, systtype,   smalltree_lept_pt[0], 		    evtweight, flavtag, systType);
-            fillHisto(thechannel, "LeptEta",    "signalregion",  thesample, systtype,   smalltree_lept_eta[0], 		    evtweight, flavtag, systType);
+            fillHisto(thechannel, "LeptPt",     "signalregion",  thesample, systtype,   smalltree_lept_pt[0], 	         evtweight, flavtag, systType);
+            fillHisto(thechannel, "LeptEta",    "signalregion",  thesample, systtype,   smalltree_lept_eta[0], 		     evtweight, flavtag, systType);
             fillHisto(thechannel, "LeadJetBtagDiscr","signalregion",thesample, systtype,  jet_btagdiscri[0] ,            evtweight, flavtag, systType);
             fillHisto(thechannel, "ptW",        "signalregion",  thesample, systtype,   theWcand.Pt(),       	         evtweight, flavtag, systType);
             fillHisto(thechannel, "etaW",       "signalregion",  thesample, systtype,   theWcand.Eta(),       	         evtweight, flavtag, systType);
@@ -662,8 +659,8 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
         {
             fillHisto(thechannel, "CutFlow",     "",  thesample, systtype, 4 ,  evtweight, flavtag, systType);
             // Manage overflows in SR - put higher values in the last bin by hands
-            if(mTW    >= 500) mTW    = 499.95;
-            if(met_pt >= 500) met_pt = 499.95;
+//            if(mTW    >= 500) mTW    = 499.95;
+//            if(met_pt >= 500) met_pt = 499.95;
 
             if(nbjets == 1)
             {
@@ -701,7 +698,7 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
                                         if(theTree_map[thesample] != 0)  theTree_map[thesample]->Fill();
 
                                         fillHisto(thechannel, "LeadJetBtagDiscr","Selectedsignalregion", thesample, systtype,   jet_btagdiscri[0] ,             evtweight, flavtag, systType);
-                                        fillHisto(thechannel, "NJet",           "Selectedsignalregion",  thesample, systtype,   iter_jets, 		          evtweight, flavtag, systType);
+                                        fillHisto(thechannel, "NJet",           "Selectedsignalregion",  thesample, systtype,   njets, 	    	          evtweight, flavtag, systType);
                                         fillHisto(thechannel, "NBJet",          "Selectedsignalregion",  thesample, systtype,   nbjets, 		          evtweight, flavtag, systType);
                                         fillHisto(thechannel, "LeptPt",         "Selectedsignalregion",  thesample, systtype,   smalltree_lept_pt[0], 		    evtweight, flavtag, systType);
                                         fillHisto(thechannel, "LeptEta",        "Selectedsignalregion",  thesample, systtype,   smalltree_lept_eta[0], 		    evtweight, flavtag, systType);
@@ -729,8 +726,8 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
 
           if(sample == "QCD")          evtweight = QCDContamweight*SF_QCD_S;
           // Manage overflows in SR - put higher values in the last bin by hands
-          if(mTW    >= 500) mTW    = 499.95;
-          if(met_pt >= 500) met_pt = 499.95;
+//          if(mTW    >= 500) mTW    = 499.95;
+//          if(met_pt >= 500) met_pt = 499.95;
           if(mWTplusMET > 60 && mTW > 250 && abs(lept.DeltaPhi(leadingJet)) < 1.4)
           {
             fillHisto(thechannel, "CutFlow",     "",  thesample, systtype, 13 , evtweight, flavtag, systType);
@@ -790,8 +787,8 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
                 fillHisto(thechannel, "JetEta",    "ttbarregion_highpt",  thesample, systtype,  jet_eta[ijet], 		evtweight, flavtag, systType);
             }
 
-            fillHisto(thechannel, "LeadJetBtagDiscr","ttbarregion_highpt",thesample, systtype,  jet_btagdiscri[0] ,          evtweight, flavtag, systType);
-            fillHisto(thechannel, "NJet",       "ttbarregion_highpt",  thesample, systtype,   iter_jets, 		                evtweight, flavtag, systType);
+            fillHisto(thechannel, "LeadJetBtagDiscr","ttbarregion_highpt",thesample, systtype,  jet_btagdiscri[0] ,             evtweight, flavtag, systType);
+            fillHisto(thechannel, "NJet",       "ttbarregion_highpt",  thesample, systtype,   njets, 		                    evtweight, flavtag, systType);
             fillHisto(thechannel, "NBJet",      "ttbarregion_highpt",  thesample, systtype,   nbjets, 		                    evtweight, flavtag, systType);
             fillHisto(thechannel, "ptW",        "ttbarregion_highpt",  thesample, systtype,   theWcand.Pt(),       	            evtweight, flavtag, systType);
             fillHisto(thechannel, "etaW",       "ttbarregion_highpt",  thesample, systtype,   theWcand.Eta(),       	        evtweight, flavtag, systType);
@@ -846,7 +843,7 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
   addHisto("mWTplusMET","afterleptsel",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
   addHisto("JetPt",     "afterleptsel",  	sample.Data(), syst.Data(),   10,    0,   300, flavtag, systType);
   addHisto("JetEta",    "afterleptsel",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
-  addHisto("LeptPt",    "afterleptsel",  	sample.Data(), syst.Data(),   100,  0.,   200, flavtag, systType);
+  addHisto("LeptPt",    "afterleptsel",  	sample.Data(), syst.Data(),   40,   0.,   200, flavtag, systType);
   addHisto("LeptEta",   "afterleptsel",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
   addHisto("BTagProba", "afterleptsel",  	sample.Data(), syst.Data(),   2,  -0.5,   1.5, flavtag, systType);
   addHisto("LeadJetBtagDiscr", "afterleptsel", sample.Data(), syst.Data(),  20,  0,     1, flavtag, systType);
@@ -860,7 +857,7 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
   addHisto("mWT",       "Wregion_highpt",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag, systType);
   addHisto("mWT_full",  "Wregion_highpt",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
   addHisto("MET",       "Wregion_highpt",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
-  addHisto("LeptPt",    "Wregion_highpt",  	sample.Data(), syst.Data(),   250,  0.,   500, flavtag, systType);
+  addHisto("LeptPt",    "Wregion_highpt",  	sample.Data(), syst.Data(),   25,   0.,   500, flavtag, systType);
   addHisto("LeptEta",   "Wregion_highpt",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
   addHisto("DeltaPhiLJ","Wregion_highpt",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
   addHisto("DeltaPhiLMet","Wregion_highpt",	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
@@ -869,7 +866,7 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
 
   addHisto("mWT",       "1bjetregion",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag, systType);
   addHisto("MET",       "1bjetregion",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
-  addHisto("LeptPt",    "1bjetregion",  	sample.Data(), syst.Data(),   100,  0.,   200, flavtag, systType);
+  addHisto("LeptPt",    "1bjetregion",  	sample.Data(), syst.Data(),   40,   0.,   200, flavtag, systType);
   addHisto("LeptEta",   "1bjetregion",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
   addHisto("DeltaPhiLJ","1bjetregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
   addHisto("DeltaRLJ",  "1bjetregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
@@ -895,7 +892,7 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
   addHisto("NBJet",     "signalregion",  	sample.Data(), syst.Data(),   5,  -0.5,   4.5, flavtag, systType);
   addHisto("JetPt",     "signalregion",  	sample.Data(), syst.Data(),   10,    0,   300, flavtag, systType);
   addHisto("JetEta",    "signalregion",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
-  addHisto("LeptPt",    "signalregion",  	sample.Data(), syst.Data(),   250,  0.,   500, flavtag, systType);
+  addHisto("LeptPt",    "signalregion",  	sample.Data(), syst.Data(),   50,  0.,    500, flavtag, systType);
   addHisto("LeptEta",   "signalregion",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
   addHisto("ptW",       "signalregion", 	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
   addHisto("etaW",      "signalregion", 	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
@@ -910,13 +907,13 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
   addHisto("NBJet",         "Selectedsignalregion",  	sample.Data(), syst.Data(),   5,  -0.5,   4.5, flavtag, systType);
   addHisto("JetPt",         "Selectedsignalregion",  	sample.Data(), syst.Data(),   10,    0,   300, flavtag, systType);
   addHisto("JetEta",        "Selectedsignalregion",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
-  addHisto("LeptPt",        "Selectedsignalregion",  	sample.Data(), syst.Data(),   250,  0.,   500, flavtag, systType);
+  addHisto("LeptPt",        "Selectedsignalregion",  	sample.Data(), syst.Data(),   50,  0.,    500, flavtag, systType);
   addHisto("LeptEta",       "Selectedsignalregion",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
   addHisto("ptW",           "Selectedsignalregion", 	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
   addHisto("etaW",          "Selectedsignalregion", 	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
   addHisto("mWT",           "Selectedsignalregion",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag, systType);
   addHisto("mWT_full",      "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
-  addHisto("MET",           "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
+  addHisto("MET",           "Selectedsignalregion",  	sample.Data(), syst.Data(),   20,    0,   500, flavtag, systType);
   addHisto("DeltaPhiLJ",    "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
   addHisto("DeltaPhiLMet",  "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
   addHisto("DeltaPhiJMet",  "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
@@ -955,11 +952,11 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
   addHisto("MET",       "ttbarregion_highpt",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
   addHisto("ptW",       "ttbarregion_highpt", 	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
   addHisto("etaW",      "ttbarregion_highpt", 	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
-  addHisto("LeptPt",    "ttbarregion_highpt",  	sample.Data(), syst.Data(),   100,  0.,   200, flavtag, systType);
+  addHisto("LeptPt",    "ttbarregion_highpt",  	sample.Data(), syst.Data(),   40,   0.,   200, flavtag, systType);
   addHisto("LeptEta",   "ttbarregion_highpt",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
   addHisto("DeltaPhiLJ","ttbarregion_highpt",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
   addHisto("DeltaRLJ",  "ttbarregion_highpt",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
-  addHisto("JetPt",     "ttbarregion_highpt",   sample.Data(), syst.Data(),   100,   0,   300, flavtag, systType);
+  addHisto("JetPt",     "ttbarregion_highpt",   sample.Data(), syst.Data(),   50,    0,   300, flavtag, systType);
   addHisto("JetEta",    "ttbarregion_highpt",   sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
   addHisto("LeadJetBtagDiscr", "ttbarregion_highpt", sample.Data(), syst.Data(),  20,  0,     1, flavtag, systType);
 
@@ -1027,7 +1024,6 @@ void TreeReader::addHisto(TString var, TString selstep, TString sample, TString 
 
 
   TH1D * thehisto_mujets = new TH1D(name_mujets,name_mujets,nbins,min,max);
-  //FIXME add if(mWT) thehisto_mujets->Overflow...
   thehisto_mujets->Sumw2();
   histo_list_mujets.push_back(thehisto_mujets);
   histo_map_mujets[name_mujets.Data()] = numb_histo;
@@ -1083,9 +1079,27 @@ void TreeReader::fillHisto(TString channel, TString var, TString selstep, TStrin
 
 }
 
+void TreeReader::manageOverflows()
+{
+
+  if(histo_list_mujets.size() == 0)
+  {
+    cout << "   WARNING trying to manage a non existing histogram at line: " << __LINE__ << endl;
+  }
+
+  for ( unsigned short int hist = 0; hist < histo_list_mujets.size(); hist++)
+  {
+      double lastBinContent  = histo_list_mujets[hist]->GetBinContent(histo_list_mujets[hist]->GetNbinsX() );
+      double overflowContent = histo_list_mujets[hist]->GetBinContent(histo_list_mujets[hist]->GetNbinsX() +1);
+      histo_list_mujets[hist]->SetBinContent(histo_list_mujets[hist]->GetNbinsX() , lastBinContent + overflowContent);
+  }
+}
+
+
 
 //normalize the W histos with the weights
-void TreeReader::scaleHisto(TString channel, TString sample, TH1D* histoWCorrWeights){
+void TreeReader::scaleHisto(TString channel, TString sample, TH1D* histoWCorrWeights)
+{
 
   TString name_TT = "mWT_"+channel+"_ttbarregion_highpt__"+sample;
   TString name_W  = "mWT_"+channel+"_Wregion_highpt__"+sample;
@@ -1337,33 +1351,20 @@ TH1D* TreeReader::getWCorrWeights()
     //--------------------
     //loop over MCsamples
     //--------------------
-    TFile* fileToGetPostFitMC = new TFile("../Theta/histos-mle.root");
+    //TFile* fileToGetPostFitMC = new TFile("../Theta/histos-mle.root");
     TString histo_mc_name;
-    TH1D* histo_W =     (TH1D*)fileToGetPostFitMC->Get("mWTmujetsWregionHighpt__WExclb")->Clone();
-          histo_W->Add( (TH1D*)fileToGetPostFitMC->Get("mWTmujetsWregionHighpt__WExclc")->Clone() );
-          histo_W->Add( (TH1D*)fileToGetPostFitMC->Get("mWTmujetsWregionHighpt__WExcll")->Clone() );
+    TH1D* histo_W =     (TH1D*)fileToGetData->Get("mWTmujetsWregionHighpt__WExclb")->Clone();
+          histo_W->Add( (TH1D*)fileToGetData->Get("mWTmujetsWregionHighpt__WExclc")->Clone() );
+          histo_W->Add( (TH1D*)fileToGetData->Get("mWTmujetsWregionHighpt__WExcll")->Clone() );
 
-    histo_data->Add( (TH1D*)fileToGetPostFitMC->Get( "mWTmujetsWregionHighpt__TTbarMadgraph")->Clone(), -1);
-    histo_data->Add( (TH1D*)fileToGetPostFitMC->Get( "mWTmujetsWregionHighpt__DY10To50"     )->Clone(), -1);
-    histo_data->Add( (TH1D*)fileToGetPostFitMC->Get( "mWTmujetsWregionHighpt__DY50"         )->Clone(), -1);
-    histo_data->Add( (TH1D*)fileToGetPostFitMC->Get( "mWTmujetsWregionHighpt__Ts"           )->Clone(), -1);
-    histo_data->Add( (TH1D*)fileToGetPostFitMC->Get( "mWTmujetsWregionHighpt__Tt"           )->Clone(), -1);
-    histo_data->Add( (TH1D*)fileToGetPostFitMC->Get( "mWTmujetsWregionHighpt__TtW"          )->Clone(), -1);
-    histo_data->Add( (TH1D*)fileToGetPostFitMC->Get( "mWTmujetsWregionHighpt__Tbart"        )->Clone(), -1);
-    histo_data->Add( (TH1D*)fileToGetPostFitMC->Get( "mWTmujetsWregionHighpt__TbartW"       )->Clone(), -1);
-    histo_data->Add( (TH1D*)fileToGetPostFitMC->Get( "mWTmujetsWregionHighpt__WZ"           )->Clone(), -1);
-    histo_data->Add( (TH1D*)fileToGetPostFitMC->Get( "mWTmujetsWregionHighpt__WW"           )->Clone(), -1);
-    histo_data->Add( (TH1D*)fileToGetPostFitMC->Get( "mWTmujetsWregionHighpt__ZZ"           )->Clone(), -1);
-    histo_data->Add( (TH1D*)fileToGetPostFitMC->Get( "mWTmujetsWregionHighpt__QCD"          )->Clone(), -1);
+    histo_data->Add( (TH1D*)fileToGetData->Get( "mWTmujetsWregionHighpt__TTMSDecays"   )->Clone(), -1);
+    histo_data->Add( (TH1D*)fileToGetData->Get( "mWTmujetsWregionHighpt__DY"           )->Clone(), -1);
+    histo_data->Add( (TH1D*)fileToGetData->Get( "mWTmujetsWregionHighpt__SingleTop"    )->Clone(), -1);
+    histo_data->Add( (TH1D*)fileToGetData->Get( "mWTmujetsWregionHighpt__VV"           )->Clone(), -1);
+    histo_data->Add( (TH1D*)fileToGetData->Get( "mWTmujetsWregionHighpt__QCD"          )->Clone(), -1);
 
     if( histo_data != 0 && histo_W != 0) histo_data->Divide(histo_W);
     else                                 cout << "There is a problem in the W-normalization!" << endl;
-
-    TCanvas *c1 = new TCanvas("c1","c1", 1000, 800);
-    c1->cd();
-    histo_data->Draw();
-    c1->SaveAs("WtailCorrWeights.root");
-    c1->Close();
 
     return histo_data;
 }
@@ -1380,24 +1381,17 @@ double TreeReader::getQCDscalefactor(vector<TString> datalist, vector<TString> d
     TFile* fileToGetQCDData = 0;
     TString histo_qcddatadriven_name;
     TH1D* histo_qcddatadriven = 0;
-//    for(unsigned int dataSample = 0; dataSample < datalist_longnames.size() ; dataSample++)
-//    {
-        //fileToGetQCDData_name     = "outputroot_QCDcorr/histofile_"+datalist_longnames[dataSample]+".root";
-        //fileToGetQCDData_name     = "outputroot_QCDcorr_iso0p5/histofile_"+datalist_longnames[dataSample]+".root";
-        fileToGetQCDData_name     = "outputroot_QCDcorr_iso0p5/histofile_QCDdatadriven.root";
-        fileToGetQCDData          = new TFile(fileToGetQCDData_name);
-        histo_qcddatadriven_name  = normregion+"__QCDdatadriven";
-        //histo_qcddatadriven_name  = normregion+"__"+datalist_longnames[dataSample];
-        histo_qcddatadriven       = (TH1D*)fileToGetQCDData->Get(histo_qcddatadriven_name);
+    fileToGetQCDData_name     = "outputroot_QCDcorr_iso0p5/histofile_QCDdatadriven.root";
+    fileToGetQCDData          = new TFile(fileToGetQCDData_name);
+    histo_qcddatadriven_name  = normregion+"__QCDdatadriven";
+    histo_qcddatadriven       = (TH1D*)fileToGetQCDData->Get(histo_qcddatadriven_name);
 
-        if (histo_qcddatadriven != 0)
-        {
-            yieldQCD += histo_qcddatadriven->Integral();
-        }
-        else cout << "histo_qcddatadriven: " << histo_qcddatadriven_name << " not found! " << endl;
-        fileToGetQCDData->Close();
-//    }
-
+    if (histo_qcddatadriven != 0)
+    {
+        yieldQCD += histo_qcddatadriven->Integral();
+    }
+    else cout << "histo_qcddatadriven: " << histo_qcddatadriven_name << " not found! " << endl;
+    fileToGetQCDData->Close();
     //--------------------
     //loop over Datasamples
     //--------------------
@@ -1431,38 +1425,19 @@ double TreeReader::getQCDscalefactor(vector<TString> datalist, vector<TString> d
     TH1D* histo_mc = 0;
     for(unsigned int mcSample = 0; mcSample < mclist.size() ; mcSample++)
     {
-        // Patch to use TTMSDecays instead of TTbar_Madgraph to make use of the right systematics (match, scale, mass)
-        //if(mclist[0] != "TTbar_Madgraph") mclist[0] = "TTbar_Madgraph";
-        //cout << "sample= " << mclist[mcSample] << " | flavtag= " << flavtag << endl;
-        if     ( mclist[mcSample] == "WJets" )
+        fileToGetMC_name    = "outputroot_woQCDcorr/histofile_"+mclist[mcSample]+".root";
+        fileToGetMC         = new TFile(fileToGetMC_name);
+
+        if( mclist[mcSample] == "W0Jets" ||  mclist[mcSample] == "W1Jets" ||  mclist[mcSample] == "W2Jets" ||  mclist[mcSample] == "W3Jets" ||  mclist[mcSample] == "W4Jets" )
         {
-            fileToGetMC    = new TFile("outputroot_woQCDcorr/histofile_WIncl.root");
-            if( flavtag == "allflav")   histo_mc    =     (TH1D*)fileToGetMC->Get( (normregion+"__WIncl").Data() )->Clone();
-            else
-            {
-                                        histo_mc    =     (TH1D*)fileToGetMC->Get( (normregion+"__WInclb").Data() )->Clone();
-                                        histo_mc->Add(    (TH1D*)fileToGetMC->Get( (normregion+"__WInclc").Data() )->Clone() );
-                                        histo_mc->Add(    (TH1D*)fileToGetMC->Get( (normregion+"__WIncll").Data() )->Clone() );
-            }
+             histo_mc    =     (TH1D*)fileToGetMC->Get( (normregion+"__WExclb").Data() )->Clone();
+             histo_mc->Add(    (TH1D*)fileToGetMC->Get( (normregion+"__WExclc").Data() )->Clone() );
+             histo_mc->Add(    (TH1D*)fileToGetMC->Get( (normregion+"__WExcll").Data() )->Clone() );
         }
-        else if( mclist[mcSample] == "W0Jets")
-        {
-            fileToGetMC    = new TFile("outputroot_woQCDcorr/histofile_WExcl.root");
-            if( flavtag == "allflav")   histo_mc    =     (TH1D*)fileToGetMC->Get( (normregion+"__WExcl").Data() )->Clone();
-            else
-            {
-                                        histo_mc    =     (TH1D*)fileToGetMC->Get( (normregion+"__WExclb").Data() )->Clone();
-                                        histo_mc->Add(    (TH1D*)fileToGetMC->Get( (normregion+"__WExclc").Data() )->Clone() );
-                                        histo_mc->Add(    (TH1D*)fileToGetMC->Get( (normregion+"__WExcll").Data() )->Clone() );
-            }
-        }
-        else if (mclist[mcSample] == "W1Jets" || mclist[mcSample] == "W2Jets" || mclist[mcSample] == "W3Jets" || mclist[mcSample] == "W4Jets") continue;
         else
         {
-            fileToGetMC_name    = "outputroot_woQCDcorr/histofile_"+mclist[mcSample]+".root";
-            fileToGetMC         = new TFile(fileToGetMC_name);
             histo_mc_name       = normregion+"__"+mclist[mcSample];
-            histo_mc            = (TH1D*)fileToGetMC->Get(histo_mc_name);
+            histo_mc            = (TH1D*)fileToGetMC->Get(histo_mc_name)->Clone();
         }
 
         if (histo_mc != 0)
@@ -1473,7 +1448,7 @@ double TreeReader::getQCDscalefactor(vector<TString> datalist, vector<TString> d
 
         if (fileToGetMC != 0) fileToGetMC->Close();
     }
-cout << "Yield_data= " << yieldData << " | Yield_MC= " << yieldMC << " | Yield_QCD= " << yieldQCD << endl;
+//cout << "Yield_data= " << yieldData << " | Yield_MC= " << yieldMC << " | Yield_QCD= " << yieldQCD << endl;
     if (yieldQCD != 0)  SF = (yieldData - yieldMC)/yieldQCD;
     else 	            SF = 0;
     return SF;
@@ -1535,7 +1510,10 @@ vector<double> TreeReader::getSFtrigger( TGraphAsymmErrors* ratioPlot,  double p
 
 double TreeReader::getW_SF(double mTW, short int systType)
 {
-    if(systType == -1)      return (2.23818-0.0041937*mTW)/2.;
-    else if(systType == 0)  return 2.23818-0.0041937*mTW;
-    if(systType == 1)       return 1;
+    if(systType == -1)      return 1;
+    else if(systType == 0)  return 53.4689 - 0.0624099*mTW;
+    else if(systType == 1)  return 2*(53.4689 - 0.0624099*mTW);
+    //if(systType == -1)      return (2.23818-0.0041937*mTW)/2.;
+    //else if(systType == 0)  return 2.23818-0.0041937*mTW;
+    //else if(systType == 1)       return 1;
 }
