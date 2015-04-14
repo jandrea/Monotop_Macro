@@ -12,15 +12,14 @@ void TreeReader::Loop(short int CorrOption, std::vector<TString> datalist, std::
    TString thesample  = sample;
    TFile * theoutputfile = 0;
    isQCD    = (sample == "QCD" );
-   isW      = (sample == "WJets"  || sample == "W0Jets" || sample == "W1Jets" || sample == "W2Jets" || sample == "W3Jets" || sample == "W4Jets");
-   isWExcl  = (sample == "W0Jets" || sample == "W1Jets" || sample == "W2Jets" || sample == "W3Jets" || sample == "W4Jets");
+   isW      = (sample == "WJets"  || sample == "W0Jets" || sample == "W1Jets" || sample == "W2Jets" || sample == "W3Jets" || sample == "W4Jets" || sample == "WJets_matchingdown" || sample == "WJets_matchingup" || sample == "WJets_scaledown" ||  sample == "WJets_scaleup" );
+   isWExcl  = (sample == "W0Jets" || sample == "W1Jets" || sample == "W2Jets" || sample == "W3Jets" || sample == "W4Jets" || sample == "WJets_matchingdown" || sample == "WJets_matchingup" || sample == "WJets_scaledown" ||  sample == "WJets_scaleup" );
    isWIncl  = (sample == "WJets");
    TString sampleroot;
    if      ( isW && flavtag == "b") sampleroot = thesample+"_bflav";
    else if ( isW && flavtag == "c") sampleroot = thesample+"_cflav";
    else if ( isW && flavtag == "l") sampleroot = thesample+"_lflav";
    else                             sampleroot = thesample;
-
    double qcdIsoCut = 0.5;
 
    if      (CorrOption == 0)  theoutputfile = new TFile( ("outputroot_QCDcorr_iso0p5/histofile_"     +sampleroot+".root" ).Data() , "recreate");
@@ -37,9 +36,7 @@ void TreeReader::Loop(short int CorrOption, std::vector<TString> datalist, std::
    {
        if (systType == -2 && isQCD)      theoutputfile = new TFile( ("outputroot_withSyst/histofile_"    +sampleroot+"__BgdContam__minus.root" ).Data() , "recreate");
        else if (systType == -1 && isQCD) { theoutputfile = new TFile( ("outputroot_withSyst/histofile_"    +sampleroot+"__Iso__minus.root" ).Data() , "recreate"); qcdIsoCut = 0.6; }
-       else if (systType == -1 && isW)  theoutputfile = new TFile( ("outputroot_withSyst/histofile_" +sampleroot+"__mTWtail__minus.root" ).Data() , "recreate");
        else if (systType == 1 && isQCD)  { theoutputfile = new TFile( ("outputroot_withSyst/histofile_"    +sampleroot+"__Iso__plus.root"  ).Data() , "recreate"); qcdIsoCut = 0.4; }
-       else if (systType == 1 && isW)   theoutputfile = new TFile( ("outputroot_withSyst/histofile_" +sampleroot+"__mTWtail__plus.root"  ).Data() , "recreate");
        else if (systType == 2 && isQCD)  theoutputfile = new TFile( ("outputroot_withSyst/histofile_"    +sampleroot+"__BgdContam__plus.root"  ).Data() , "recreate");
        else                       theoutputfile = new TFile( ("outputroot_withSyst/histofile_"    +sampleroot+".root"        ).Data() , "recreate");
    }
@@ -51,8 +48,6 @@ void TreeReader::Loop(short int CorrOption, std::vector<TString> datalist, std::
      else if( systlist[i] == "" && isQCD && systType == -1) samplename = thesample+"__Iso__minus";
      else if( systlist[i] == "" && isQCD && systType ==  1) samplename = thesample+"__Iso__plus";
      else if( systlist[i] == "" && isQCD && systType ==  2) samplename = thesample+"__BgdContam__plus";
-     else if( systlist[i] == "" && isW   && systType == -1) samplename = thesample+"__mTWtail__plus";
-     else if( systlist[i] == "" && isW   && systType ==  1) samplename = thesample+"__mTWtail__plus";
      else if( systlist[i] == "")                            samplename = thesample;
      else                                                   samplename = thesample+"__"+systlist[i];
 
@@ -197,8 +192,8 @@ void TreeReader::Loop(short int CorrOption, std::vector<TString> datalist, std::
 
 
    }
-/*
 
+/*
    if ( CorrOption == 3 )
    {
        TH1D* histoWCorrWeights = getWCorrWeights();
@@ -208,8 +203,6 @@ void TreeReader::Loop(short int CorrOption, std::vector<TString> datalist, std::
        histoWCorrWeights->Draw();
        c1->SaveAs("WtailCorrWeights.root");
        c1->Close();
-
-       //scaleHisto("mujets", nosyst.Data(),     histoWCorrWeights);
    }
 */
 
@@ -243,8 +236,6 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
       else if(isQCD && systType == -1) thesample = thesample + "__Iso__minus";
       else if(isQCD && systType ==  1) thesample = thesample + "__Iso__plus";
       else if(isQCD && systType ==  2) thesample = thesample + "__BgdContam__plus";
-      else if(isW   && systType == -1) thesample = thesample + "__mTWtail__minus";
-      else if(isW   && systType == 1 ) thesample = thesample + "__mTWtail__plus";
 
       int iter_jets          = 0;
       float * jet_pt         = 0;
@@ -270,8 +261,7 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
          systtype == "trig__plus"  ||   systtype == "trig__minus"  ||
          systtype == "PU__plus"    ||   systtype == "PU__minus"    ||
          systtype == "toppt__plus" ||   systtype == "toppt__minus" ||
-         systtype == "PDF__plus"   ||   systtype == "PDF__minus"   ||
-     ( ( systtype == "W__plus"     ||   systtype == "W__minus"  )  && isW )
+         systtype == "PDF__plus"   ||   systtype == "PDF__minus"
 
       ){
 	    iter_jets      = smalltree_njets;
@@ -343,65 +333,10 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
 	    met_pt         = smalltree_met_unclsdown_pt;
 	    met_phi        = smalltree_met_unclsdown_phi;
 
-      }else if(systtype == "btag__JES__plus"){
-	    wCSV           = GetCSVweight(1,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__JES__minus"){
-	    wCSV           = GetCSVweight(2,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVLF__plus"){
-	    wCSV           = GetCSVweight(3,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVLF__minus"){
-	    wCSV           = GetCSVweight(4,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVHFStats1__plus"){
-	    wCSV           = GetCSVweight(5,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVHFStats1__minus"){
-	    wCSV           = GetCSVweight(6,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVHFStats2__plus"){
-	    wCSV           = GetCSVweight(7,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVHFStats2__minus"){
-	    wCSV           = GetCSVweight(8,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVCErr1__plus"){
-	    wCSV           = GetCSVweight(9,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVCErr1__minus"){
-	    wCSV           = GetCSVweight(10,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVCErr2__plus"){
-	    wCSV           = GetCSVweight(11,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVCErr2__minus"){
-	    wCSV           = GetCSVweight(12,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVHF__plus"){
-	    wCSV           = GetCSVweight(13,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVHF__minus"){
-	    wCSV           = GetCSVweight(14,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVLFStats1__plus"){
-	    wCSV           = GetCSVweight(15,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVLFStats1__minus"){
-	    wCSV           = GetCSVweight(16,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVLFStats2__plus"){
-	    wCSV           = GetCSVweight(17,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
-      }else if(systtype == "btag__CSVLFStats2__minus"){
-	    wCSV           = GetCSVweight(18,smalltree_njets,smalltree_jet_pt,smalltree_jet_eta,smalltree_jet_btagdiscri,smalltree_jet_flav);
-
       }else if(systtype == "btag__plus"   ){btagSys =  1;}
       else if(systtype  == "btag__minus"  ){btagSys = -1;}
       else if(systtype  == "mistag__plus" ){btagSys =  1;}
       else if(systtype  == "mistag__minus"){btagSys = -1;}
-      else if(systtype  == "W__minus" || systtype == "W__plus") ;
       else{
         cout << "WARNING syst type " << systtype << " not recognized !! " << endl;
 	    cout << "correct syst types are " << endl;
@@ -459,7 +394,7 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
        if(iter_jets>0) leadingJet.SetPtEtaPhiM(jet_pt[0], jet_eta[0], jet_phi[0], 0);
        if(CorrOption != 0 && (sample == "QCD"))          evtweight = QCDContamweight*SF_QCD_L;
        //if(CorrOption == 3 && isW && mTW > 375){if(mTW > 500) mTW = 499.5; evtweight *= getW_SF(mTW, systType);cout << "SF= " <<  getW_SF(mTW, systType) << " | evtweight= " << evtweight << endl; }
-//       //if(CorrOption == 3 && isW && mTW >= 460 && systtype == "")                evtweight *= getW_SF(mTW, systType);
+       if(CorrOption == 3 && isW && mTW >= 280 && systtype == "")                evtweight *= getW_SF(mTW, systType);
 
        int njets=0;
        int nbjets = 0;
@@ -593,7 +528,7 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
 
           if(sample == "QCD")                          evtweight = QCDContamweight*SF_QCD_W;
           fillHisto(thechannel, "mWT_full",   "Wregion_highpt",  thesample, systtype,   mTW,    			                evtweight, flavtag, systType);
-          if(mTW > 375)
+          if(mTW > 40)
           {
             fillHisto(thechannel, "CutFlow",     "",  thesample, systtype, 12 ,  evtweight, flavtag, systType);
             for(int ijet=0; ijet<iter_jets; ijet++)
@@ -1000,10 +935,12 @@ void TreeReader::addHisto(TString var, TString selstep, TString sample, TString 
   TString name_mujets;
   if      (isWExcl && (flavtag == "b" || flavtag == "c" || flavtag == "l") )
   {
-      if(syst == "" && systType == -1)     name_mujets =  var+"_mujets_"+selstep+"__WExcl"+flavtag+"__mTWtail__minus";
-      else if(syst == "" && systType == 1) name_mujets =  var+"_mujets_"+selstep+"__WExcl"+flavtag+"__mTWtail__plus";
-      else if(syst == "")                  name_mujets =  var+"_mujets_"+selstep+"__WExcl"+flavtag;
-      else                                 name_mujets =  var+"_mujets_"+selstep+"__WExcl"+flavtag+"__"+syst;
+      if(     syst == "" && systType == -1) name_mujets =  var+"_mujets_"+selstep+"__WExcl"+flavtag+"_matchingdown";
+      else if(syst == "" && systType == 1)  name_mujets =  var+"_mujets_"+selstep+"__WExcl"+flavtag+"_matchingup";
+      else if(syst == "" && systType == -2) name_mujets =  var+"_mujets_"+selstep+"__WExcl"+flavtag+"_scaledown";
+      else if(syst == "" && systType == 2)  name_mujets =  var+"_mujets_"+selstep+"__WExcl"+flavtag+"_scaleup";
+      else if(syst == "")                   name_mujets =  var+"_mujets_"+selstep+"__WExcl"+flavtag;
+      else                                  name_mujets =  var+"_mujets_"+selstep+"__WExcl"+flavtag+"__"+syst;
   }
   else if (isWExcl)
   {
@@ -1046,8 +983,10 @@ void TreeReader::fillHisto(TString channel, TString var, TString selstep, TStrin
   TString name;
   if      (isWExcl && (flavtag == "b" || flavtag == "c" || flavtag == "l") )
   {
-      if(syst == "" && systType == -1)      name =  var+"_mujets_"+selstep+"__WExcl"+flavtag+"__mTWtail__minus";
-      else if(syst == "" && systType == 1)  name =  var+"_mujets_"+selstep+"__WExcl"+flavtag+"__mTWtail__plus";
+      if(     syst == "" && systType == -1) name =  var+"_mujets_"+selstep+"__WExcl"+flavtag+"_matchingdown";
+      else if(syst == "" && systType == 1)  name =  var+"_mujets_"+selstep+"__WExcl"+flavtag+"_matchingup";
+      else if(syst == "" && systType == -2) name =  var+"_mujets_"+selstep+"__WExcl"+flavtag+"_scaledown";
+      else if(syst == "" && systType == 2)  name =  var+"_mujets_"+selstep+"__WExcl"+flavtag+"_scaleup";
       else if(syst == "")                   name =  var+"_mujets_"+selstep+"__WExcl"+flavtag;
       else                                  name =  var+"_mujets_"+selstep+"__WExcl"+flavtag+"__"+syst;
   }
@@ -1510,9 +1449,13 @@ vector<double> TreeReader::getSFtrigger( TGraphAsymmErrors* ratioPlot,  double p
 
 double TreeReader::getW_SF(double mTW, short int systType)
 {
-    if(systType == -1)      return 1;
-    else if(systType == 0)  return 53.4689 - 0.0624099*mTW;
-    else if(systType == 1)  return 2*(53.4689 - 0.0624099*mTW);
+    if(systType == -1)      return 0.01;
+    else if(systType == 0)  return 1;
+    else if(systType == 1)  return 100;
+
+    //if(systType == -1)      return 1;
+    //else if(systType == 0)  return 53.4689 - 0.0624099*mTW;
+    //else if(systType == 1)  return 2*(53.4689 - 0.0624099*mTW);
     //if(systType == -1)      return (2.23818-0.0041937*mTW)/2.;
     //else if(systType == 0)  return 2.23818-0.0041937*mTW;
     //else if(systType == 1)       return 1;

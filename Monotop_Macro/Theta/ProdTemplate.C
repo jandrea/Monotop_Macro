@@ -50,7 +50,6 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
 
   std::vector< TH1D* > distrib_MC;
   std::vector< TH1D* > distrib_MC_sys;
-  std::vector< TH1D* > distrib_W_sys;
   std::vector< TH1D* > distrib_signal_sys;
   std::vector< TH1D* > distrib_signal;
 
@@ -108,7 +107,8 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
 
       for(unsigned int j=0; j<stytList.size(); j++)
       {
-          if( (stytList[j]=="mass" || stytList[j]=="scale" || stytList[j]=="matching" || stytList[j]=="toppt") && sampleList[i] != "TTMSDecays") continue;
+          if( stytList[j]=="toppt" && sampleList[i] != "TTMSDecays") continue;
+          if( (stytList[j]=="mass" || stytList[j]=="scale" || stytList[j]=="matching") && (sampleList[i] != "WExcll" && sampleList[i] != "WExclb" && sampleList[i] != "WExclc" && sampleList[i] != "TTMSDecays") ) continue;
           if(  stytList[j]=="mTWtail" && (sampleList[i] != "WExclc" && sampleList[i] != "WExclb" && sampleList[i] != "WExcll" )) continue;
           if( (stytList[j] =="Iso" || stytList[j] == "BgdContam") && sampleList[i] != "QCD" ) continue;
           if( sampleList[i] == "QCD" && (stytList[j] !="Iso" && stytList[j] != "BgdContam") ) continue;
@@ -131,8 +131,8 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
           TH1D* distribWtail__up = 0;
           TH1D* distribWtail__down = 0;
 
-          //if( (sampleList[i] == "TTMSDecays" || sampleList[i] == "WExcll" || sampleList[i] == "WExclc" || sampleList[i] == "WExclb")  && (stytList[j] == "mass" || stytList[j] == "scale" || stytList[j] == "matching") )
-          if( (sampleList[i] == "TTMSDecays" )  && (stytList[j] == "mass" || stytList[j] == "scale" || stytList[j] == "matching") )
+          if( (sampleList[i] == "TTMSDecays" || sampleList[i] == "WExcll" || sampleList[i] == "WExclc" || sampleList[i] == "WExclb")  && (stytList[j] == "mass" || stytList[j] == "scale" || stytList[j] == "matching") )
+          //if( (sampleList[i] == "TTMSDecays" )  && (stytList[j] == "mass" || stytList[j] == "scale" || stytList[j] == "matching") )
           {
               TString inputdistribnameplus;
               TString inputdistribnameminus;
@@ -172,33 +172,6 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
                 {
                     distribmc__plus     	= getSystematic("plus"     , inputdistrib, outputdistrib, stytList[j]       , sampleList[i], inputfile);
                     distribmc__minus     	= getSystematic("minus"    , inputdistrib, outputdistrib, stytList[j]       , sampleList[i], inputfile);
-                    if(sampleList[i] != "QCD" && j == 0)
-                    {
-                        distribWtail__nominale         	= getSystematic(""     , inputdistrib, outputdistrib, ""       , sampleList[i], inputfile);
-                        for(short unsigned int ind = 1; ind <= distribWtail__nominale->GetNbinsX(); ind++)
-                        {
-                            distribWtail__up = (TH1D*) distribWtail__nominale->Clone();
-                            distribWtail__down = (TH1D*) distribWtail__nominale->Clone();
-                            if(ind < 16)
-                            {
-                                distribWtail__up->SetBinContent(ind, 0);
-                                distribWtail__down->SetBinContent(ind, 0);
-                            }
-                            else
-                            {
-                                //cout << "Nom_Bin[" << ind << "]= " << distribWtail__up->GetBinContent(ind) << endl;
-                                distribWtail__up->SetBinContent(ind, distribWtail__nominale->GetBinContent(ind)*2.);
-                                //cout << "Up_Bin[" << ind << "]= " << distribWtail__up->GetBinContent(ind) << endl;
-                                distribWtail__down->SetBinContent(ind, distribWtail__nominale->GetBinContent(ind)/2.);
-                                //cout << "Down_Bin[" << ind << "]= " << distribWtail__down->GetBinContent(ind) << endl;
-                            }
-                        }
-
-                        distribWtail__up->SetName(  (outputdistrib+"__"+sampleList[i]+"__tail__plus").Data());
-                        distribWtail__down->SetName((outputdistrib+"__"+sampleList[i]+"__tail__minus").Data());
-                        distrib_W_sys.push_back( (TH1D*)distribWtail__up );
-                        distrib_W_sys.push_back( (TH1D*)distribWtail__down);
-                    }
                 }
                 else if(sampleList[i] == "SingleTop")
                 {
@@ -260,26 +233,18 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
   TFile * outputfile = new TFile(  outputfilename.Data(), "recreate" );
 
   if(doCutnCount)  distrib__DATA->Rebin(distrib__DATA->GetNbinsX());
-//      cout << "LastBinContent_before = " << distrib__DATA->GetBinContent(distrib__DATA->GetNbinsX() )<< endl;
-//  distrib__DATA->SetBinContent(distrib__DATA->GetNbinsX(), 0);
-//  distrib__DATA->SetBinContent(distrib__DATA->GetNbinsX(), distrib__DATA->GetBinContent(distrib__DATA->GetNbinsX() - 1));
-//      cout << "LastBinContent_after = " << distrib__DATA->GetBinContent(distrib__DATA->GetNbinsX() )<< endl;
+
   outputfile->cd();
   distrib__DATA->Write((outputdistrib+"__DATA").Data());
 
   for(unsigned int i=0; i<distrib_MC.size(); i++)
   {
       if(doCutnCount) distrib_MC[i]->Rebin(distrib_MC[i]->GetNbinsX());
-      //cout << "LastBinContent_before = " << distrib_MC[i]->GetBinContent(distrib_MC[i]->GetNbinsX() ) << endl;
-//      distrib_MC[i]->SetBinContent(distrib_MC[i]->GetNbinsX(), 0);
-   //   distrib_MC[i]->SetBinContent(distrib_MC[i]->GetNbinsX(), distrib_MC[i]->GetBinContent(distrib_MC[i]->GetNbinsX() - 1)/2);
-      //cout << "LastBinContent_after = " << distrib_MC[i]->GetBinContent(distrib_MC[i]->GetNbinsX() )<< endl;
       distrib_MC[i]->Write();
   }
   for(unsigned int i=0; i<distrib_signal.size(); i++)
   {
       if(doCutnCount) distrib_signal[i]->Rebin(distrib_signal[i]->GetNbinsX());
-  //    distrib_signal[i]->SetBinContent(distrib_signal[i]->GetNbinsX(), 0);
       distrib_signal[i]->Write();
   }
   for(unsigned int i=0; i<distrib_signal_sys.size(); i++)
@@ -290,16 +255,8 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
   for(unsigned int i=0; i<distrib_MC_sys.size(); i++)
   {
       if(doCutnCount) distrib_MC_sys[i]->Rebin(distrib_MC_sys[i]->GetNbinsX());
-      //distrib_MC_sys[i]->SetBinContent(distrib_MC_sys[i]->GetNbinsX(), distrib_MC_sys[i]->GetBinContent(distrib_MC_sys[i]->GetNbinsX() - 1));
       distrib_MC_sys[i]->Write();
   }
-  for(unsigned int i=0; i<distrib_W_sys.size(); i++)
-  {
-      if(doCutnCount) distrib_MC_sys[i]->Rebin(distrib_MC_sys[i]->GetNbinsX());
-      //distrib_MC_sys[i]->SetBinContent(distrib_MC_sys[i]->GetNbinsX(), distrib_MC_sys[i]->GetBinContent(distrib_MC_sys[i]->GetNbinsX() - 1));
-      distrib_W_sys[i]->Write();
-  }
-
 }
 
 
@@ -315,12 +272,9 @@ void ProdTemplate(){
   scaleCMStoATLAS.push_back(1.001/11.79);
   std::vector<TString> sampleList;
   sampleList.push_back("TTMSDecays" );
-  //sampleList.push_back("TTbar_Madgraph"     );
-
   sampleList.push_back("WExclb"         );
   sampleList.push_back("WExclc"         );
   sampleList.push_back("WExcll"         );
-
   sampleList.push_back("DY"             );
   sampleList.push_back("SingleTop"      );
   sampleList.push_back("VV"             );
@@ -330,7 +284,7 @@ void ProdTemplate(){
 
   systlist.push_back("lept"             );
   systlist.push_back("trig"             );
-  //systlist.push_back("PDF"              );
+  systlist.push_back("PDF"              );
   systlist.push_back("PU"               );
   systlist.push_back("jes"              );
   systlist.push_back("jer"              );
@@ -346,7 +300,6 @@ void ProdTemplate(){
 
   systlist.push_back("Iso"              );
   systlist.push_back("BgdContam"        );
- // systlist.push_back("mTWtail"          );
 
 
   // ------------------------------------------------------- //
@@ -357,7 +310,7 @@ void ProdTemplate(){
 
   //ProdTemplate("mWT_mujets_ATLASRESsignalregion", "mWTmujetsATLASRESSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   //ProdTemplate("mWT_mujets_ATLASFCNCsignalregion", "mWTmujetsATLASFCNCSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  //ProdTemplate("mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
+  ProdTemplate("mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   //ProdTemplate("MET_mujets_Selectedsignalregion", "METmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   //ProdTemplate("DeltaPhiLJ_mujets_Selectedsignalregion", "DeltaPhiLJmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   //ProdTemplate("ptW_mujets_Selectedsignalregion", "ptWmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
