@@ -12,13 +12,13 @@
 #include <vector>
 
 
-void PlotFitResults(  std::vector<TString> signalSample_list, std::vector<TString> mcSample_list, std::vector<TString> thetaSample_list, std::vector<int> colorVector, std::vector<int> thetacolorVector     , bool usePostFit, bool displaySignal, TString inputdistrib , TString thetainputdistrib , TString inputfilename, TString region, TString variable){
+void PlotFitResults(  std::vector<TString> signalSample_list, std::vector<TString> mcSample_list, std::vector<TString> thetaSample_list, std::vector<int> colorVector, std::vector<int> thetacolorVector     , bool usePostFit, bool displaySignal, TString inputdistrib , TString thetainputdistrib , TString inputfilename, TString region, TString variable, bool useAllRegions){
 
   Int_t stati=0;
   Bool_t  fit=1;
   Bool_t logy=0;
 
-  bool setlogy = 1;
+  bool setlogy = 0;
   if (displaySignal) setlogy = 1;
 
   gStyle->SetCanvasBorderMode(0);
@@ -163,13 +163,9 @@ void PlotFitResults(  std::vector<TString> signalSample_list, std::vector<TStrin
   c1->SetLogy(setlogy);
   c1->cd();
   TFile * inputfile_fit ;
-  //if(usePostFit)    inputfile_fit = new TFile("histos-mle_bkp18_03_15.root");
-  //if(usePostFit)    inputfile_fit = new TFile("histos-mle_bkp_26_03_15.root");
-  //if(usePostFit)    inputfile_fit = new TFile("outputTheta_CRsOnly_newTT.root");
-  if(usePostFit)    inputfile_fit = new TFile("histos-mle_testnewsyst.root");
-//  if(usePostFit)    inputfile_fit = new TFile("inputTheta_nosyst.root");
-  //if(usePostFit)    inputfile_fit = new TFile("histos-mle.root");
-  else              inputfile_fit = new TFile(inputfilename);
+  if(usePostFit && useAllRegions)    inputfile_fit = new TFile("outputTheta_AllRegions.root");
+  else if(usePostFit)                inputfile_fit = new TFile("outputTheta_CRsOnly.root");
+  else                               inputfile_fit = new TFile(inputfilename);
 
   TFile * inputfile_data          = new TFile(inputfilename );
 
@@ -199,6 +195,7 @@ void PlotFitResults(  std::vector<TString> signalSample_list, std::vector<TStrin
 
   for(unsigned int imc = 0; imc < mcSample_list.size(); imc++){
 
+    if (mcSample_list[imc] == "QCD" && region == "TTbarregion") continue;
     TString histo_mc_name   = inputdistrib+"__"+mcSample_list[imc];
     TH1F * histo_tmp = (TH1F*)inputfile_fit->Get(histo_mc_name);
     histo_mcSamples.push_back(histo_tmp);
@@ -312,7 +309,7 @@ void PlotFitResults(  std::vector<TString> signalSample_list, std::vector<TStrin
       if( mcSample_list[i] == "DYJetsToLL_M-50"     )   qw->AddEntry( histo_mcSamples[i],  "DY"		    ,"f");
       if( mcSample_list[i] == "T_s" 		        )   qw->AddEntry( histo_mcSamples[i+4],"Single top" ,"f");
       if( mcSample_list[i] == "WZ"                  )   qw->AddEntry( histo_mcSamples[i+2],"VV"	        ,"f");
-      if( mcSample_list[i] == "QCD"                 )   qw->AddEntry( histo_mcSamples[i],  "QCD"	    ,"f");
+      if( mcSample_list[i] == "QCD"  && region != "TTbarregion" )   qw->AddEntry( histo_mcSamples[i],  "QCD"	    ,"f");
     }
     else
     {
@@ -323,7 +320,7 @@ void PlotFitResults(  std::vector<TString> signalSample_list, std::vector<TStrin
       if( mcSample_list[i] == "DY"          )   qw->AddEntry( histo_mcSamples[i],  "DY"		    ,"f");
       if( mcSample_list[i] == "SingleTop"   )   qw->AddEntry( histo_mcSamples[i],  "Single top" ,"f");
       if( mcSample_list[i] == "VV"          )   qw->AddEntry( histo_mcSamples[i],  "VV"	        ,"f");
-      if( mcSample_list[i] == "QCD"         )   qw->AddEntry( histo_mcSamples[i],  "QCD"	    ,"f");
+      if( mcSample_list[i] == "QCD"   && region != "TTbarregion" )   qw->AddEntry( histo_mcSamples[i],  "QCD"	    ,"f");
     }
   }
 
@@ -386,16 +383,17 @@ void PlotFitResults(  std::vector<TString> signalSample_list, std::vector<TStrin
   thegraph_ratio->Draw("e2same");
 
   TString outputname;
-  if (!usePostFit) outputname = "PreFit_newTTnosyst_bkgdOnly_"+variable+"_mujets";
-  else             outputname = "PostFit_newTTnosyst_bkgdOnly_"+variable+"_mujets";
+  if (!usePostFit)          outputname = "PreFit_finalVersion_"+variable+"_mujets";
+  else if (useAllRegions)   outputname = "PostFit_finalVersion_AllRegions_"+variable+"_mujets";
+  else                      outputname = "PostFit_finalVersion_CRsOnly_"+variable+"_mujets";
 
   TString endname_png;
   TString endname_pdf;
   if (setlogy) { endname_png = "_logY.png"; endname_pdf = "_logY.pdf"; }
   else         { endname_png = ".png";      endname_pdf = ".pdf"; }
 
-  c1->SaveAs( ("plots_fits_AN/"+outputname+"_"+region+endname_png).Data());
-  c1->SaveAs( ("plots_fits_AN/"+outputname+"_"+region+endname_pdf).Data());
+  c1->SaveAs( ("finalPlots_AN/"+outputname+"_"+region+endname_png).Data());
+  c1->SaveAs( ("finalPlots_AN/"+outputname+"_"+region+endname_pdf).Data());
 
 }
 
@@ -403,8 +401,9 @@ void PlotFitResults(  std::vector<TString> signalSample_list, std::vector<TStrin
 void PlotFitResults(){
 
 
-  bool usePostFit = false;
+  bool usePostFit = true;
   bool displaySignal = false;
+  bool useAllRegions = false;
 
   //-------------------------
   //define list of signal samples
@@ -436,9 +435,7 @@ void PlotFitResults(){
   std::vector<TString> thetaSample_list;
   std::vector<int> colorVector;
   std::vector<int> thetacolorVector;
-  //mcSample_list.push_back("TTbar_Madgraph");
   mcSample_list.push_back("TTMSDecays_central");          colorVector.push_back(kRed+1);
-
   mcSample_list.push_back("WExclb");                      colorVector.push_back(kGreen-2);
   mcSample_list.push_back("WExclc");                      colorVector.push_back(kGreen);
   mcSample_list.push_back("WExcll");                      colorVector.push_back(kGreen+4);
@@ -466,14 +463,10 @@ void PlotFitResults(){
 
   //PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector, thetacolorVector,  usePostFit,  displaySignal, "mWT_mujets_ATLASRESsignalregion", "mWTmujetsATLASRESSignalregion", "../TreeReader/outputroot_withSyst/histo_merged.root","ATLASsignalregion", "mWT");
 
-  //PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector, thetacolorVector,  usePostFit,  displaySignal, "DeltaPhiLJ_mujets_Selectedsignalregion", "DeltaPhiLJmujetsSelectedSignalregion", "../TreeReader/outputroot_withSyst/histo_merged.root","Selectedsignalregion", "DeltaPhiLJ");
-  //PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector, thetacolorVector,  usePostFit,  displaySignal, "ptW_mujets_Selectedsignalregion", "ptWmujetsSelectedSignalregion", "../TreeReader/outputroot_withSyst/histo_merged.root","Selectedsignalregion", "ptW");
-  //PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector, thetacolorVector,  usePostFit,  displaySignal, "MET_mujets_Selectedsignalregion", "METmujetsSelectedSignalregion", "../TreeReader/outputroot_withSyst/histo_merged.root","Selectedsignalregion","MET");
 
-  //PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector, thetacolorVector,  usePostFit,  displaySignal, "mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion", "../TreeReader/outputroot_withSyst/histo_merged.root","Selectedsignalregion", "mWT");
-  //PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector, thetacolorVector,  usePostFit,  displaySignal, "mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", "../TreeReader/outputroot_withSyst/histo_merged.root", "TTbarregion", "mWT");
-  //PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector, thetacolorVector,  usePostFit,  displaySignal, "mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", "../TreeReader/outputroot_withSyst/histo_merged.root", "Wregion", "mWT");
-  PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector, thetacolorVector,  usePostFit,  displaySignal, "NJet_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", "../TreeReader/outputroot_withSyst/histo_merged_testWtail.root", "Wregion", "mWT");
+  if (useAllRegions) PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector, thetacolorVector,  usePostFit,  displaySignal, "mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion", "../TreeReader/outputroot_withSyst/histo_merged.root","Selectedsignalregion", "mWT", useAllRegions);
+  PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector, thetacolorVector,  usePostFit,  displaySignal, "mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", "../TreeReader/outputroot_withSyst/histo_merged.root", "TTbarregion", "mWT", useAllRegions);
+  PlotFitResults(signalSample_list, mcSample_list, thetaSample_list, colorVector, thetacolorVector,  usePostFit,  displaySignal, "mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", "../TreeReader/outputroot_withSyst/histo_merged.root", "Wregion", "mWT", useAllRegions);
 
 
 }

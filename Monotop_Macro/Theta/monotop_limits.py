@@ -2,7 +2,7 @@ options = Options()
 
 options.set('minimizer', 'strategy', 'newton_vanilla')
 
-benchmark='S4inv100'
+benchmark='S1Res1500Inv10'
 
 # for model building:
 def get_model():
@@ -12,12 +12,14 @@ def get_model():
     # For more info about this model and naming conventuion, see documentation
     # of build_model_from_rootfile.
     
+    #model = build_model_from_rootfile('thetaInOut/inputTheta_AllRegions.root',include_mc_uncertainties=True)
+    #model = build_model_from_rootfile('thetaInOut/inputTheta_CRsOnly.root',include_mc_uncertainties=True)
     model = build_model_from_rootfile('inputTheta_merged.root',include_mc_uncertainties=True)
     
     # If the prediction histogram is zero, but data is non-zero, teh negative log-likelihood
     # is infinity which causes problems for some methods. Therefore, we set all histogram
     # bin entries to a small, but positive value:
-    model.fill_histogram_zerobins()
+    model.fill_histogram_zerobins(0.00000001)
 
     # define what the signal processes are. All other processes are assumed to make up the 
     # 'background-only' model.
@@ -34,29 +36,20 @@ def get_model():
     # systematic. In this case, the same parameter will be used; shape and rate changes 
     # will be 100% correlated.
 
-    model.add_lognormal_uncertainty('TTbarMadgraph_rate',   math.log(1.30), 'TTbarMadgraph' )
+    model.add_lognormal_uncertainty('TTMSDecays_rate',      math.log(1.30), 'TTMSDecays'    )
     model.add_lognormal_uncertainty('WExclb_rate',          math.log(2.00), 'WExclb'        )
     model.add_lognormal_uncertainty('WExclc_rate',          math.log(2.00), 'WExclc'        )
     model.add_lognormal_uncertainty('WExcll_rate',          math.log(2.00), 'WExcll'        )
-    model.add_lognormal_uncertainty('DY10To50_rate',        math.log(1.30), 'DY10To50'      )
-    model.add_lognormal_uncertainty('DY50_rate',            math.log(1.30), 'DY50'          )
-    model.add_lognormal_uncertainty('Ts_rate',              math.log(2.00), 'Ts'            )
-    model.add_lognormal_uncertainty('Tt_rate',              math.log(1.30), 'Tt'            )
-    model.add_lognormal_uncertainty('TtW_rate',             math.log(1.30), 'TtW'           )
-    model.add_lognormal_uncertainty('Tbart_rate',           math.log(1.30), 'Tbart'         )
-    model.add_lognormal_uncertainty('TbartW_rate',          math.log(1.30), 'TbartW'        )
-    model.add_lognormal_uncertainty('WZ_rate',              math.log(2.00), 'WZ'            )
-    model.add_lognormal_uncertainty('ZZ_rate',              math.log(2.00), 'ZZ'            )
-    model.add_lognormal_uncertainty('WW_rate',              math.log(2.00), 'WW'            )
+    model.add_lognormal_uncertainty('DY_rate',              math.log(1.30), 'DY'            )
+    model.add_lognormal_uncertainty('SingleTop_rate',       math.log(1.30), 'SingleTop'     )
+    model.add_lognormal_uncertainty('VV_rate',              math.log(1.30), 'VV'            )
+    model.add_lognormal_uncertainty('QCD_rate',             math.log(1.50), 'QCD'           )
 
     #model.distribution.set_distribution_parameters('WExclb_rate', mean=0.0,width=0.0, range =[0.0,0.0])
 
     for p in model.processes:
 	if p == 'QCD' : continue
 	model.add_lognormal_uncertainty('lumi',        math.log(1.026), p)
-
-    for q in model.processes:
-        if q == 'QCD' : model.add_lognormal_uncertainty('QCD_rate',            math.log(1.50), 'QCD'           )
                                
     return model
 
@@ -93,15 +86,35 @@ print ("Determine nuisance parameters and their uncertainties")
 parameter_values = {}
 parameter_uncert = {}
 
+
+#for q in model.get_parameters([benchmark]):
+#    for p in model.get_parameters([benchmark]):
+#        parameter_values[p] = fit[benchmark][p][0][0]
+#        parameter_uncert[p] = fit[benchmark][p][0][1]
+
+#        if p == q : 
+#            parameter_values[p] = fit[benchmark][p][0][0]+fit[benchmark][p][0][1]
+#            print [p, "%.4f" %parameter_values[p], "%.4f" %parameter_uncert[p] ]
+
+    # print ("Create postfit histograms")
+
+#    histos = evaluate_prediction(model, parameter_values, include_signal = False)
+#    write_histograms_to_rootfile(histos, 'thetaInOut/histos_postFit_CRsOnly_'+q+'_up.root')
+
+
+
+
 for p in model.get_parameters([benchmark]):
     parameter_values[p] = fit[benchmark][p][0][0]
     parameter_uncert[p] = fit[benchmark][p][0][1]
-    print [p, "%.4f" %parameter_values[p], "%.4f" %parameter_uncert[p] ]
 
-print ("Create postfit histograms")
+#    print [p, "%.4f" %parameter_values[p], "%.4f" %parameter_uncert[p] ]
 
 histos = evaluate_prediction(model, parameter_values, include_signal = False)
-write_histograms_to_rootfile(histos, 'histos-mle.root')
+#write_histograms_to_rootfile(histos, 'outputTheta_AllRegions.root')
+#write_histograms_to_rootfile(histos, 'outputTheta_CRsOnly.root')
+
+
 
 
 # 2.a. Bayesian limits
@@ -110,7 +123,7 @@ write_histograms_to_rootfile(histos, 'histos-mle.root')
 # process all signals defined as signal processes before; see Section "Common Parameters"
 # on the theta auto intro doxygen page for details)
 
-plot_exp, plot_obs = bayesian_limits(model, options = options, n_toy = 1000, n_data=200)
+plot_exp, plot_obs = bayesian_limits(model, options = options, n_toy = 3000, n_data=200)
 
 # plot_exp and plot_obs are instances of plotutil.plotdata. they contain x/y values and
 # bands. You can do many things with these objects such as inspect the x/y/ban
@@ -119,10 +132,12 @@ plot_exp, plot_obs = bayesian_limits(model, options = options, n_toy = 1000, n_d
 # to apply your own plotting routines or present the result in a text Table.
 
 
-###plot_exp.write_txt('limits_CutnCount_ATLASSel/bayesian_limits_expected_'+benchmark+'.txt')
-###plot_obs.write_txt('limits_CutnCount_ATLASSel/bayesian_limits_observed_'+benchmark+'.txt')
-plot_exp.write_txt('limits_ShapeAnalysis_AllCR/bayesian_new__limits_expected_'+benchmark+'.txt')
-plot_obs.write_txt('limits_ShapeAnalysis_AllCR/bayesian_new__limits_observed_'+benchmark+'.txt')
+#plot_exp.write_txt('limits_CutnCount_ATLASSel/bayesian_final_limits_expected_'+benchmark+'.txt')
+#plot_obs.write_txt('limits_CutnCount_ATLASSel/bayesian_final_limits_observed_'+benchmark+'.txt')
+plot_exp.write_txt('limits_ShapeAnalysis_AllCR/bayesian_final_limits_expected_'+benchmark+'.txt')
+plot_obs.write_txt('limits_ShapeAnalysis_AllCR/bayesian_final_limits_observed_'+benchmark+'.txt')
+###plot_exp.write_txt('limits_ShapeAnalysis_mTWonly/new__bayesian_final_limits_expected_'+benchmark+'.txt')
+###plot_obs.write_txt('limits_ShapeAnalysis_mTWonly/new__bayesian_final_limits_observed_'+benchmark+'.txt')
 
 # 2.b. CLs limits
 # calculate cls limit plots. The interface is very similar to bayesian_limits. However, there are a few

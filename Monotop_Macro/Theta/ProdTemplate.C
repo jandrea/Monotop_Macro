@@ -108,7 +108,8 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
       for(unsigned int j=0; j<stytList.size(); j++)
       {
           if( stytList[j]=="toppt" && sampleList[i] != "TTMSDecays") continue;
-          if( (stytList[j]=="mass" || stytList[j]=="scale" || stytList[j]=="matching") && (sampleList[i] != "WExcll" && sampleList[i] != "WExclb" && sampleList[i] != "WExclc" && sampleList[i] != "TTMSDecays") ) continue;
+          //if( (stytList[j]=="mass" || stytList[j]=="scale" || stytList[j]=="matching") && (sampleList[i] != "WExcll" && sampleList[i] != "WExclb" && sampleList[i] != "WExclc" && sampleList[i] != "TTMSDecays") ) continue;
+          if( (stytList[j]=="mass" || stytList[j]=="scale" || stytList[j]=="matching") && sampleList[i] != "TTMSDecays" ) continue;
           if(  stytList[j]=="mTWtail" && (sampleList[i] != "WExclc" && sampleList[i] != "WExclb" && sampleList[i] != "WExcll" )) continue;
           if( (stytList[j] =="Iso" || stytList[j] == "BgdContam") && sampleList[i] != "QCD" ) continue;
           if( sampleList[i] == "QCD" && (stytList[j] !="Iso" && stytList[j] != "BgdContam") ) continue;
@@ -131,8 +132,8 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
           TH1D* distribWtail__up = 0;
           TH1D* distribWtail__down = 0;
 
-          if( (sampleList[i] == "TTMSDecays" || sampleList[i] == "WExcll" || sampleList[i] == "WExclc" || sampleList[i] == "WExclb")  && (stytList[j] == "mass" || stytList[j] == "scale" || stytList[j] == "matching") )
-          //if( (sampleList[i] == "TTMSDecays" )  && (stytList[j] == "mass" || stytList[j] == "scale" || stytList[j] == "matching") )
+          //if( (sampleList[i] == "TTMSDecays" || sampleList[i] == "WExcll" || sampleList[i] == "WExclc" || sampleList[i] == "WExclb")  && (stytList[j] == "mass" || stytList[j] == "scale" || stytList[j] == "matching") )
+          if( (sampleList[i] == "TTMSDecays" )  && (stytList[j] == "mass" || stytList[j] == "scale" || stytList[j] == "matching") )
           {
               TString inputdistribnameplus;
               TString inputdistribnameminus;
@@ -268,7 +269,7 @@ void ProdTemplate(){
   std::vector<TString> signalList;
   std::vector<TString> thetaSignalList;
   std::vector<double>  scaleCMStoATLAS;
-  signalList.push_back("S4_500_fastSim");  thetaSignalList.push_back("S4inv500");
+  signalList.push_back("S1Res1500Inv10");  thetaSignalList.push_back("S1Res1500Inv10");
   scaleCMStoATLAS.push_back(1.001/11.79);
   std::vector<TString> sampleList;
   sampleList.push_back("TTMSDecays" );
@@ -310,14 +311,14 @@ void ProdTemplate(){
 
   //ProdTemplate("mWT_mujets_ATLASRESsignalregion", "mWTmujetsATLASRESSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   //ProdTemplate("mWT_mujets_ATLASFCNCsignalregion", "mWTmujetsATLASFCNCSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  ProdTemplate("mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
+ // ProdTemplate("mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   //ProdTemplate("MET_mujets_Selectedsignalregion", "METmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   //ProdTemplate("DeltaPhiLJ_mujets_Selectedsignalregion", "DeltaPhiLJmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   //ProdTemplate("ptW_mujets_Selectedsignalregion", "ptWmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
 
   //ProdTemplate("MET_mujets_signalregion", "METmujetsSignalregion", signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   //ProdTemplate("DeltaPhiLJ_mujets_signalregion", "DeltaPhiLJmujetsSignalregion", signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  //ProdTemplate("mWT_mujets_signalregion", "mWTmujetsSignalregion", signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
+  ProdTemplate("mWT_mujets_signalregion", "mWTmujetsSignalregion", signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   ProdTemplate("mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   ProdTemplate("mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
 
