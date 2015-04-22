@@ -79,8 +79,13 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
       {
                  distrib__nominale         	= getSystematic(""     , inputdistrib, outputdistrib, ""       , "T_s", inputfile);
                  distrib__nominale->Add(   	  getSystematic(""     , inputdistrib, outputdistrib, ""       , "T_t", inputfile));
-                 distrib__nominale->Add(   	  getSystematic(""     , inputdistrib, outputdistrib, ""       , "T_tW", inputfile));
                  distrib__nominale->Add(   	  getSystematic(""     , inputdistrib, outputdistrib, ""       , "Tbar_t", inputfile));
+                 //distrib__nominale->Add(   	  getSystematic(""     , inputdistrib, outputdistrib, ""       , "T_tW", inputfile));
+                 //distrib__nominale->Add(   	  getSystematic(""     , inputdistrib, outputdistrib, ""       , "Tbar_tW", inputfile));
+      }
+     else if(sampleList[i] == "SingleTopW")
+      {
+                 distrib__nominale          = getSystematic(""     , inputdistrib, outputdistrib, ""       , "T_tW", inputfile);
                  distrib__nominale->Add(   	  getSystematic(""     , inputdistrib, outputdistrib, ""       , "Tbar_tW", inputfile));
       }
       else if(sampleList[i] == "DY")
@@ -110,11 +115,10 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
           if( stytList[j]=="toppt" && sampleList[i] != "TTMSDecays") continue;
           //if( (stytList[j]=="mass" || stytList[j]=="scale" || stytList[j]=="matching") && (sampleList[i] != "WExcll" && sampleList[i] != "WExclb" && sampleList[i] != "WExclc" && sampleList[i] != "TTMSDecays") ) continue;
           if( (stytList[j]=="mass" || stytList[j]=="scale" || stytList[j]=="matching") && sampleList[i] != "TTMSDecays" ) continue;
-          if(  stytList[j]=="mTWtail" && (sampleList[i] != "WExclc" && sampleList[i] != "WExclb" && sampleList[i] != "WExcll" )) continue;
           if( (stytList[j] =="Iso" || stytList[j] == "BgdContam") && sampleList[i] != "QCD" ) continue;
           if( sampleList[i] == "QCD" && (stytList[j] !="Iso" && stytList[j] != "BgdContam") ) continue;
 
-          if (i < signalList.size() && stytList[j] != "mass" && stytList[j] != "scale" && stytList[j] != "matching" && stytList[j] != "toppt" && stytList[j]!="mTWtail" && stytList[j] != "Iso" && stytList[j] != "BgdContam" && stytList[j] != "PDF")
+          if (i < signalList.size() && stytList[j] != "mass" && stytList[j] != "scale" && stytList[j] != "matching" && stytList[j] != "toppt" && stytList[j] != "Iso" && stytList[j] != "BgdContam")
           {
               TH1D* distribsignal__plus     	= getSystematic("plus"     , inputdistrib, outputdistrib, stytList[j]       , signalList[i], inputfile);
               TH1D* distribsignal__minus     	= getSystematic("minus"    , inputdistrib, outputdistrib, stytList[j]       , signalList[i], inputfile);
@@ -128,9 +132,6 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
 
           TH1D* distribmc__plus = 0;
           TH1D* distribmc__minus = 0;
-          TH1D* distribWtail__nominale = 0;
-          TH1D* distribWtail__up = 0;
-          TH1D* distribWtail__down = 0;
 
           //if( (sampleList[i] == "TTMSDecays" || sampleList[i] == "WExcll" || sampleList[i] == "WExclc" || sampleList[i] == "WExclb")  && (stytList[j] == "mass" || stytList[j] == "scale" || stytList[j] == "matching") )
           if( (sampleList[i] == "TTMSDecays" )  && (stytList[j] == "mass" || stytList[j] == "scale" || stytList[j] == "matching") )
@@ -178,14 +179,23 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
                 {
                     distribmc__plus     	= getSystematic("plus"     , inputdistrib, outputdistrib, stytList[j]      , "T_s", inputfile);
                     distribmc__plus->Add(     getSystematic("plus"     , inputdistrib, outputdistrib, stytList[j]      , "T_t", inputfile));
-                    distribmc__plus->Add(     getSystematic("plus"     , inputdistrib, outputdistrib, stytList[j]      , "T_tW", inputfile));
                     distribmc__plus->Add(     getSystematic("plus"     , inputdistrib, outputdistrib, stytList[j]      , "Tbar_t", inputfile));
-                    distribmc__plus->Add(     getSystematic("plus"     , inputdistrib, outputdistrib, stytList[j]      , "Tbar_tW", inputfile));
+                    //distribmc__plus->Add(     getSystematic("plus"     , inputdistrib, outputdistrib, stytList[j]      , "T_tW", inputfile));
+                    //distribmc__plus->Add(     getSystematic("plus"     , inputdistrib, outputdistrib, stytList[j]      , "Tbar_tW", inputfile));
 
                     distribmc__minus     	= getSystematic("minus"    , inputdistrib, outputdistrib, stytList[j]      , "T_s", inputfile);
                     distribmc__minus->Add(    getSystematic("minus"    , inputdistrib, outputdistrib, stytList[j]      , "T_t", inputfile));
-                    distribmc__minus->Add(    getSystematic("minus"    , inputdistrib, outputdistrib, stytList[j]      , "T_tW", inputfile));
                     distribmc__minus->Add(    getSystematic("minus"    , inputdistrib, outputdistrib, stytList[j]      , "Tbar_t", inputfile));
+                    //distribmc__minus->Add(    getSystematic("minus"    , inputdistrib, outputdistrib, stytList[j]      , "T_tW", inputfile));
+                    //distribmc__minus->Add(    getSystematic("minus"    , inputdistrib, outputdistrib, stytList[j]      , "Tbar_tW", inputfile));
+
+                }
+                else if(sampleList[i] == "SingleTopW")
+                {
+                    distribmc__plus         = getSystematic("plus"     , inputdistrib, outputdistrib, stytList[j]      , "T_tW", inputfile);
+                    distribmc__plus->Add(     getSystematic("plus"     , inputdistrib, outputdistrib, stytList[j]      , "Tbar_tW", inputfile));
+
+                    distribmc__minus        = getSystematic("minus"    , inputdistrib, outputdistrib, stytList[j]      , "T_tW", inputfile);
                     distribmc__minus->Add(    getSystematic("minus"    , inputdistrib, outputdistrib, stytList[j]      , "Tbar_tW", inputfile));
 
                 }
@@ -269,23 +279,27 @@ void ProdTemplate(){
   std::vector<TString> signalList;
   std::vector<TString> thetaSignalList;
   std::vector<double>  scaleCMStoATLAS;
-  signalList.push_back("S1Res1500Inv10");  thetaSignalList.push_back("S1Res1500Inv10");
+  signalList.push_back("S4Inv700");  thetaSignalList.push_back("S4Inv700");
   scaleCMStoATLAS.push_back(1.001/11.79);
   std::vector<TString> sampleList;
-  sampleList.push_back("TTMSDecays" );
+
+  sampleList.push_back("TTMSDecays"     );
   sampleList.push_back("WExclb"         );
   sampleList.push_back("WExclc"         );
   sampleList.push_back("WExcll"         );
   sampleList.push_back("DY"             );
   sampleList.push_back("SingleTop"      );
+  sampleList.push_back("SingleTopW"     );
   sampleList.push_back("VV"             );
   sampleList.push_back("QCD"            );
+
+
 
   std::vector<TString> systlist;
 
   systlist.push_back("lept"             );
   systlist.push_back("trig"             );
-  systlist.push_back("PDF"              );
+  //systlist.push_back("PDF"              );
   systlist.push_back("PU"               );
   systlist.push_back("jes"              );
   systlist.push_back("jer"              );
@@ -311,14 +325,7 @@ void ProdTemplate(){
 
   //ProdTemplate("mWT_mujets_ATLASRESsignalregion", "mWTmujetsATLASRESSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   //ProdTemplate("mWT_mujets_ATLASFCNCsignalregion", "mWTmujetsATLASFCNCSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
- // ProdTemplate("mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  //ProdTemplate("MET_mujets_Selectedsignalregion", "METmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  //ProdTemplate("DeltaPhiLJ_mujets_Selectedsignalregion", "DeltaPhiLJmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  //ProdTemplate("ptW_mujets_Selectedsignalregion", "ptWmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-
-  //ProdTemplate("MET_mujets_signalregion", "METmujetsSignalregion", signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  //ProdTemplate("DeltaPhiLJ_mujets_signalregion", "DeltaPhiLJmujetsSignalregion", signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  ProdTemplate("mWT_mujets_signalregion", "mWTmujetsSignalregion", signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
+  ProdTemplate("mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   ProdTemplate("mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
   ProdTemplate("mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt",signalList, thetaSignalList, sampleList,  systlist,  "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
 
