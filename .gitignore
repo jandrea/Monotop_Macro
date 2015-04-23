@@ -1,3 +1,16 @@
 *.so
 *.d
 *.root
+
+Monotop_Macro/Theta/*
+Monotop_Macro/TreeReader/*
+Monotop_Macro/PlotMaker/*
+Monotop_Macro/BTagSFNotReshaping/*
+WflavorSplitting.C
+go_muonOnly.py
+
+*.dat
+*.tgz
+*~
+*.pdf
+*.png

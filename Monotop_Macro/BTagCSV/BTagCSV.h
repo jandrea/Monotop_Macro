@@ -24,7 +24,7 @@ class BTagCSV {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
-   
+
    // Declaration of leaf types
    Int_t             treeCSV_jetN;
    Float_t           treeCSV_jetPt[1000];
@@ -44,7 +44,7 @@ public :
    TBranch        *b_treeCSV_SampleType;
    TBranch        *b_treeCSV_Channel;
    TBranch        *b_treeCSV_EvtWeight;
-  
+
    BTagCSV(TTree *tree=0, TString sample="");
    virtual ~BTagCSV();
    virtual Int_t    Cut(Long64_t entry);
@@ -54,7 +54,7 @@ public :
    virtual void     Loop(TString sample);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
-   
+
    TFile *fout;
 };
 
@@ -65,13 +65,13 @@ BTagCSV::BTagCSV(TTree *tree, TString sample) : fChain(0)
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
-   if (tree == 0) 
+   if (tree == 0)
      {
 	TFile *f = TFile::Open("../TreeReader/outputroot/histofile_merged.root");
 	f->GetObject( ("TtreeCSV_"+sample).Data(),tree);
      }
    Init(tree);
-   
+
    fout = new TFile(("hist/output_"+sample+".root").Data(),"RECREATE");
 }
 
@@ -79,7 +79,7 @@ BTagCSV::~BTagCSV()
 {
    if (!fChain) return;
    delete fChain->GetCurrentFile();
-   
+
    fout->Write();
    fout->Close();
 }
@@ -124,11 +124,11 @@ void BTagCSV::Init(TTree *tree)
    fChain->SetBranchAddress("treeCSV_jetEta", &treeCSV_jetEta, &b_treeCSV_jetEta);
    fChain->SetBranchAddress("treeCSV_jetCSV", &treeCSV_jetCSV, &b_treeCSV_jetCSV);
    fChain->SetBranchAddress("treeCSV_jetFlav", &treeCSV_jetFlav, &b_treeCSV_jetFlav);
-   
+
    fChain->SetBranchAddress("treeCSV_SampleType", &treeCSV_SampleType, &b_treeCSV_SampleType);
    fChain->SetBranchAddress("treeCSV_EvtWeight", &treeCSV_EvtWeight, &b_treeCSV_EvtWeight);
    fChain->SetBranchAddress("treeCSV_Channel", &treeCSV_Channel, &b_treeCSV_Channel);
-   
+
    Notify();
 }
 
