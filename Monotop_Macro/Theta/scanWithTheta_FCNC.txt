@@ -2,19 +2,17 @@
 
 rootenv
 
-for mInv in `seq 100 300 1000`;do
-    benchmark='S4inv'${mInv}
+for mInv in `seq 600 100 1000`;do
+    benchmark='S4Inv'${mInv}
     echo $benchmark
-    sed -ri "s%  signalList\.push.*%  signalList\.push_back(\"S4_${mInv}_fastSim\");  thetaSignalList\.push_back(\"S4inv${mInv}\");%g" ProdTemplate.C
-    root -l -q ProdTemplate.C+
-    sed -ri "s%benchmark=.*%benchmark=\'${benchmark}\'%g" monotop_limits.py
-    rm -rf inputTheta_merged.root
-    rm -rf monotop_limits/
+    sed -ri "s%  signalList\.push.*%  signalList\.push_back(\"S4Inv${mInv}\");  thetaSignalList\.push_back(\"S4Inv${mInv}\");%g" ProdTemplate_mergedSamples.C
+    root -l -q ProdTemplate_mergedSamples.C+
+    sed -ri "s%model\.set_signal.*%model\.set_signal_processes(\'S4\*\')%g" monotop_limits_mergedSamples.py
+    sed -ri "s%benchmark=.*%benchmark=\'${benchmark}\'%g" monotop_limits_mergedSamples.py
+    rm -rf inputTheta_merged_AllRegions.root
+    rm -rf monotop_limits_mergedSamples/
     echo "BENCHMARK= " $benchmark
-    #hadd inputTheta_merged.root inputTheta_mWT_mujets_Selectedsignalregion.root inputTheta_MET_mujets_Selectedsignalregion.root inputTheta_ptW_mujets_Selectedsignalregion.root inputTheta_DeltaPhiLJ_mujets_Selectedsignalregion.root inputTheta_Wregion.root inputTheta_ttbarregion.root 
-    hadd inputTheta_merged.root inputTheta_mWT_mujets_Selectedsignalregion.root inputTheta_MET_mujets_Selectedsignalregion.root inputTheta_Wregion.root inputTheta_ttbarregion.root inputTheta_DeltaPhiLJ_mujets_Selectedsignalregion.root 
-    #mv inputTheta_mWT_mujets_Selectedsignalregion.root inputTheta_merged.root
-    #mv inputTheta_mWT_mujets_ATLASRESsignalregion.root inputTheta_merged.root
-    time theta monotop_limits.py 
+    hadd inputTheta_merged_AllRegions.root inputTheta_merged_Selectedsignalregion.root inputTheta_merged_Wregion.root inputTheta_merged_ttbarregion.root
+    time theta monotop_limits_mergedSamples.py 
 done
 
