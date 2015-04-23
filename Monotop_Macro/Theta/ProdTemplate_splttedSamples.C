@@ -67,7 +67,7 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
       }
       TH1D* distrib__nominale = 0;
       if(sampleList[i] == "QCD" && inputdistrib == "mWT_mujets_ttbarregion_highpt") continue;
-      if(sampleList[i] == "DYJetsToLL_M-10To50" && inputdistrib == "mWT_mujets_SelectedSignalregion") continue;
+      if(sampleList[i] == "DYJetsToLL_M-10To50" && inputdistrib == "mWT_mujets_Selectedsignalregion") continue;
 
       distrib__nominale    = getSystematic(""     , inputdistrib, outputdistrib, ""       , sampleList[i], inputfile);
       distrib__nominale->SetName((outputdistrib+"__"+thetaSampleList[i]).Data());
@@ -77,7 +77,7 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
   for(unsigned int i=0; i<sampleList.size(); i++)
   {
       if(sampleList[i] == "QCD" && inputdistrib == "mWT_mujets_ttbarregion_highpt") continue;
-      if(sampleList[i] == "DYJetsToLL_M-10To50" && inputdistrib == "mWT_mujets_SelectedSignalregion") continue;
+      if(sampleList[i] == "DYJetsToLL_M-10To50" && inputdistrib == "mWT_mujets_Selectedsignalregion") continue;
 
       for(unsigned int j=0; j<stytList.size(); j++)
       {
@@ -143,12 +143,10 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
   }
 
   TString outputfilename;
-  if      (inputdistrib == "mWT_mujets_Wregion_highpt")     outputfilename = "inputTheta_Wregion";
-  else if (inputdistrib == "mWT_mujets_ttbarregion_highpt") outputfilename = "inputTheta_ttbarregion";
-  else if (inputdistrib == "mWT_mujets_signalregion")       outputfilename = "inputTheta_signalregion_mWT";
-  else if (inputdistrib == "MET_mujets_signalregion")       outputfilename = "inputTheta_signalregion_MET";
-  else if (inputdistrib == "DeltaPhiLJ_mujets_signalregion")outputfilename = "inputTheta_signalregion_DeltaPhiLJ";
-  else                                                      outputfilename = "inputTheta_"+inputdistrib;
+  if      (inputdistrib == "mWT_mujets_Wregion_highpt")         outputfilename = "inputTheta_splitted_Wregion";
+  else if (inputdistrib == "mWT_mujets_ttbarregion_highpt")     outputfilename = "inputTheta_splitted_ttbarregion";
+  else if (inputdistrib == "mWT_mujets_Selectedsignalregion")   outputfilename = "inputTheta_splitted_Selectedsignalregion";
+  else                                                          outputfilename = "inputTheta_splitted_"+inputdistrib;
 
   outputfilename+=".root";
 
@@ -183,7 +181,7 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, std::vector<TStri
 }
 
 
-void ProdTemplate_bkp(){
+void ProdTemplate_splittedSamples(){
 
   bool rescaleToATLAS       = false;
   bool doCutnCount          = false;
@@ -239,8 +237,8 @@ void ProdTemplate_bkp(){
 
   //ProdTemplate("mWT_mujets_ATLASRESsignalregion", "mWTmujetsATLASRESSignalregion",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
 
-  ProdTemplate("mWT_high_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  ProdTemplate("mWT_high_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
-  ProdTemplate("mWT_high_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
+  ProdTemplate("mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
+  ProdTemplate("mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
+  ProdTemplate("mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt",signalList, thetaSignalList, sampleList, thetaSampleList, systlist, thetaSystlist, "../TreeReader/outputroot_withSyst/histo_merged.root", scaleCMStoATLAS, rescaleToATLAS, doCutnCount );
 
 }
