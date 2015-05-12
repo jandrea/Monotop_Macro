@@ -13,7 +13,7 @@
 
 using namespace std;
 
-void PlotFitResults(  vector<TString> signalSample_list, vector<TString> mcSample_list, vector<int> colorVector, bool usePostFit, bool displaySignal, TString inputdistrib , TString thetainputdistrib , TString inputfilename, TString region, TString variable, bool useAllRegions, bool useMergedThetaSamples){
+void PlotFitResults(  vector<TString> signalSample_list, vector<TString> mcSample_list, vector<int> colorVector, bool usePostFit, bool displaySignal, TString inputdistrib , TString thetainputdistrib , TString inputfilename, TString region, TString variable, bool useAllRegions, bool useMergedThetaSamples, bool useElectronChannel){
 
   Int_t stati=0;
   Bool_t  fit=1;
@@ -21,7 +21,6 @@ void PlotFitResults(  vector<TString> signalSample_list, vector<TString> mcSampl
 
   bool setlogy = 0;
   if (displaySignal) setlogy = 1;
-
   gStyle->SetCanvasBorderMode(0);
   gStyle->SetCanvasColor(0); // must be kWhite but I dunno how to do that in PyROOT
   gStyle->SetCanvasDefH(600); //Height of canvas
@@ -164,6 +163,7 @@ void PlotFitResults(  vector<TString> signalSample_list, vector<TString> mcSampl
   c1->SetLogy(setlogy);
   c1->cd();
   TFile * inputfile_fit ;
+  //if(usePostFit && useAllRegions)    inputfile_fit = new TFile("thetaInOut/outputTheta_merged_S1Res700Inv50_electrons_AllRegions.root");
   if(usePostFit && useAllRegions)    inputfile_fit = new TFile("thetaInOut/outputTheta_merged_AllRegions.root");
   else if(usePostFit)                inputfile_fit = new TFile("thetaInOut/outputTheta_merged_CRsOnly.root");
   else                               inputfile_fit = new TFile(inputfilename);
@@ -174,6 +174,14 @@ void PlotFitResults(  vector<TString> signalSample_list, vector<TString> mcSampl
   TString dataBname         = inputdistrib+"__SingleMuB";
   TString dataCname         = inputdistrib+"__SingleMuC";
   TString dataDname         = inputdistrib+"__SingleMuD";
+
+  if(useElectronChannel)
+  {
+    dataAname         = inputdistrib+"__SingleElA";
+    dataBname         = inputdistrib+"__SingleElB";
+    dataCname         = inputdistrib+"__SingleElC";
+    dataDname         = inputdistrib+"__SingleElD";
+  }
 
   TH1F * distrib__RUNA  	= (TH1F*)inputfile->Get(dataAname)->Clone();
   TH1F * distrib__RUNB  	= (TH1F*)inputfile->Get(dataBname)->Clone();
@@ -194,10 +202,10 @@ void PlotFitResults(  vector<TString> signalSample_list, vector<TString> mcSampl
 
   for(unsigned int imc = 0; imc < mcSample_list.size(); imc++)
   {
-    if (mcSample_list[imc] == "QCD" && region == "TTbarregion") continue;
-    if (mcSample_list[imc] == "DY10To50" && region == "Selectedsignalregion") continue;
+    if (usePostFit && mcSample_list[imc] == "QCD" && region == "TTbarregion") continue;
+    if (usePostFit && mcSample_list[imc] == "DY10To50" && region == "Selectedsignalregion") continue;
     TString histo_mc_name   = inputdistrib+"__"+mcSample_list[imc];
-    TH1F * histo_tmp = (TH1F*)inputfile_fit->Get(histo_mc_name);
+    TH1F * histo_tmp = (TH1F*)inputfile_fit->Get(histo_mc_name)->Clone();
     cout << "Processing " << histo_mc_name << " ..." << endl;
     histo_mcSamples.push_back(histo_tmp);
   }
@@ -237,6 +245,7 @@ void PlotFitResults(  vector<TString> signalSample_list, vector<TString> mcSampl
             if(isig == 0) distrib__signal->SetLineColor(kBlue+1);
             else if(isig == 1) distrib__signal->SetLineColor(kBlack);
             else if(isig == 2) distrib__signal->SetLineColor(kMagenta-5);
+            else if(isig == 4) distrib__signal->SetLineColor(kOrange+1);
             else               distrib__signal->SetLineColor((int) isig);
             distrib__signal->SetLineStyle(2);
             distrib__signal->SetLineWidth(3);
@@ -276,7 +285,7 @@ void PlotFitResults(  vector<TString> signalSample_list, vector<TString> mcSampl
   latex2->SetTextAlign(31);
   latex2->DrawLatex(0.87, 0.95, "19.7 fb^{-1} at #sqrt{s} = 8 TeV");
 
-  TString info_data = "mu channel";
+  TString info_data = "#mu channel";
 
 
   TLatex * text2 = new TLatex(0.45,0.98, info_data);
@@ -332,7 +341,6 @@ void PlotFitResults(  vector<TString> signalSample_list, vector<TString> mcSampl
       if( mcSample_list[i] == "QCD" && region != "TTbarregion" )   qw->AddEntry( histo_mcSamples[i],  "QCD"	,"f");
     }
   }
-
   if (displaySignal)
   {
     for( short unsigned int isig = 0; isig < signalSamples.size(); isig++)
@@ -364,7 +372,7 @@ void PlotFitResults(  vector<TString> signalSample_list, vector<TString> mcSampl
   double *theY       = thegraph_tmp->GetY() ;
   for(short int i=0; i<thegraph_tmp->GetN(); i++)
   {
-    theErrorY[i] = theErrorY[i]/theY[i];
+    if(theY[i]!=0) theErrorY[i] = theErrorY[i]/theY[i];
     theY[i]=1;
   }
 
@@ -389,30 +397,41 @@ void PlotFitResults(  vector<TString> signalSample_list, vector<TString> mcSampl
   thegraph_ratio->Draw("e2same");
 
   TString outputname;
-  if (!usePostFit)          outputname = "PreFit_finalVersion_"+variable+"_mujets";
-  else if (useAllRegions)   outputname = "PostFit_finalVersion_AllRegions_test_"+variable+"_mujets";
-  else                      outputname = "PostFit_finalVersion_CRsOnly_"+variable+"_mujets";
+  TString                channel = "mujets";
+  if(useElectronChannel) channel = "eljets";
+  if (!usePostFit)          outputname = "PreFit_finalVersion_"+variable+"_"+channel;
+  else if (useAllRegions)   outputname = "PostFit_finalVersion_AllRegions_"+variable+"_"+channel;
+  else                      outputname = "PostFit_finalVersion_CRsOnly_"+variable+"_"+channel;
 
-  if(!displaySignal)        outputname += "_noSignal";
+  if(!displaySignal)                                    outputname += "_noSignal";
+  else if(signalSample_list[0].SubString("S4") == "S4") outputname += "_S4";
+  else if(signalSample_list[0].SubString("S1") == "S1") outputname += "_S1";
 
-  TString endname_png;
+  TString endname_root;
   TString endname_pdf;
-  if (setlogy) { endname_png = "_logY.png"; endname_pdf = "_logY.pdf"; }
-  else         { endname_png = ".png";      endname_pdf = ".pdf"; }
+  if (setlogy) { endname_root = "_logY.root"; endname_pdf = "_logY.pdf"; }
+  else         { endname_root = ".root";      endname_pdf = ".pdf"; }
 
-  c1->SaveAs( ("finalPlots_AN/test"+outputname+"_"+region+endname_png).Data());
-  c1->SaveAs( ("finalPlots_AN/test"+outputname+"_"+region+endname_pdf).Data());
+  c1->SaveAs( ("newfinalPlots_AN/"+outputname+"_"+region+endname_root).Data());
+  c1->SaveAs( ("newfinalPlots_AN/"+outputname+"_"+region+endname_pdf).Data());
 
 }
 
 
-void PlotFitResults(){
+void PlotFitResults()
+{
 
-
-  bool usePostFit = false;
-  bool displaySignal = false;
+  bool usePostFit = true;
+  bool displaySignal = true;
   bool useAllRegions = true;
   bool useMergedThetaSamples = true;
+  bool useElectronChannel = false;
+
+  TString                channel = "mujets";
+  if(useElectronChannel) channel = "eljets";
+  TString                inputfilename = "../TreeReader/outputroot_withSyst/histo_merged.root";
+  if(useElectronChannel) inputfilename = "../TreeReader/outputroot_withSyst/histo_merged_electron_syst.root";
+
 
   //-------------------------
   //define list of signal samples
@@ -420,8 +439,23 @@ void PlotFitResults(){
 
   if( displaySignal )
   {
-    signalSample_list.push_back("S4Inv500");
-  }
+
+//    signalSample_list.push_back("S4Inv100");
+//    signalSample_list.push_back("S4Inv500");
+//    signalSample_list.push_back("S4Inv1000");
+
+
+    signalSample_list.push_back("S1Res300Inv100");
+    signalSample_list.push_back("S1Res900Inv100");
+    signalSample_list.push_back("S1Res1500Inv100");
+/*
+    signalSample_list.push_back("S1Res500Inv10");
+    signalSample_list.push_back("S1Res500Inv50");
+    signalSample_list.push_back("S1Res500Inv100");
+    signalSample_list.push_back("S1Res500Inv150");
+    signalSample_list.push_back("S1Res500Inv200");
+*/
+    }
 
 
    //-------------------------
@@ -450,9 +484,9 @@ void PlotFitResults(){
   else
   {
       mcSample_list.push_back("TTMSDecays");    colorVector.push_back(kRed+1);
-      mcSample_list.push_back("WExclb");        colorVector.push_back(kGreen-2);
+      mcSample_list.push_back("WExclb");        colorVector.push_back(kGreen+4);
       mcSample_list.push_back("WExclc");        colorVector.push_back(kGreen);
-      mcSample_list.push_back("WExcll");        colorVector.push_back(kGreen+4);
+      mcSample_list.push_back("WExcll");        colorVector.push_back(kGreen-2);
 
       if(!useMergedThetaSamples)
       {
@@ -482,9 +516,9 @@ void PlotFitResults(){
   //PlotFitResults(signalSample_list, mcSample_list, colorVector, usePostFit,  displaySignal, "mWT_mujets_ATLASRESsignalregion", "mWTmujetsATLASRESSignalregion", "../TreeReader/outputroot_withSyst/histo_merged.root","ATLASsignalregion", "mWT", useAllRegions, useMergedThetaSamples);
 
 
-  if (useAllRegions) PlotFitResults(signalSample_list, mcSample_list, colorVector, usePostFit,  displaySignal, "mWT_mujets_Selectedsignalregion", "mWTmujetsSelectedSignalregion", "../TreeReader/outputroot_withSyst/histo_merged.root","Selectedsignalregion", "mWT", useAllRegions, useMergedThetaSamples);
-  PlotFitResults(signalSample_list, mcSample_list, colorVector, usePostFit,  displaySignal, "mWT_mujets_ttbarregion_highpt", "mWTmujetsttbarregionHighpt", "../TreeReader/outputroot_withSyst/histo_merged.root", "TTbarregion", "mWT", useAllRegions, useMergedThetaSamples);
-  PlotFitResults(signalSample_list, mcSample_list, colorVector, usePostFit,  displaySignal, "mWT_mujets_Wregion_highpt", "mWTmujetsWregionHighpt", "../TreeReader/outputroot_withSyst/histo_merged.root", "Wregion", "mWT", useAllRegions, useMergedThetaSamples);
+  if (!usePostFit || useAllRegions) PlotFitResults(signalSample_list, mcSample_list, colorVector, usePostFit,  displaySignal, "mWT_"+channel+"_Selectedsignalregion", "mWT"+channel+"SelectedSignalregion", inputfilename,"Selectedsignalregion", "mWT", useAllRegions, useMergedThetaSamples, useElectronChannel);
+  PlotFitResults(signalSample_list, mcSample_list, colorVector, usePostFit,  displaySignal, "mWT_"+channel+"_ttbarregion_highpt", "mWT"+channel+"ttbarregionHighpt", inputfilename, "TTbarregion", "mWT", useAllRegions, useMergedThetaSamples, useElectronChannel);
+  PlotFitResults(signalSample_list, mcSample_list, colorVector, usePostFit,  displaySignal, "mWT_"+channel+"_Wregion_highpt", "mWT"+channel+"WregionHighpt", inputfilename, "Wregion", "mWT", useAllRegions, useMergedThetaSamples, useElectronChannel);
 
 
 }

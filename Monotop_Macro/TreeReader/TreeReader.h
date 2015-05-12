@@ -49,6 +49,7 @@ public :
    bool isWExcl;
    bool isWIncl;
    bool isQCD;
+   bool isTTbar;
    TString thechannel;
 
    // Declaration of leaf types
@@ -110,8 +111,8 @@ public :
    Float_t         smalltree_weight_trigdown;
    Float_t         smalltree_weight_leptup;
    Float_t         smalltree_weight_leptdown;
-   //Float_t         smalltree_weight_PDFup;
-   //Float_t         smalltree_weight_PDFdown;
+   Float_t         smalltree_weight_PDFup;
+   Float_t         smalltree_weight_PDFdown;
    Float_t         smalltree_weight_PUup;
    Float_t         smalltree_weight_PUdown;
    Float_t         smalltree_evtweight;
@@ -121,6 +122,7 @@ public :
    Float_t         smalltree_weight_toppt;
    //Int_t           smalltree_IChannel;
    Int_t           smalltree_nvertex;
+   Int_t           smalltree_tmeme;
 
    // List of branches
    TBranch        *b_smalltree_nlepton;   //!
@@ -181,8 +183,8 @@ public :
    TBranch        *b_smalltree_weight_trigdown;   //!
    TBranch        *b_smalltree_weight_leptup;   //!
    TBranch        *b_smalltree_weight_leptdown;   //!
-   //TBranch        *b_smalltree_weight_PDFup;   //!
-   //TBranch        *b_smalltree_weight_PDFdown;   //!
+   TBranch        *b_smalltree_weight_PDFup;   //!
+   TBranch        *b_smalltree_weight_PDFdown;   //!
    TBranch        *b_smalltree_weight_PUup;   //!
    TBranch        *b_smalltree_weight_PUdown;   //!
    TBranch        *b_smalltree_evtweight;   //!
@@ -192,6 +194,7 @@ public :
    TBranch        *b_smalltree_weight_toppt;   //!
    //TBranch        *b_smalltree_IChannel;   //!
    TBranch        *b_smalltree_nvertex;   //!
+   TBranch        *b_smalltree_tmeme;   //!
 
 
 
@@ -229,6 +232,9 @@ public :
    int   tree_SampleType;
    int   tree_Channel;
 
+   void loadPDFSumWeight(TString channel, TString tmp_sample, TString flavtag);
+   map<TString, float> PDFSumWeight;
+
    float tree_EvtWeight;
    float tree_met;
    float tree_wMass;
@@ -246,46 +252,78 @@ TreeReader::TreeReader(short int CorrOption, TTree *tree, TString sample, short 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
+   useElectronChannel = false;
    if (tree == 0) {
       TFile *f = 0;
-      if(CorrOption == 0){
+      if(CorrOption == 0 && !useElectronChannel){
           f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven_iso0p5.root");
+      }else if(CorrOption == 0){
+          f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven_iso0p5_electron.root");
+      }else if(CorrOption == 1 && !useElectronChannel){
+          f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles/proof_merged_monotop_muon.root");
       }else if(CorrOption == 1){
-          f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles/proof_merged_monotop.root");
+          f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles/proof_merged_monotop_electron.root");
       }else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD" && systType == -1){
-          f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven_iso0p6.root");
+          if(!useElectronChannel) f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven_iso0p6.root");
+          else                    f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven_iso0p6_electron.root");
       }else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD" && systType == 1){
-          f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven_iso0p4.root");
+          if(!useElectronChannel) f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven_iso0p4.root");
+          else                    f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven_iso0p4_electron.root");
       }else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD"){
-          f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven_iso0p5.root");
+          if(!useElectronChannel) f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven_iso0p5.root");
+          else                    f = (TFile*)gROOT->GetListOfFiles()->FindObject("proof_QCDdatadriven_iso0p5_electron.root");
       }else if (CorrOption == 2 || CorrOption == 3){
-                                 f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles/proof_merged_monotop.root" );
-          if(useElectronChannel) f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles/proofTEST_ELEC_merged.root");
+                                 f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles/proof_merged_monotop_muon.root" );
+          if(useElectronChannel) f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles/proof_merged_monotop_electron.root");
       }else cout << "ERROR: Wrong value of CorrOption! Allowed values: 0,1,2" << endl;
 
-      if (!f || !f->IsOpen()) {
-         if(CorrOption == 0)                                                  f = new TFile("proof_QCDdatadriven_iso0p5.root");
-         else if(CorrOption == 1)                                             f = new TFile("../InputFiles/proof_merged_monotop.root");
-         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD" && systType == -1) f = new TFile("proof_QCDdatadriven_iso0p6.root");
-         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD" && systType ==  1) f = new TFile("proof_QCDdatadriven_iso0p4.root");
-         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD")     f = new TFile("proof_QCDdatadriven_iso0p5.root");
+      if (!f || !f->IsOpen())
+      {
+         if(CorrOption == 0 && !useElectronChannel)                           f = new TFile("proof_QCDdatadriven_iso0p5.root");
+         else if(CorrOption == 0)                                             f = new TFile("proof_QCDdatadriven_iso0p5_electron.root");
+         else if(CorrOption == 1 && !useElectronChannel)                      f = new TFile("../InputFiles/proof_merged_monotop_muon.root");
+         else if(CorrOption == 1)                                             f = new TFile("../InputFiles/proof_merged_monotop_electron.root");
+         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD" && systType == -1 && !useElectronChannel)
+         {
+                                                                              f = new TFile("proof_QCDdatadriven_iso0p6.root");
+         }
+         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD" && systType == -1)
+         {
+                                                                              f = new TFile("proof_QCDdatadriven_iso0p6_electron.root");
+         }
+         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD" && systType ==  1 && !useElectronChannel)
+         {
+                                                                              f = new TFile("proof_QCDdatadriven_iso0p4.root");
+         }
+         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD" && systType ==  1)
+         {
+                                                                              f = new TFile("proof_QCDdatadriven_iso0p4_electron.root");
+         }
+         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD" && !useElectronChannel)
+         {
+                                                                              f = new TFile("proof_QCDdatadriven_iso0p5.root");
+         }
+         else if((CorrOption == 2 || CorrOption == 3) && sample == "QCD")
+         {
+                                                                              f = new TFile("proof_QCDdatadriven_iso0p5_electron.root");
+         }
          else if( CorrOption == 2 || CorrOption == 3)
          {
-                                                f = new TFile("../InputFiles/proof_merged_monotop.root");
-                         if(useElectronChannel) f = new TFile("../InputFiles/proofTEST_ELEC_merged.root");
+                                                f = new TFile("../InputFiles/proof_merged_monotop_muon.root");
+                         if(useElectronChannel) f = new TFile("../InputFiles/proof_merged_monotop_electron.root");
          }
          else cout << "ERROR: Wrong value of CorrOption! Allowed values: 0,1,2,3" << endl;
       }
    if     ((CorrOption == 2 || CorrOption == 3) && sample == "QCD")     f->GetObject( "SmallTree_QCDdatadriven" ,tree);
    else                                                                 f->GetObject(("SmallTree_"+sample).Data()             ,tree);
+cout << "f_name= " << f->GetName() << endl;
    }
-
 
    Init(CorrOption,sample, tree);
 
    isData = 1;
    isQCD  = 1;
-   useElectronChannel = false; 
+   isTTbar= 1;
    if(useElectronChannel) thechannel = "eljets";
    else                   thechannel = "mujets";
 }
@@ -330,7 +368,7 @@ void TreeReader::Init(short int CorrOption, TString sample,  TTree *tree)
    fCurrent = -1;
    fChain->SetMakeClass(1);
 
-   if(sample == "QCD")
+   if(sample == "QCD" || sample == "QCDdatadriven")
    {
        fChain->SetBranchAddress("smalltree_evtweight_nominal",  &smalltree_evtweight_nominal,  &b_smalltree_evtweight_nominal);
        fChain->SetBranchAddress("smalltree_evtweight_minus",    &smalltree_evtweight_minus,    &b_smalltree_evtweight_minus);
@@ -398,8 +436,8 @@ void TreeReader::Init(short int CorrOption, TString sample,  TTree *tree)
         fChain->SetBranchAddress("smalltree_weight_trigdown",      &smalltree_weight_trigdown,          &b_smalltree_weight_trigdown);
         fChain->SetBranchAddress("smalltree_weight_leptup",        &smalltree_weight_leptup,            &b_smalltree_weight_leptup);
         fChain->SetBranchAddress("smalltree_weight_leptdown",      &smalltree_weight_leptdown,          &b_smalltree_weight_leptdown);
-        //fChain->SetBranchAddress("smalltree_weight_PDFup",         &smalltree_weight_PDFup,             &b_smalltree_weight_PDFup);
-        //fChain->SetBranchAddress("smalltree_weight_PDFdown",       &smalltree_weight_PDFdown,           &b_smalltree_weight_PDFdown);
+        fChain->SetBranchAddress("smalltree_weight_PDFup",         &smalltree_weight_PDFup,             &b_smalltree_weight_PDFup);
+        fChain->SetBranchAddress("smalltree_weight_PDFdown",       &smalltree_weight_PDFdown,           &b_smalltree_weight_PDFdown);
         fChain->SetBranchAddress("smalltree_weight_PUup",          &smalltree_weight_PUup,              &b_smalltree_weight_PUup);
         fChain->SetBranchAddress("smalltree_weight_PUdown",        &smalltree_weight_PUdown,            &b_smalltree_weight_PUdown);
         fChain->SetBranchAddress("smalltree_weight_toppt",         &smalltree_weight_toppt,             &b_smalltree_weight_toppt);
@@ -408,6 +446,12 @@ void TreeReader::Init(short int CorrOption, TString sample,  TTree *tree)
     //   fChain->SetBranchAddress("smalltree_IChannel",            &smalltree_IChannel,                 &b_smalltree_IChannel);
         fChain->SetBranchAddress("smalltree_nvertex",              &smalltree_nvertex,                  &b_smalltree_nvertex);
    }
+
+   if(CorrOption != 0 && (sample == "TTMSDecays_central" || sample == "TTMSDecays_matchingup" || sample == "TTMSDecays_matchingdown" || sample == "TTMSDecays_scaledown" ||  sample == "TTMSDecays_scaleup" ))
+   {
+        fChain->SetBranchAddress("smalltree_tmeme",                &smalltree_tmeme,                    &b_smalltree_tmeme);
+   }
+
    Notify();
 }
 

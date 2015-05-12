@@ -54,7 +54,7 @@ public :
    TBranch        *b_smalltree_evtweight;   //!
 
 
-   TreeReader(vector<TString> samplelist, TTree* tree, TString sample);
+   TreeReader(vector<TString> samplelist, TTree* tree, TString sample, bool useElectronChannel);
    virtual void     Init(TString sample, TTree* tree);
 
    //void             initializeHisto(TString sample);
@@ -63,17 +63,19 @@ public :
 
 };
 
-TreeReader::TreeReader(vector<TString> samplelist, TTree* tree, TString sample): fChain(0)
+TreeReader::TreeReader(vector<TString> samplelist, TTree* tree, TString sample, bool useElectronChannel): fChain(0)
 {
 
    TFile *f = 0;
    if (tree == 0)
    {
-          f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles_IsoSup0p4/proof_IsoSup0p4_merged.root");
+          if(!useElectronChannel) f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles_IsoSup0p4/proof_IsoSup0p4_merged.root");
+          else                    f = (TFile*)gROOT->GetListOfFiles()->FindObject("../InputFiles_IsoSup0p4/proof_IsoSup0p4_monotop_electron.root");
 
         if (!f || !f->IsOpen())
         {
-            f = new TFile("../InputFiles_IsoSup0p4/proof_IsoSup0p4_merged.root","READ");
+            if(!useElectronChannel) f = new TFile("../InputFiles_IsoSup0p4/proof_IsoSup0p4_merged.root","READ");
+            else                    f = new TFile("../InputFiles_IsoSup0p4/proof_IsoSup0p4_monotop_electron.root","READ");
         }
    }
    f->GetObject(("SmallTree_"+sample).Data()             ,tree);
@@ -109,31 +111,68 @@ void TreeReader::Init(TString sample,  TTree *tree)
 void createQCDfromData()
 {
 
-    double InvertedIso = 0.5;
+    double InvertedIso = 0.6;
+    bool useElectronChannel = true;
 
     std::vector<TString> samplelist;
-    samplelist.push_back("NTuple_53X_SingleMuRun2012A"   );
-    samplelist.push_back("NTuple_53X_SingleMuRun2012B"   );
-    samplelist.push_back("NTuple_53X_SingleMuRun2012C"   );
-    samplelist.push_back("NTuple_53X_SingleMuRun2012D"   );
-    samplelist.push_back("NTuple_53X_TTJetsMadgraphZ2"   );
-    samplelist.push_back("NTuple_53X_WJetsToLNu"         );
-    samplelist.push_back("NTuple_53X_DYJetsToLL_M-10To50");
-    samplelist.push_back("NTuple_53X_DYJetsToLL_M-50"    );
-    samplelist.push_back("NTuple_53X_T_s-channel"        );
-    samplelist.push_back("NTuple_53X_T_t-channel"        );
-    samplelist.push_back("NTuple_53X_T_tW-channel"       );
-    samplelist.push_back("NTuple_53X_Tbar_t-channel"     );
-    samplelist.push_back("NTuple_53X_Tbar_tW-channel"    );
-    samplelist.push_back("NTuple_53X_WZJetsIncl"         );
-    samplelist.push_back("NTuple_53X_WWJetsIncl"         );
-    samplelist.push_back("NTuple_53X_ZZJetsIncl"         );
+    if(!useElectronChannel)
+    {
+        samplelist.push_back("NTuple_53X_SingleMuRun2012A"   );
+        samplelist.push_back("NTuple_53X_SingleMuRun2012B"   );
+        samplelist.push_back("NTuple_53X_SingleMuRun2012C"   );
+        samplelist.push_back("NTuple_53X_SingleMuRun2012D"   );
+        samplelist.push_back("NTuple_53X_TTJetsMadgraphZ2"   );
+        samplelist.push_back("NTuple_53X_WJetsToLNu"         );
+        samplelist.push_back("NTuple_53X_DYJetsToLL_M-10To50");
+        samplelist.push_back("NTuple_53X_DYJetsToLL_M-50"    );
+        samplelist.push_back("NTuple_53X_T_s-channel"        );
+        samplelist.push_back("NTuple_53X_T_t-channel"        );
+        samplelist.push_back("NTuple_53X_T_tW-channel"       );
+        samplelist.push_back("NTuple_53X_Tbar_t-channel"     );
+        samplelist.push_back("NTuple_53X_Tbar_tW-channel"    );
+        samplelist.push_back("NTuple_53X_WZJetsIncl"         );
+        samplelist.push_back("NTuple_53X_WWJetsIncl"         );
+        samplelist.push_back("NTuple_53X_ZZJetsIncl"         );
+    }
+    else
+    {
+        samplelist.push_back("SingleElA"            );
+        samplelist.push_back("SingleElB"            );
+        samplelist.push_back("SingleElC"            );
+        samplelist.push_back("SingleElD"            );
+        samplelist.push_back("TTMSDecays_central"   );
+        samplelist.push_back("W0Jets"               );
+        samplelist.push_back("W1Jets"               );
+        samplelist.push_back("W2Jets"               );
+        samplelist.push_back("W3Jets"               );
+        samplelist.push_back("W4Jets"               );
+        samplelist.push_back("DYJetsToLL_M-10To50"  );
+        samplelist.push_back("DYJetsToLL_M-50"      );
+        samplelist.push_back("T_s"                  );
+        samplelist.push_back("T_t"                  );
+        samplelist.push_back("T_tW"                 );
+        samplelist.push_back("Tbar_t"               );
+        samplelist.push_back("Tbar_tW"              );
+        samplelist.push_back("WZ"                   );
+        samplelist.push_back("WW"                   );
+        samplelist.push_back("ZZ"                   );
+    }
+
 
 
     TFile * theoutputfile;
-    if(InvertedIso == 0.4)      theoutputfile= new TFile( "proof_QCDdatadriven_iso0p4.root", "recreate");
-    else if(InvertedIso == 0.5) theoutputfile= new TFile( "proof_QCDdatadriven_iso0p5.root", "recreate");
-    else if(InvertedIso == 0.6) theoutputfile= new TFile( "proof_QCDdatadriven_iso0p6.root", "recreate");
+    if(!useElectronChannel)
+    {
+        if(InvertedIso == 0.4)      theoutputfile= new TFile( "proof_QCDdatadriven_iso0p4.root", "recreate");
+        else if(InvertedIso == 0.5) theoutputfile= new TFile( "proof_QCDdatadriven_iso0p5.root", "recreate");
+        else if(InvertedIso == 0.6) theoutputfile= new TFile( "proof_QCDdatadriven_iso0p6.root", "recreate");
+    }
+    else
+    {
+        if(InvertedIso == 0.4)      theoutputfile= new TFile( "proof_QCDdatadriven_iso0p4_electron.root", "recreate");
+        else if(InvertedIso == 0.5) theoutputfile= new TFile( "proof_QCDdatadriven_iso0p5_electron.root", "recreate");
+        else if(InvertedIso == 0.6) theoutputfile= new TFile( "proof_QCDdatadriven_iso0p6_electron.root", "recreate");
+    }
     TTree* tree = 0;
 
     // Declaration of leaf types
@@ -180,8 +219,9 @@ void createQCDfromData()
     {
         bool isData = false;
         if(samplelist[i] == "NTuple_53X_SingleMuRun2012A" || samplelist[i] == "NTuple_53X_SingleMuRun2012B" || samplelist[i] == "NTuple_53X_SingleMuRun2012C" || samplelist[i] == "NTuple_53X_SingleMuRun2012D") isData = true;
+        if(samplelist[i] == "SingleElA" || samplelist[i] == "SingleElB" || samplelist[i] == "SingleElC" || samplelist[i] == "SingleElD") isData = true;
 
-        TreeReader * tree_ = new TreeReader(samplelist,  tree, samplelist[i]);
+        TreeReader * tree_ = new TreeReader(samplelist,  tree, samplelist[i], useElectronChannel);
 
         if (tree_->fChain == 0) return;
 

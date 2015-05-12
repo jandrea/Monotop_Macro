@@ -22,8 +22,10 @@ void CompareSystPlots(TString var, TString syst, TString process){
   TFile * inputfile_fit = new TFile("../TreeReader/outputroot_withSyst/histo_merged.root");
 
   TString histoname         = var+"__"+process;
-  TString histoname_minus   = var+"__"+process+"__"+syst+"__minus";
-  TString histoname_plus    = var+"__"+process+"__"+syst+"__plus";
+  //TString histoname_minus   = var+"__"+process+"__"+syst+"__minus";
+  TString histoname_minus   = var+"__"+process+"_"+syst+"down";
+  //TString histoname_plus    = var+"__"+process+"__"+syst+"__plus";
+  TString histoname_plus    = var+"__"+process+"_"+syst+"up";
 
   TH1F * hist_comp_         = (TH1F*)inputfile_fit->Get(histoname)->Clone();
   TH1F * hist_comp___minus  = (TH1F*)inputfile_fit->Get(histoname_minus)->Clone();
@@ -31,6 +33,7 @@ void CompareSystPlots(TString var, TString syst, TString process){
 
 
   TCanvas *c1 = new TCanvas("c1","c1", 1000, 800);
+  c1->SetLogy(1);
   c1->cd();
 
   hist_comp_->SetTitle("");
@@ -46,9 +49,9 @@ void CompareSystPlots(TString var, TString syst, TString process){
   hist_comp___plus-> SetLineWidth(3);
 
 
-  hist_comp___plus->Draw("");
-  hist_comp___minus->Draw("same");
-  hist_comp_->Draw("same");
+  hist_comp___plus->DrawNormalized("");
+  hist_comp___minus->DrawNormalized("same");
+  hist_comp_->DrawNormalized("same");
 
 
   TLegend* qw = new TLegend(.45,.60,.85,.85);
@@ -61,23 +64,27 @@ void CompareSystPlots(TString var, TString syst, TString process){
 
   qw->Draw();
   c1->SaveAs( ("plots/"+var+"__"+process+"__"+syst+".png").Data());
+  c1->SaveAs( ("plots/"+var+"__"+process+"__"+syst+".pdf").Data());
 }
 
 void CompareSystPlots(){
 
     std::vector<TString > systlist;
-    //systlist.push_back("W"                  );
+/*    //systlist.push_back("W"                  );
     systlist.push_back("lept"               );
-    //systlist.push_back("trig"               );
+    systlist.push_back("trig"               );
     //systlist.push_back("PDF"              );
-    //systlist.push_back("PU"                 );
-    //systlist.push_back("toppt"              );
-/*    systlist.push_back("btag"               );
+    systlist.push_back("PU"                 );
+    systlist.push_back("toppt"              );
+    systlist.push_back("btag"               );
     systlist.push_back("mistag"             );
     systlist.push_back("jes"                );
     systlist.push_back("jer"                );
     systlist.push_back("metuncls"           );
-*//*    systlist.push_back("btag__JES"          );
+    systlist.push_back("mTWtail"           );
+*/    systlist.push_back("matching"           );
+    systlist.push_back("scale"           );
+/*    systlist.push_back("btag__JES"          );
     systlist.push_back("btag__CSVLF"        );
     systlist.push_back("btag__CSVHFStats1"  );
     systlist.push_back("btag__CSVHFStats2"  );
@@ -93,12 +100,12 @@ void CompareSystPlots(){
     processlist.push_back("SingleMuB"            );
     processlist.push_back("SingleMuC"            );
     processlist.push_back("SingleMuD"            );
-*/    processlist.push_back("TTbar_Madgraph"       );
-/*    processlist.push_back("WExclb"                );
+*/  //processlist.push_back("TTbar_Madgraph"       );
+    processlist.push_back("WExclb"                );
     processlist.push_back("WExclc"                );
     processlist.push_back("WExcll"                );
     //processlist.push_back("WExcl"                );
-    processlist.push_back("DYJetsToLL_M-10To50"  );
+/*    processlist.push_back("DYJetsToLL_M-10To50"  );
     processlist.push_back("DYJetsToLL_M-50"      );
     processlist.push_back("T_s"                  );
     processlist.push_back("T_t"                  );
@@ -114,7 +121,7 @@ void CompareSystPlots(){
     processlist.push_back("QCD_D"                );
 */
     std::vector<TString > varlist;
-    varlist.push_back("mWT_mujets_signalregion"     );
+    //varlist.push_back("mWT_mujets_signalregion"     );
     //varlist.push_back("MET_mujets_signalregion"     );
     varlist.push_back("mWT_mujets_Wregion_highpt"   );
     //varlist.push_back("MET_mujets_Wregion_highpt"   );

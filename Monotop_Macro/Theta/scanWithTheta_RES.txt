@@ -2,35 +2,37 @@
 
 rootenv
 
-mINV="10 50 100"
-mRes="300"
-for mInv in $mINV;do
-    benchmark='S1Res'${mRes}'Inv'${mInv}
-    echo $benchmark
-    sed -ri "s%  signalList\.push.*%  signalList\.push_back(\"S1Res${mRes}Inv${mInv}\");  thetaSignalList\.push_back(\"S1Res${mRes}Inv${mInv}\");%g" ProdTemplate_mergedSamples.C
-    root -l -q ProdTemplate_mergedSamples.C+
-    sed -ri "s%model\.set_signal.*%model\.set_signal_processes(\'S1\*\')%g" monotop_limits_mergedSamples.py
-    sed -ri "s%benchmark=.*%benchmark=\'${benchmark}\'%g" monotop_limits_mergedSamples.py
-    rm -rf inputTheta_merged_AllRegions.root
-    rm -rf monotop_limits_mergedSamples/
-    echo "BENCHMARK= " $benchmark
-    hadd inputTheta_merged_AllRegions.root inputTheta_merged_Selectedsignalregion.root inputTheta_merged_Wregion.root inputTheta_merged_ttbarregion.root
-    time theta monotop_limits_mergedSamples.py 
-done
+#mINV="10 50 100"
+#mRes="300"
+#for mInv in $mINV;do
+#    benchmark='S1Res'${mRes}'Inv'${mInv}
+#    echo $benchmark
+#    sed -ri "s%  signalList\.push.*%  signalList\.push_back(\"S1Res${mRes}Inv${mInv}\");  thetaSignalList\.push_back(\"S1Res${mRes}Inv${mInv}\");%g" ProdTemplate_mergedSamples.C
+#    root -l -q ProdTemplate_mergedSamples.C+
+#    sed -ri "s%model\.set_signal.*%model\.set_signal_processes(\'S1\*\')%g" monotop_limits_mergedSamples.py
+#    sed -ri "s%benchmark=.*%benchmark=\'${benchmark}\'%g" monotop_limits_mergedSamples.py
+#    rm -rf inputTheta_merged_AllRegions.root
+#    rm -rf monotop_limits_mergedSamples/
+#    echo "BENCHMARK= " $benchmark
+#    hadd inputTheta_merged_AllRegions.root inputTheta_mujets_merged_Selectedsignalregion.root inputTheta_mujets_merged_Wregion.root inputTheta_mujets_merged_ttbarregion.root
+#    time theta monotop_limits_mergedSamples.py 
+#done
 
 #mINV="10 50 100 150 200"
-#for mInv in $mINV;do
-#    for mRes in `seq 500 200 1500`;do
-#        benchmark='S1Res'${mRes}'Inv'${mInv}
-#        echo $benchmark
-#        sed -ri "s%  signalList\.push.*%  signalList\.push_back(\"S1Res${mRes}Inv${mInv}\");  thetaSignalList\.push_back(\"S1Res${mRes}Inv${mInv}\");%g" ProdTemplate_mergedSamples.C
-#        root -l -q ProdTemplate_mergedSamples.C+
-#        sed -ri "s%model\.set_signal.*%model\.set_signal_processes(\'S1\*\')%g" monotop_limits_mergedSamples.py
-#        sed -ri "s%benchmark=.*%benchmark=\'${benchmark}\'%g" monotop_limits_mergedSamples.py
-#        rm -rf inputTheta_merged_AllRegions.root
-#        rm -rf monotop_limits_mergedSamples/
-#        echo "BENCHMARK= " $benchmark
-#        hadd inputTheta_merged_AllRegions.root inputTheta_merged_Selectedsignalregion.root inputTheta_merged_Wregion.root inputTheta_merged_ttbarregion.root
-#        time theta monotop_limits_mergedSamples.py 
-#    done
-#done
+mINV="100"
+for mInv in $mINV;do
+    for mRes in `seq 500 200 1500`;do
+        benchmark='S1Res'${mRes}'Inv'${mInv}
+        echo $benchmark
+        sed -ri "s%  signalList\.push.*%  signalList\.push_back(\"S1Res${mRes}Inv${mInv}\");  thetaSignalList\.push_back(\"S1Res${mRes}Inv${mInv}\");%g" ProdTemplate_mergedSamples.C
+        rm -rf inputTheta_merged_mWT_mujets_ATLASRESsignalregion.root
+        root -l -q ProdTemplate_mergedSamples.C+
+        sed -ri "s%model\.set_signal.*%model\.set_signal_processes(\'S1\*\')%g" monotop_limits_mergedSamples.py
+        sed -ri "s%benchmark=.*%benchmark=\'${benchmark}\'%g" monotop_limits_mergedSamples.py
+        #rm -rf inputTheta_merged_AllRegions.root
+        rm -rf monotop_limits_mergedSamples/
+        echo "BENCHMARK= " $benchmark
+        #hadd inputTheta_merged_AllRegions.root inputTheta_mujets_merged_Selectedsignalregion.root inputTheta_mujets_merged_Wregion.root inputTheta_mujets_merged_ttbarregion.root
+        time theta monotop_limits_mergedSamples.py 
+    done
+done

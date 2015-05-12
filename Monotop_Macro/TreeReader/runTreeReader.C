@@ -49,6 +49,7 @@
     }
     else
     {
+
         datalist.push_back("SingleMuA");
         datalist.push_back("SingleMuB");
         datalist.push_back("SingleMuC");
@@ -94,7 +95,6 @@
         mclist.push_back("W4Jets"               );
         mclist.push_back("DYJetsToLL_M-10To50"  );
         mclist.push_back("DYJetsToLL_M-50"      );
-
         mclist.push_back("T_s"                  );
         mclist.push_back("T_t"                  );
         mclist.push_back("T_tW"                 );
@@ -118,7 +118,23 @@
     qcdcorrectedlist.push_back("QCD");
 
     vector<TString > signallist;
-/*
+
+    signallist.push_back("S1Res1500Inv10");
+    signallist.push_back("S1Res1300Inv10");
+    signallist.push_back("S1Res1100Inv10");
+    signallist.push_back("S1Res900Inv10");
+    signallist.push_back("S1Res700Inv10");
+    signallist.push_back("S1Res500Inv10");
+    //signallist.push_back("S1Res300Inv10");
+
+    signallist.push_back("S1Res1500Inv50");
+    signallist.push_back("S1Res1300Inv50");
+    signallist.push_back("S1Res1100Inv50");
+    signallist.push_back("S1Res900Inv50");
+    signallist.push_back("S1Res700Inv50");
+    signallist.push_back("S1Res500Inv50");
+    //signallist.push_back("S1Res300Inv50");
+
     signallist.push_back("S1Res1500Inv100");
     signallist.push_back("S1Res1300Inv100");
     signallist.push_back("S1Res1100Inv100");
@@ -127,13 +143,19 @@
     signallist.push_back("S1Res500Inv100");
     signallist.push_back("S1Res300Inv100");
 
-    signallist.push_back("S1Res1500Inv10");
-    signallist.push_back("S1Res1300Inv10");
-    signallist.push_back("S1Res1100Inv10");
-    signallist.push_back("S1Res900Inv10");
-    signallist.push_back("S1Res700Inv10");
-    signallist.push_back("S1Res500Inv10");
-    signallist.push_back("S1Res300Inv10");
+    signallist.push_back("S1Res1500Inv150");
+    signallist.push_back("S1Res1300Inv150");
+    signallist.push_back("S1Res1100Inv150");
+    signallist.push_back("S1Res900Inv150");
+    signallist.push_back("S1Res700Inv150");
+    signallist.push_back("S1Res500Inv150");
+
+    signallist.push_back("S1Res1500Inv200");
+    signallist.push_back("S1Res1300Inv200");
+    signallist.push_back("S1Res1100Inv200");
+    signallist.push_back("S1Res900Inv200");
+    signallist.push_back("S1Res700Inv200");
+    signallist.push_back("S1Res500Inv200");
 
 
     signallist.push_back("S4Inv100");
@@ -146,7 +168,7 @@
     signallist.push_back("S4Inv800");
     signallist.push_back("S4Inv900");
     signallist.push_back("S4Inv1000");
-*/
+
     vector<TString > TTWsystlist;
     //TTsystlist.push_back("TTMSDecays_mass171_5");
     //TTsystlist.push_back("TTMSDecays_mass173_5");
@@ -183,6 +205,7 @@
         tree_.Loop(CorrOption, datalist, mclist, datalist[idata], systlist, "noflav", 0);
         delete tree_;
     }
+
   }
 
   if(CorrOption == 1 || CorrOption == 2 || CorrOption == 3)
@@ -195,7 +218,7 @@
         delete tree_;
     }
 
-    for (unsigned int imc = 0; imc < mclist.size(); imc++)
+/*    for (unsigned int imc = 0; imc < mclist.size(); imc++)
     {
         if (mclist[imc] != "WJets" && mclist[imc] != "W0Jets" && mclist[imc] != "W1Jets" && mclist[imc] != "W2Jets" && mclist[imc] != "W3Jets" && mclist[imc] != "W4Jets")
         {
@@ -220,14 +243,14 @@
 
         }
     }
-
+*//*
     for (unsigned int idata = 0; idata < datalist.size(); idata++)
     {
         TreeReader * tree_ = new TreeReader(CorrOption, tree, datalist[idata], 0);
-        tree_.Loop(CorrOption, datalist,  mclist, datalist[idata], systlist, "noflav", 0);
+        tree_.Loop(CorrOption, datalist,  mclist, datalist[idata], emptysystlist, "noflav", 0);
         delete tree_;
     }
-
+*/
   }
 
   if(CorrOption == 1)
@@ -239,16 +262,16 @@
         delete tree_;
     }
   }
-
+/*
   if(CorrOption == 2 || CorrOption == 3)
   {
 
     for (unsigned int iqcd = 0; iqcd < qcdcorrectedlist.size(); iqcd++)
     {
 
-        TreeReader * tree_ = new TreeReader(CorrOption, tree, qcdcorrectedlist[iqcd], 0);
-        tree_.Loop(CorrOption, datalist,  mclist, qcdcorrectedlist[iqcd], emptysystlist, "noflav", 0);
-        delete tree_;
+//        TreeReader * tree_ = new TreeReader(CorrOption, tree, qcdcorrectedlist[iqcd], 0);
+//        tree_.Loop(CorrOption, datalist,  mclist, qcdcorrectedlist[iqcd], emptysystlist, "noflav", 0);
+//        delete tree_;
 
         TreeReader * tree_ = new TreeReader(CorrOption, tree, qcdcorrectedlist[iqcd], -2);
         tree_.Loop(CorrOption, datalist,  mclist, qcdcorrectedlist[iqcd], emptysystlist, "noflav", -2);
@@ -269,10 +292,10 @@
     }
 
   }
-
+*/
   if(CorrOption == 3 && systlist.size() > 1)
   {
-
+/*
       for(unsigned short int itt = 0; itt < TTWsystlist.size(); itt++)
       {
 
@@ -342,7 +365,7 @@
 
 
       }
-
+*/
   }
 
 }

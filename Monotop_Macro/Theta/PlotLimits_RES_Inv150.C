@@ -2,15 +2,36 @@
 
   const unsigned int n=6;   // number of mass points
 
-  Double_t x[n] = {300, 500, 700, 900, 1100, 1300};
+  Double_t x[n] = {500, 700, 900, 1100, 1300, 1500};
 
   bool useATLASvsCMS = false;
   bool displayExclXsec = true;
 
-  Double_t x_sec[n]       = {77.2  ,11.8  ,2.77, 0.87, 0.31, 0.11};
+  Double_t x_sec[n]       = {11.8  ,2.77, 0.87, 0.31, 0.11, 0.05};
 
   if(!useATLASvsCMS){
      TString name = "ShapeAnalysis";
+     Double_t y_obs[n]    = {0.0080 ,0.01605,0.03070,0.0703 ,0.1993 ,0.4611 };
+     Double_t y_obs_err[n]= {0.00006,0.00011,0.00016,0.00040,0.0012 ,0.0022 };
+     Double_t y_exp2up[n] = {0.0645 ,0.0719 ,0.1005 ,0.2173 ,0.521  ,1.233  };
+     Double_t y_expup[n]  = {0.0348 ,0.0421 ,0.0588 ,0.1294 ,0.311  ,0.724  };
+     Double_t y_exp[n]    = {0.0184 ,0.0241 ,0.0366 ,0.0764 ,0.1981 ,0.4531 };
+     Double_t y_expdn[n]  = {0.0105 ,0.0149 ,0.0244 ,0.0518 ,0.1351 ,0.3121 };
+     Double_t y_exp2dn[n] = {0.0068 ,0.0099 ,0.018  ,0.0398 ,0.1027 ,0.2392 };
+
+/*
+     Double_t y_obs[n]    = {0.0210 ,0.02665,0.05250,0.1133 ,0.3173 ,0.7121 };
+     Double_t y_obs_err[n]= {0.00022,0.00015,0.00025,0.00067,0.0018 ,0.0037 };
+     Double_t y_exp2up[n] = {0.1335 ,0.1279 ,0.2515 ,0.5543 ,1.381  ,3.485  };
+     Double_t y_expup[n]  = {0.0690 ,0.0650 ,0.1298 ,0.2624 ,0.649  ,1.599  };
+     Double_t y_exp[n]    = {0.0286 ,0.0307 ,0.0629 ,0.1299 ,0.3211 ,0.7341 };
+     Double_t y_expdn[n]  = {0.0130 ,0.0177 ,0.0349 ,0.0705 ,0.1831 ,0.4241 };
+     Double_t y_exp2dn[n] = {0.0078 ,0.0110 ,0.023  ,0.0478 ,0.1237 ,0.2852 };
+*/
+
+
+/*
+     // with the 4 distributions in SR and mTW only in CRs
      Double_t y_obs[n]    = {0.0522 ,0.0081 ,0.00918,0.01566,0.0315 ,0.0792 };
      Double_t y_obs_err[n]= {0.00038,0.00010,0.00010,0.00019,0.00025,0.0006 };
      Double_t y_exp2up[n] = {0.257  ,0.0507 ,0.0508 ,0.0656 ,0.1547 ,0.354  };
@@ -18,7 +39,8 @@
      Double_t y_exp[n]    = {0.063  ,0.0113 ,0.0163 ,0.0249 ,0.0565 ,0.1274 };
      Double_t y_expdn[n]  = {0.031  ,0.0048 ,0.0083 ,0.0141 ,0.0330 ,0.0764 };
      Double_t y_exp2dn[n] = {0.016  ,0.0029 ,0.0052 ,0.0088 ,0.0217 ,0.0475 };
-  }else{
+*/
+   }else{
   // Delta phi
      TString name = "ATLASvsCMS";
      Double_t y_obs[n]    = {0.236  ,0.367  ,0.405  };
@@ -45,10 +67,22 @@
       }
   }
 
-  TGraph* xsec_th = new TGraph(n, x, x_sec);
-  xsec_th->SetLineColor(kRed);
-  xsec_th->SetLineWidth(2);
-  xsec_th->SetLineStyle(2);
+  TGraph* xsec_th_0p1 = new TGraph(n, x, x_sec);
+  xsec_th_0p1->SetLineColor(kRed);
+  xsec_th_0p1->SetLineWidth(2);
+  xsec_th_0p1->SetLineStyle(2);
+
+
+  Double_t x_sec_0p05[n]       = {0};
+  for(unsigned short int ii = 0; ii < n; ii++)
+  {
+    x_sec_0p05[ii] = x_sec[ii]/4. ;
+  }
+
+  TGraph* xsec_th_0p05 = new TGraph(n, x, x_sec_0p05);
+  xsec_th_0p05->SetLineColor(kBlue);
+  xsec_th_0p05->SetLineWidth(2);
+  xsec_th_0p05->SetLineStyle(2);
 
 
   Double_t y_sigmaup[n], y_sigmadn[n], y_sigma2up[n], y_sigma2dn[n];
@@ -123,7 +157,7 @@
       mg->GetYaxis()->SetTitle("#sigma(p p #rightarrow t f_{met} #times BR(t #rightarrow b l #nu) [pb]   ");
       mg->GetYaxis()->SetTitleSize(0.04);
       mg->GetYaxis()->SetTitleOffset(1.2);
-      mg->SetMinimum(0.001);
+      mg->SetMinimum(0.008);
       mg->SetMaximum(x_sec[0]);
   }
   else
@@ -140,16 +174,16 @@
   line->SetLineColor(1);
   line->SetLineStyle(2);
   if(!displayExclXsec) line->Draw("same");
-  else                 xsec_th->Draw("same");
+  else                 {xsec_th_0p1->Draw("same");xsec_th_0p05->Draw("same");}
 
   TLegend *leg;
   if(!displayExclXsec) leg = new TLegend(0.3,0.65,0.55,0.85);
-  else                 leg = new TLegend(0.6,0.65,0.85,0.85);
+  else                 leg = new TLegend(0.55,0.65,0.85,0.85);
   leg->AddEntry(gr_obs  ," Observed 95\% CL limit","lpe");
   leg->AddEntry(gr_exp  ," Expected 95\% CL limit","lp");
   leg->AddEntry(sigma1  ," Expected #pm1#sigma","f");
   leg->AddEntry(sigma2  ," Expected #pm2#sigma","f");
-  if(displayExclXsec) leg->AddEntry(xsec_th  ," Theory (LO), a_{res} = 0.1","l");
+  if(displayExclXsec) {leg->AddEntry(xsec_th_0p1  ," Theory (LO), a_{res} = 0.1","l"); leg->AddEntry(xsec_th_0p05  ," Theory (LO), a_{res} = 0.05","l");}
   leg->SetBorderSize(0);
   leg->SetFillColor(0);
   leg->Draw();
@@ -165,7 +199,7 @@
   if(!displayExclXsec) text_2 = new TPaveText(0.3, 0.45, 0.55, 0.55, "NDC");
   else                 text_2 = new TPaveText(0.6, 0.45, 0.85, 0.55, "NDC");
   text_2->AddText("Resonant model");
-  text_2->AddText("m(DM) = 100 GeV");
+  text_2->AddText("m(DM) = 150 GeV");
   text_2->SetFillColor(kWhite);
   text_2->SetFillStyle(0);
   text_2->SetBorderSize(0);
@@ -176,8 +210,8 @@
   TString             Y_axis = "SignalStrength";
   if(displayExclXsec) Y_axis = "ExcludedXsection";
 
-  c1->SaveAs("limitPlots/limits_RES_"+name+"_"+Y_axis+".png");
-  c1->SaveAs("limitPlots/limits_RES_"+name+"_"+Y_axis+".pdf");
-  c1->SaveAs("limitPlots/limits_RES_"+name+"_"+Y_axis+".eps");
+  c1->SaveAs("limitPlots/finalLimits_RES_DM150_"+name+"_"+Y_axis+".png");
+  c1->SaveAs("limitPlots/finalLimits_RES_DM150_"+name+"_"+Y_axis+".pdf");
+  c1->SaveAs("limitPlots/finalLimits_RES_DM150_"+name+"_"+Y_axis+".eps");
 
 }

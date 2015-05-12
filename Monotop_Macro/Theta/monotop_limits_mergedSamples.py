@@ -2,7 +2,7 @@ options = Options()
 
 options.set('minimizer', 'strategy', 'newton_vanilla')
 
-benchmark='S1Res300Inv100'
+benchmark='S4Inv1000'
 
 # for model building:
 def get_model():
@@ -12,7 +12,10 @@ def get_model():
     # For more info about this model and naming conventuion, see documentation
     # of build_model_from_rootfile.
     
-    model = build_model_from_rootfile('inputTheta_merged_AllRegions.root',include_mc_uncertainties=True)
+    model = build_model_from_rootfile('inputTheta_merged_mWT_mujets_ATLASFCNCsignalregion.root',include_mc_uncertainties=True)
+    #model = build_model_from_rootfile('inputTheta_merged_mWT_mujets_ATLASRESsignalregion.root',include_mc_uncertainties=True)
+    #model = build_model_from_rootfile('thetaInOut/inputTheta_merged_AllRegions.root',include_mc_uncertainties=True)
+    #model = build_model_from_rootfile('thetaInOut/inputTheta_merged_CRsOnly.root',include_mc_uncertainties=True)
     
     # If the prediction histogram is zero, but data is non-zero, teh negative log-likelihood
     # is infinity which causes problems for some methods. Therefore, we set all histogram
@@ -21,7 +24,7 @@ def get_model():
 
     # define what the signal processes are. All other processes are assumed to make up the 
     # 'background-only' model.
-    model.set_signal_processes('S1*')
+    model.set_signal_processes('S4*')
 
 
 
@@ -42,6 +45,7 @@ def get_model():
     model.add_lognormal_uncertainty('SingleTop_rate',       math.log(1.30), 'SingleTop'     )
     model.add_lognormal_uncertainty('SingleTopW_rate',      math.log(1.30), 'SingleTopW'    )
     model.add_lognormal_uncertainty('VV_rate',              math.log(1.30), 'VV'            )
+    model.add_lognormal_uncertainty('QCD_rate',             math.log(1.50), 'QCD'           )
 
     #model.distribution.set_distribution_parameters('WExclb_rate', mean=0.0,width=0.0, range =[0.0,0.0])
 
@@ -95,22 +99,24 @@ parameter_uncert = {}
 #            parameter_values[p] = fit[benchmark][p][0][0]+fit[benchmark][p][0][1]
 #            print [p, "%.4f" %parameter_values[p], "%.4f" %parameter_uncert[p] ]
 #
-#        print ("Create postfit histograms")
-#
 #    histos = evaluate_prediction(model, parameter_values, include_signal = False)
-#    write_histograms_to_rootfile(histos, 'histos-mle'+q+'.root')
+#    write_histograms_to_rootfile(histos, 'thetaInOut/histos_postFit_AllRegions_'+q+'.root')
+#    #write_histograms_to_rootfile(histos, 'thetaInOut/histos_postFit_CRsOnly_'+q+'.root')
 #
 #
-################################################
+#################################################
 
 for p in model.get_parameters([benchmark]):
     parameter_values[p] = fit[benchmark][p][0][0]
     parameter_uncert[p] = fit[benchmark][p][0][1]
 
-#    print [p, "%.4f" %parameter_values[p], "%.4f" %parameter_uncert[p] ]
+    print [p, "%.4f" %parameter_values[p], "%.4f" %parameter_uncert[p] ]
 
 histos = evaluate_prediction(model, parameter_values, include_signal = False)
-write_histograms_to_rootfile(histos, 'outputTheta_merged_AllRegions.root')
+#write_histograms_to_rootfile(histos, 'thetaInOut/outputTheta_merged_CRsOnly.root')
+#write_histograms_to_rootfile(histos, 'thetaInOut/outputTheta_merged_AllRegions.root')
+#write_histograms_to_rootfile(histos, 'thetaInOut/outputTheta_merged_ATLASRESsignalregion.root')
+write_histograms_to_rootfile(histos, 'thetaInOut/outputTheta_merged_ATLASFCNCsignalregion.root')
 
 
 
@@ -121,7 +127,7 @@ write_histograms_to_rootfile(histos, 'outputTheta_merged_AllRegions.root')
 # process all signals defined as signal processes before; see Section "Common Parameters"
 # on the theta auto intro doxygen page for details)
 
-plot_exp, plot_obs = bayesian_limits(model, options = options, n_toy = 3000, n_data=200)
+plot_exp, plot_obs = bayesian_limits(model, options = options, n_toy = 1000, n_data=200)
 
 # plot_exp and plot_obs are instances of plotutil.plotdata. they contain x/y values and
 # bands. You can do many things with these objects such as inspect the x/y/ban
@@ -130,10 +136,10 @@ plot_exp, plot_obs = bayesian_limits(model, options = options, n_toy = 3000, n_d
 # to apply your own plotting routines or present the result in a text Table.
 
 
-#plot_exp.write_txt('limits_CutnCount_ATLASSel/bayesian_final_limits_expected_'+benchmark+'.txt')
-#plot_obs.write_txt('limits_CutnCount_ATLASSel/bayesian_final_limits_observed_'+benchmark+'.txt')
-plot_exp.write_txt('limits_ShapeAnalysis_AllRegions/bayesian_final_limits_expected_'+benchmark+'.txt')
-plot_obs.write_txt('limits_ShapeAnalysis_AllRegions/bayesian_final_limits_observed_'+benchmark+'.txt')
+plot_exp.write_txt('limits_CutnCount_ATLASSel/bayesian_final_limits_expected_'+benchmark+'.txt')
+plot_obs.write_txt('limits_CutnCount_ATLASSel/bayesian_final_limits_observed_'+benchmark+'.txt')
+#plot_exp.write_txt('limits_ShapeAnalysis_AllRegions/bayesian_final_limits_expected_'+benchmark+'.txt')
+#plot_obs.write_txt('limits_ShapeAnalysis_AllRegions/bayesian_final_limits_observed_'+benchmark+'.txt')
 
 # 2.b. CLs limits
 # calculate cls limit plots. The interface is very similar to bayesian_limits. However, there are a few
