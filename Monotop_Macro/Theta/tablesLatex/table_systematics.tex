@@ -1,0 +1,58 @@
+\documentclass[10pt]{article}
+
+\usepackage{amsthm}
+\usepackage{color}
+
+\begin{document}
+
+\begin{table}[!ht]
+\begin{center}
+\begin{tabular}{|l|c|c|}
+\hline
+\hline
+\textbf{Source} & \textbf{Systematics input } & \textbf{Type} \\
+\hline
+\hline
+\textbf{Uncertainties on normalization} &  & \\
+\hline
+QCD                       & 50\% & norm.\\
+W+(b,c,light)             & 100\%& norm.\\
+Other backgrounds         & 30\%& norm.\\
+\hline
+\textbf{Uncertainties on all MC samples} &  & \\
+\hline
+lumi                     & 2.6\%    & norm.\\
+Trig.                    & $\pm 1 \sigma(p_T, \eta)$  & norm.+shape\\
+Lepton eff.              & $\pm 1 \sigma(p_T, \eta)$  & norm.+shape\\
+JES, propagated to the MET                      & $\pm 1 \sigma(p_T, \eta)$  & norm.+shape\\
+JER, propagated to the MET                      & $\pm 1 \sigma(p_T, \eta)$  & norm.+shape\\
+b-tagging                & $\pm 1 \sigma(p_T, \eta)$  & norm.+shape\\
+mistagging               & $\pm 1 \sigma(p_T, \eta)$  & norm.+shape\\
+pileup                   & $\pm 5 \%$ number of PU & norm.+shape\\
+pdf                      & $\pm 1 \sigma(p_T, \eta)$  & norm.+shape\\
+\hline
+\textbf{Uncertainties on ttbar modeling} & & \\
+\hline
+matching          & $\pm 1 \sigma$ & norm.+shape only\\
+scale             & $\pm 1 \sigma$ & norm.+shape only\\
+top-quark p$_T$   & $\pm 1 \sigma$ & norm.+shape only\\
+\hline
+%\textbf{Uncertainties on W + jets modeling} & & \\
+%\hline
+%matching          & $\pm 1 \sigma$ (\textcolor{red}{tbd}) & norm.+shape only\\
+%scale             & $\pm 1 \sigma$ (\textcolor{red}{tbd}) & norm.+shape only\\
+%$m_{T}^{W}$ tail   & No or twice correction & norm.+shape only\\
+%\hline
+\textbf{Uncertainty on datadriven samples} & & \\
+\hline
+QCD correction           & Iso veto$ \pm 0.1 $ & norm.+shape only\\
+Iso veto region contamination           & No or twice removing  & norm.+shape only\\
+\hline
+\end{tabular}
+\caption{Uncertainties (in \%) used for the limit calculation. The column labeled "Type" represents how the uncertainty is
+treated in the PLR.}
+\label{tab:systtable_PLR}
+\end{center}
+\end{table} 
+
+\end{document}

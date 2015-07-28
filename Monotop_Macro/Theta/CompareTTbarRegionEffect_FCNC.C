@@ -10,21 +10,19 @@
   Double_t x_sec[n]       = {28.0  ,8.1  ,2.94, 1.22, 0.57, 0.29, 0.15, 0.08, 0.05, 0.03};
 
   if(!useATLASvsCMS){
-     TString name = "CCvsSA";
+     TString name = "TTregionComparison";
 
      Double_t y_obs[n]    = {0.0641  , 0.173  , 0.245  , 0.418  , 0.739  , 1.129 , 1.553 , 2.439 , 4.31 , 6.02  };
      Double_t y_obs_err[n]= {0.0003  , 0.0008 , 0.0009 , 0.0013 , 0.0026 , 0.0035, 0.0048, 0.0071, 0.015, 0.022 };
      Double_t y_exp2up[n] = {0.342   , 0.712  , 0.877  , 1.145  , 2.13   , 2.81  , 3.820 , 5.475 , 10.0 , 15.16 };
-     Double_t SA_expup[n]  = {0.148   , 0.33   , 0.46   , 0.631  , 1.14   , 1.60  , 2.141 , 3.311 , 5.614, 8.22  };
-     Double_t SA_exp[n]    = {0.081   , 0.185  , 0.267  , 0.393  , 0.674  , 0.975 , 1.342 , 2.083 , 3.435, 4.94  };
-     Double_t SA_expdn[n]  = {0.0485  , 0.113  , 0.168  , 0.254  , 0.429  , 0.637 , 0.889 , 1.372 , 2.241, 3.24  };
+     Double_t y_expup[n]  = {0.148   , 0.33   , 0.46   , 0.631  , 1.14   , 1.60  , 2.141 , 3.311 , 5.614, 8.22  };
+     Double_t y_exp[n]    = {0.081   , 0.185  , 0.267  , 0.393  , 0.674  , 0.975 , 1.342 , 2.083 , 3.435, 4.94  };
+     Double_t y_expdn[n]  = {0.0485  , 0.113  , 0.168  , 0.254  , 0.429  , 0.637 , 0.889 , 1.372 , 2.241, 3.24  };
      Double_t y_exp2dn[n] = {0.0317  , 0.076  , 0.116  , 0.178  , 0.298  , 0.451 , 0.643 , 0.994 , 1.621, 2.27  };
 
-
-     Double_t CC_expup[n]  = {0.691   , 1.022  , 1.267  , 2.001  , 3.345  , 5.271 , 7.639 , 11.94 , 20.81, 29.72 };
-     Double_t CC_exp[n]    = {0.402   , 0.646  , 0.804  , 1.293  , 2.154  , 3.417 , 4.988 , 7.821 , 13.24, 18.80 };
-     Double_t CC_expdn[n]  = {0.257   , 0.437  , 0.553  , 0.901  , 1.479  , 2.349 , 3.463 , 5.370 , 9.112, 13.07 };
-
+     Double_t SA_tt3j2b_exp[n]       = {0.084   , 0.189  , 0.282  , 0.411  , 0.692  , 1.015 , 1.402 , 2.123 , 3.515, 5.14  };
+     Double_t SA_tt4j2b_bkp_exp[n]       = {0.073   , 0.299  , 0.356  , 0.603  , 0.707  , 1.212 , 1.812 , 2.733 , 4.235, 5.45  };
+     Double_t SA_tt4j2b_exp[n]    = {0.095   , 0.215  , 0.314  , 0.445  , 0.729  , 1.077 , 1.439 , 2.322 , 3.669, 5.40  };
 /*
      Double_t y_obs[n]    = {0.043   , 0.108  , 0.162  , 0.372  , 0.402  , 0.646 , 1.245 , 1.814 , 3.66 , 3.58  };
      Double_t y_obs_err[n]= {0.0003  , 0.0008 , 0.0013 , 0.0031 , 0.0026 , 0.0037, 0.0060, 0.0114, 0.023, 0.022};
@@ -89,13 +87,11 @@
           y_obs[ind]      *= x_sec[ind];
           y_obs_err[ind]  *= x_sec[ind];
           y_exp2up[ind]   *= x_sec[ind];
-          SA_expup[ind]   *= x_sec[ind];
-          SA_exp[ind]     *= x_sec[ind];
-          SA_expdn[ind]   *= x_sec[ind];
-
-          CC_expup[ind]   *= x_sec[ind];
-          CC_exp[ind]     *= x_sec[ind];
-          CC_expdn[ind]   *= x_sec[ind];
+          y_expup[ind]    *= x_sec[ind];
+          y_exp[ind]      *= x_sec[ind];
+          SA_tt3j2b_exp[ind]      *= x_sec[ind];
+          SA_tt4j2b_exp[ind]      *= x_sec[ind];
+          y_expdn[ind]    *= x_sec[ind];
           y_exp2dn[ind]   *= x_sec[ind];
       }
   }
@@ -116,16 +112,27 @@
   xsec_th_0p05->SetLineWidth(2);
   xsec_th_0p05->SetLineStyle(2);
 
-  Double_t SA_sigmaup[n], SA_sigmadn[n], CC_sigmaup[n], CC_sigmadn[n], y_sigma2up[n], y_sigma2dn[n];
+
+  TGraph* gr_SA_tt3j2b_exp = new TGraph(n, x, SA_tt3j2b_exp);
+  gr_SA_tt3j2b_exp->SetLineColor(kBlack);
+  gr_SA_tt3j2b_exp->SetLineWidth(2);
+  gr_SA_tt3j2b_exp->SetMarkerStyle(20);
+
+  TGraph* gr_SA_tt4j2b_exp = new TGraph(n, x, SA_tt4j2b_exp);
+  gr_SA_tt4j2b_exp->SetLineColor(kBlack);
+  gr_SA_tt4j2b_exp->SetLineWidth(2);
+  gr_SA_tt4j2b_exp->SetMarkerStyle(22);
+
+
+
+  Double_t y_sigmaup[n], y_sigmadn[n], y_sigma2up[n], y_sigma2dn[n];
 
   for(int i = 0; i<n; i++)
   {
-     SA_sigmadn[i]  = SA_exp[i] - SA_expdn[i];
-     SA_sigmaup[i]  = SA_expup[i] - SA_exp[i];
-     CC_sigmadn[i]  = CC_exp[i] - CC_expdn[i];
-     CC_sigmaup[i]  = CC_expup[i] - CC_exp[i];
-     y_sigma2dn[i] = SA_exp[i] - y_exp2dn[i];
-     y_sigma2up[i] = y_exp2up[i] - SA_exp[i];
+     y_sigmadn[i]  = y_exp[i] - y_expdn[i];
+     y_sigmaup[i]  = y_expup[i] - y_exp[i];
+     y_sigma2dn[i] = y_exp[i] - y_exp2dn[i];
+     y_sigma2up[i] = y_exp2up[i] - y_exp[i];
   }
 
 
@@ -140,37 +147,28 @@
   gr_obs->SetLineWidth(2);
   gr_obs->SetMarkerStyle(20);
 
-  TGraphErrors* gr_SA_exp = new TGraphErrors(n, x, SA_exp, 0, 0);
-  gr_SA_exp->SetLineWidth(2);
-  gr_SA_exp->SetLineStyle(2);
-  gr_SA_exp->SetMarkerStyle(22);
+  TGraphErrors* gr_SA_tt2j2b_exp = new TGraphErrors(n, x, y_exp, 0, 0);
+  gr_SA_tt2j2b_exp->SetLineWidth(2);
+  //gr_SA_tt2j2b_exp->SetLineStyle(2);
+  //gr_SA_tt2j2b_exp->SetMarkerStyle(22);
 
-  TGraph* gr_CC_exp = new TGraph(n, x, CC_exp);
-  gr_CC_exp->SetLineColor(kBlack);
-  gr_CC_exp->SetLineWidth(2);
-  gr_CC_exp->SetMarkerStyle(20);
-
-  TGraphAsymmErrors* sigma2 = new TGraphAsymmErrors(n, x, SA_exp, 0, 0, y_sigma2dn, y_sigma2up);
+  TGraphAsymmErrors* sigma2 = new TGraphAsymmErrors(n, x, y_exp, 0, 0, y_sigma2dn, y_sigma2up);
   sigma2->SetFillColor(kYellow-4);
   sigma2->SetLineColor(kYellow-4);
 
-  TGraphAsymmErrors* sigma1_SA = new TGraphAsymmErrors(n, x, SA_exp, 0, 0, SA_sigmadn, SA_sigmaup);
-  sigma1_SA->SetFillColor(kGreen-3);
-  sigma1_SA->SetLineColor(kGreen-3);
+  TGraphAsymmErrors* sigma1 = new TGraphAsymmErrors(n, x, y_exp, 0, 0, y_sigmadn, y_sigmaup);
+  sigma1->SetFillColor(kGreen-3);
+  sigma1->SetLineColor(kGreen-3);
 
-  TGraphAsymmErrors* sigma1_CC = new TGraphAsymmErrors(n, x, CC_exp, 0, 0, CC_sigmadn, CC_sigmaup);
-  sigma1_CC->SetFillColor(kYellow-4);
-  sigma1_CC->SetLineColor(kYellow-4);
+  TGraphErrors* gr_expup = new TGraphErrors(n, x, y_expup, 0, 0);
+  gr_expup->SetLineColor(kRed);
+  gr_expup->SetLineWidth(2);
+  gr_expup->SetLineStyle(2);
 
-  TGraphErrors* gr_SA_expup = new TGraphErrors(n, x, SA_expup, 0, 0);
-  gr_SA_expup->SetLineColor(kRed);
-  gr_SA_expup->SetLineWidth(2);
-  gr_SA_expup->SetLineStyle(2);
-
-  TGraphErrors* gr_SA_expdn = new TGraphErrors(n, x, SA_expdn, 0, 0);
-  gr_SA_expdn->SetLineColor(kRed);
-  gr_SA_expdn->SetLineWidth(2);
-  gr_SA_expdn->SetLineStyle(2);
+  TGraphErrors* gr_expdn = new TGraphErrors(n, x, y_expdn, 0, 0);
+  gr_expdn->SetLineColor(kRed);
+  gr_expdn->SetLineWidth(2);
+  gr_expdn->SetLineStyle(2);
 
   TGraphErrors* gr_exp2up = new TGraphErrors(n, x, y_exp2up, 0, 0);
   gr_exp2up->SetLineColor(kBlue);
@@ -182,9 +180,8 @@
   gr_exp2dn->SetLineWidth(2);
   gr_exp2dn->SetLineStyle(4);
 
-  //mg->Add(sigma2);
-  mg->Add(sigma1_SA);
-  mg->Add(sigma1_CC);
+  mg->Add(sigma2);
+  mg->Add(sigma1);
   mg->Draw("3AC");
   mg->GetXaxis()->SetTitleFont(62);
   mg->GetYaxis()->SetTitleFont(62);
@@ -211,8 +208,9 @@
       mg->GetYaxis()->SetRangeUser(0.,y_exp2up[n-1]);
   }
 
-  gr_SA_exp  ->Draw("samelp");
-  gr_CC_exp  ->Draw("samelp");
+  gr_SA_tt2j2b_exp  ->Draw("samelp");
+  gr_SA_tt3j2b_exp  ->Draw("samelp");
+  gr_SA_tt4j2b_exp  ->Draw("samelp");
   //gr_obs  ->Draw("samelp");
 
   TLine line (x[0], 1., x[n-1], 1.);
@@ -225,11 +223,12 @@
   TLegend *leg;
   if(!displayExclXsec) leg = new TLegend(0.3,0.65,0.55,0.85);
   else                 leg = new TLegend(0.55,0.60,0.85,0.85);
-  leg->AddEntry(gr_SA_exp    ,"Shape Ana. CMS"    ,"lp");
-  leg->AddEntry(sigma1_SA  ," Expected #pm1#sigma (Shape Ana.)","f");
-  //leg->AddEntry(sigma2  ," Expected #pm2#sigma","f");
-  leg->AddEntry(gr_CC_exp ,"Cut&Count ATLAS Sel." ,"lp");
-  leg->AddEntry(sigma1_CC  ," Expected #pm1#sigma (Cut&Count)","f");
+  //leg->AddEntry(gr_obs  ," Observed 95\% CL limit","lpe");
+  leg->AddEntry(gr_SA_tt2j2b_exp    ,"TT-CR ( == 2j , == 2b )"    ,"lp");
+  leg->AddEntry(sigma1  ,"Expected #pm1#sigma (2j2b)","f");
+  leg->AddEntry(sigma2  ,"Expected #pm2#sigma (2j2b)","f");
+  leg->AddEntry(gr_SA_tt3j2b_exp    ,"TT-CR ( == 3j , == 2b )"    ,"lp");
+  leg->AddEntry(gr_SA_tt4j2b_exp    ,"TT-CR ( >= 4j , == 2b )"    ,"lp");
   if(displayExclXsec) {leg->AddEntry(xsec_th_0p1  ," Theory (LO), a_{non-res} = 0.1","l"); leg->AddEntry(xsec_th_0p05  ," Theory (LO), a_{non-res} = 0.05","l");}
   leg->SetBorderSize(0);
   leg->SetFillColor(0);
@@ -245,21 +244,21 @@
 
   TPaveText* text_2;
   if(!displayExclXsec) text_2 = new TPaveText(0.3, 0.45, 0.55, 0.55, "NDC");
-  else                 text_2 = new TPaveText(0.6, 0.48, 0.85, 0.58, "NDC");
+  else                 text_2 = new TPaveText(0.6, 0.45, 0.85, 0.55, "NDC");
   text_2->AddText("Non-resonant model");
   text_2->AddText("Expected 95\% CL limits");
   text_2->SetFillColor(kWhite);
   text_2->SetFillStyle(0);
   text_2->SetBorderSize(0);
   text_2->SetTextFont(43);
-  text_2->SetTextSize(18);
+  text_2->SetTextSize(22);
   text_2->Draw();
 
   TString             Y_axis = "SignalStrength";
   if(displayExclXsec) Y_axis = "ExcludedXsection";
 
-  c1->SaveAs("limitPlots/finalLimits_methodComparison_"+name+"_FCNC.png");
-  c1->SaveAs("limitPlots/finalLimits_methodComparison_"+name+"_FCNC.pdf");
-  c1->SaveAs("limitPlots/finalLimits_methodComparison_"+name+"_FCNC.eps");
+  c1->SaveAs("limitPlots/finalLimits_ttRegionComparison_"+name+"_FCNC.png");
+  c1->SaveAs("limitPlots/finalLimits_ttRegionComparison_"+name+"_FCNC.pdf");
+  c1->SaveAs("limitPlots/finalLimits_ttRegionComparison_"+name+"_FCNC.eps");
 
 }

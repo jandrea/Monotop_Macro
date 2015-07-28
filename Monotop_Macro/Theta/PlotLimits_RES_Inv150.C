@@ -188,7 +188,7 @@
   leg->SetFillColor(0);
   leg->Draw();
 
-  TLatex* text = new TLatex(0.37, 0.92, "CMS Preliminary, L = 20 fb^{-1}, #sqrt{s} = 8 TeV");
+  TLatex* text = new TLatex(0.37, 0.92, "CMS Preliminary, L = 19.7 fb^{-1}, #sqrt{s} = 8 TeV");
   //text->SetTextAlign(33);  // 33-left, 22-center, 11-right
   text->SetNDC(true);
   text->SetTextFont(62);

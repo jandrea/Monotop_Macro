@@ -4,6 +4,7 @@
 #include "TFile.h"
 #include "TLegend.h"
 #include "TLatex.h"
+#include "TRandom.h"
 #include "TCanvas.h"
 #include "TGraphErrors.h"
 #include "TGraphAsymmErrors.h"
@@ -31,8 +32,12 @@ TH1D* getSystematic(TString plusORminus, TString inputdistrib, TString outputdis
 }
 
 
-void ProdTemplate(TString inputdistrib, TString outputdistrib, vector<TString> signalList, vector<TString> thetaSignalList, vector<TString> sampleList, vector<TString> stytList, TString intputfilename, vector<double> scaleCMStoATLAS, bool rescaleToATLAS, bool doCutnCount, bool useElectronChannel )
+void ProdTemplate(TString inputdistrib, TString outputdistrib, vector<TString> signalList, vector<double> signalXsecs, vector<TString> sampleList, vector<double> sampleXsecs, vector<TString> stytList, TString intputfilename, vector<double> scaleCMStoATLAS, bool rescaleToATLAS, bool doCutnCount, bool useElectronChannel, bool useExtrapol13TeV )
 {
+
+  double lumiscale;
+  lumiscale = 16.0;
+  lumiscale/=19.7;
 
   TString                channel = "mujets";
   if(useElectronChannel) channel = "eljets";
@@ -66,6 +71,8 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, vector<TString> s
   vector< TH1D* > distrib_signal;
 
 
+  TH1D* distrib__Pseudo_DATA = new TH1D("Pseudo_DATA", "Pseudo_DATA", distrib__DATA->GetNbinsX(), distrib__DATA->GetXaxis()->GetXmin(), distrib__DATA->GetXaxis()->GetXmax());
+
   for(unsigned int i=0; i<sampleList.size(); i++)
   {
       if(i <  signalList.size() )
@@ -73,15 +80,14 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, vector<TString> s
           TString signalname          = inputdistrib+"__"+signalList[i];
           TH1D * distrib__Monotop     = (TH1D*)inputfile->Get(signalname)->Clone();
           if(rescaleToATLAS) distrib__Monotop->Scale(scaleCMStoATLAS[i]);
-          TString outputsignalname    = outputdistrib+"__"+thetaSignalList[i];
+          TString outputsignalname    = outputdistrib+"__"+signalList[i];
           distrib__Monotop->SetName(outputsignalname );
+          if(useExtrapol13TeV) distrib__Monotop->Scale(double(lumiscale)*double(signalXsecs[i]));
           distrib_signal.push_back( (TH1D*)distrib__Monotop);
       }
       TH1D* distrib__nominale = 0;
       //if(sampleList[i] == "QCD" && inputdistrib == "mWT_"+channel+"_ttbarregion_highpt") continue;
-      if(sampleList[i] == "QCD" && inputdistrib == "mWT_mujets_ttbarregion_2j2b") continue;
-      if(sampleList[i] == "QCD" && inputdistrib == "mWT_mujets_ttbarregion_3j2b") continue;
-      if(sampleList[i] == "QCD" && inputdistrib == "mWT_mujets_ttbarregion_4j2b") continue;
+      if(sampleList[i] == "QCD" && inputdistrib == "mWT_mujets_ttbarregion_highpt") continue;
       if(sampleList[i] == "TTMSDecays")
       {
                  distrib__nominale         	= getSystematic(""     , inputdistrib, outputdistrib, ""       , "TTMSDecays_central", inputfile);
@@ -120,13 +126,13 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, vector<TString> s
                  cout << "WARNING: sample: " << sampleList[i] << " not treated. Please check the config file." << endl;
       }
       distrib__nominale->SetName((outputdistrib+"__"+sampleList[i]).Data());
+      if(useExtrapol13TeV) distrib__nominale->Scale(double(lumiscale)*double(sampleXsecs[i]));
+      if(useExtrapol13TeV) distrib__Pseudo_DATA->Add(distrib__nominale);
       distrib_MC.push_back( (TH1D*)distrib__nominale);
   }
   for(unsigned int i=0; i<sampleList.size(); i++)
   {
-      if(sampleList[i] == "QCD" && inputdistrib == "mWT_mujets_ttbarregion_2j2b") continue;
-      if(sampleList[i] == "QCD" && inputdistrib == "mWT_mujets_ttbarregion_3j2b") continue;
-      if(sampleList[i] == "QCD" && inputdistrib == "mWT_mujets_ttbarregion_4j2b") continue;
+      if(sampleList[i] == "QCD" && inputdistrib == "mWT_mujets_ttbarregion_highpt") continue;
       //if(sampleList[i] == "QCD" && inputdistrib == "mWT_"+channel+"_ttbarregion_highpt") continue;
 
       for(unsigned int j=0; j<stytList.size(); j++)
@@ -143,8 +149,10 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, vector<TString> s
               TH1D* distribsignal__minus     	= getSystematic("minus"    , inputdistrib, outputdistrib, stytList[j]       , signalList[i], inputfile);
               //if(rescaleToATLAS) tmp_inputsignaldistribminus->Scale(scaleCMStoATLAS[i]);
               //if(rescaleToATLAS) tmp_inputsignaldistribplus->Scale(scaleCMStoATLAS[i]);
-              distribsignal__plus->SetName( (outputdistrib+"__"+thetaSignalList[i]+"__"+stytList[j]+"__plus").Data());
-              distribsignal__minus->SetName((outputdistrib+"__"+thetaSignalList[i]+"__"+stytList[j]+"__minus").Data());
+              distribsignal__plus->SetName( (outputdistrib+"__"+signalList[i]+"__"+stytList[j]+"__plus").Data());
+              distribsignal__minus->SetName((outputdistrib+"__"+signalList[i]+"__"+stytList[j]+"__minus").Data());
+              if(useExtrapol13TeV) distribsignal__plus->Scale(double(lumiscale)*double(signalXsecs[i]));
+              if(useExtrapol13TeV) distribsignal__minus->Scale(double(lumiscale)*double(signalXsecs[i]));
               distrib_signal_sys.push_back( (TH1D*)distribsignal__plus );
               distrib_signal_sys.push_back( (TH1D*)distribsignal__minus);
           }
@@ -179,6 +187,8 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, vector<TString> s
               TString outputdistribnameminus  = outputdistrib+"__"+sampleList[i]+"__"+stytList[j]+"__minus";
               tmp_inputdistribminus->SetName(outputdistribnameminus );
               tmp_inputdistribplus->SetName(outputdistribnameplus   );
+              if(useExtrapol13TeV) tmp_inputdistribplus->Scale(double(lumiscale)*double(sampleXsecs[i]));
+              if(useExtrapol13TeV) tmp_inputdistribminus->Scale(double(lumiscale)*double(sampleXsecs[i]));
               distrib_MC_sys.push_back( (TH1D*)tmp_inputdistribplus );
               distrib_MC_sys.push_back( (TH1D*)tmp_inputdistribminus);
           }
@@ -243,6 +253,8 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, vector<TString> s
 
                 distribmc__plus->SetName( (outputdistrib+"__"+sampleList[i]+"__"+stytList[j]+"__plus").Data());
                 distribmc__minus->SetName((outputdistrib+"__"+sampleList[i]+"__"+stytList[j]+"__minus").Data());
+                if(useExtrapol13TeV) distribmc__plus->Scale(double(lumiscale)*double(sampleXsecs[i]));
+                if(useExtrapol13TeV) distribmc__minus->Scale(double(lumiscale)*double(sampleXsecs[i]));
                 distrib_MC_sys.push_back( (TH1D*)distribmc__plus );
                 distrib_MC_sys.push_back( (TH1D*)distribmc__minus);
 
@@ -252,9 +264,7 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, vector<TString> s
 
   TString outputfilename;
   if      (inputdistrib == "mWT_"+channel+"_Wregion_highpt")         outputfilename = "inputTheta_"+channel+"_merged_Wregion";
-  else if (inputdistrib == "mWT_"+channel+"_ttbarregion_2j2b")       outputfilename = "inputTheta_"+channel+"_merged_ttbarregion_2j2b";
-  else if (inputdistrib == "mWT_"+channel+"_ttbarregion_3j2b")       outputfilename = "inputTheta_"+channel+"_merged_ttbarregion_3j2b";
-  else if (inputdistrib == "mWT_"+channel+"_ttbarregion_4j2b")       outputfilename = "inputTheta_"+channel+"_merged_ttbarregion_4j2b";
+  else if (inputdistrib == "mWT_"+channel+"_ttbarregion_highpt")     outputfilename = "inputTheta_"+channel+"_merged_ttbarregion";
   else if (inputdistrib == "mWT_"+channel+"_Selectedsignalregion")   outputfilename = "inputTheta_"+channel+"_merged_Selectedsignalregion";
   else                                                               outputfilename = "inputTheta_merged_"+inputdistrib;
 
@@ -265,7 +275,18 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, vector<TString> s
   if(doCutnCount)  distrib__DATA->Rebin(distrib__DATA->GetNbinsX());
 
   outputfile->cd();
-  distrib__DATA->Write((outputdistrib+"__DATA").Data());
+  if( !useExtrapol13TeV) distrib__DATA->Write((outputdistrib+"__DATA").Data());
+  else
+  {
+      TRandom theRand;
+      for(int i=1; i<= distrib__Pseudo_DATA->GetNbinsX(); i++)
+      {
+          distrib__Pseudo_DATA->SetBinContent(i, theRand.PoissonD( distrib__Pseudo_DATA->GetBinContent(i))  );
+          distrib__Pseudo_DATA->SetBinError(i, pow(distrib__Pseudo_DATA->GetBinContent(i), 0.5) );
+      }
+
+      distrib__Pseudo_DATA->Write((outputdistrib+"__DATA").Data());
+  }
 
   for(unsigned int i=0; i<distrib_MC.size(); i++)
   {
@@ -290,38 +311,36 @@ void ProdTemplate(TString inputdistrib, TString outputdistrib, vector<TString> s
 }
 
 
-void ProdTemplate_mergedSamples(){
+void ProdTemplate_PseudoData()
+{
 
   bool rescaleToATLAS       = false;
   bool doCutnCount          = false;
   bool useElectronChannel   = false;
+  bool useExtrapol13TeV     = true;
 
   TString                channel = "mujets";
   if(useElectronChannel) channel = "eljets";
-  TString                inputfilename = "../TreeReader/outputroot_withSyst/histo_merged.root";
-  if(useElectronChannel) inputfilename = "../TreeReader/outputroot_withSyst/histo_merged_electron_syst.root";
+  TString                inputfilename = "../../TreeReader/outputroot_withSyst/histo_merged.root";
+  if(useElectronChannel) inputfilename = "../../TreeReader/outputroot_withSyst/histo_merged_electron_syst.root";
 
   vector<TString> signalList;
-  vector<TString> thetaSignalList;
+  vector<double> signalXsecs;
   vector<double>  scaleCMStoATLAS;
-  //signalList.push_back("S4Inv100");         thetaSignalList.push_back("S4Inv100");
-  signalList.push_back("S4Inv600");  thetaSignalList.push_back("S4Inv600");
-  //signalList.push_back("S4Inv1000");        thetaSignalList.push_back("S4Inv1000");
-  //signalList.push_back("S1Res500Inv100");   thetaSignalList.push_back("S1Res500Inv100");
-  //signalList.push_back("S1Res1300Inv100");  thetaSignalList.push_back("S1Res1300Inv100");
-  //signalList.push_back("S1Res2100Inv100");  thetaSignalList.push_back("S1Res2100Inv100");
+  signalList.push_back("S1Res1500Inv100");  signalXsecs.push_back(0.28/0.05);
   scaleCMStoATLAS.push_back(1.001/11.79);
   vector<TString> sampleList;
+  vector<double> sampleXsecs;
 
-  sampleList.push_back("TTMSDecays"     );
-  sampleList.push_back("WExclb"         );
-  sampleList.push_back("WExclc"         );
-  sampleList.push_back("WExcll"         );
-  sampleList.push_back("DY"             );
-  sampleList.push_back("SingleTop"      );
-  sampleList.push_back("SingleTopW"     );
-  sampleList.push_back("VV"             );
-  sampleList.push_back("QCD"            );
+  sampleList.push_back("TTMSDecays"     );  sampleXsecs.push_back(831.76/245.8    );
+  sampleList.push_back("WExclb"         );  sampleXsecs.push_back(61464./36864.3  );
+  sampleList.push_back("WExclc"         );  sampleXsecs.push_back(61464./36864.3  );
+  sampleList.push_back("WExcll"         );  sampleXsecs.push_back(61464./36864.3  );
+  sampleList.push_back("DY"             );  sampleXsecs.push_back(6025./3531.     );
+  sampleList.push_back("SingleTop"      );  sampleXsecs.push_back(224.17/90.89    );
+  sampleList.push_back("SingleTopW"     );  sampleXsecs.push_back(71.2/22.2       );
+  sampleList.push_back("VV"             );  sampleXsecs.push_back(182./92.2       );
+  sampleList.push_back("QCD"            );  sampleXsecs.push_back(831.76/245.8    );
 
 
 
@@ -353,12 +372,10 @@ void ProdTemplate_mergedSamples(){
   // ------------------------------------------------------- //
 
 
-  //ProdTemplate("mWT_"+channel+"_ATLASRESsignalregion", "mWT"+channel+"ATLASRESSignalregion",signalList, thetaSignalList, sampleList,  systlist, inputfilename, scaleCMStoATLAS, rescaleToATLAS, doCutnCount, useElectronChannel );
-  ProdTemplate("mWT_"+channel+"_ATLASFCNCsignalregion", "mWT"+channel+"ATLASFCNCSignalregion",signalList, thetaSignalList, sampleList,  systlist, inputfilename, scaleCMStoATLAS, rescaleToATLAS, doCutnCount, useElectronChannel );
-  //ProdTemplate("mWT_"+channel+"_Selectedsignalregion", "mWT"+channel+"SelectedSignalregion",signalList, thetaSignalList, sampleList,  systlist,  inputfilename, scaleCMStoATLAS, rescaleToATLAS, doCutnCount, useElectronChannel );
-  ProdTemplate("mWT_"+channel+"_Wregion_highpt", "mWT"+channel+"WregionHighpt", signalList, thetaSignalList, sampleList,  systlist,  inputfilename, scaleCMStoATLAS, rescaleToATLAS, doCutnCount, useElectronChannel  );
-  ProdTemplate("mWT_"+channel+"_ttbarregion_2j2b", "mWT"+channel+"ttbarregionHighpt",signalList, thetaSignalList, sampleList,  systlist,  inputfilename, scaleCMStoATLAS, rescaleToATLAS, doCutnCount, useElectronChannel  );
-  //ProdTemplate("mWT_"+channel+"_ttbarregion_3j2b", "mWT"+channel+"ttbarregionHighpt",signalList, thetaSignalList, sampleList,  systlist,  inputfilename, scaleCMStoATLAS, rescaleToATLAS, doCutnCount, useElectronChannel  );
-  //ProdTemplate("mWT_"+channel+"_ttbarregion_4j2b", "mWT"+channel+"ttbarregionHighpt",signalList, thetaSignalList, sampleList,  systlist,  inputfilename, scaleCMStoATLAS, rescaleToATLAS, doCutnCount, useElectronChannel  );
+  //ProdTemplate("mWT_"+channel+"_ATLASRESsignalregion", "mWT"+channel+"ATLASRESSignalregion",signalList, signalXsecs, sampleList,  sampleXsecs, systlist, inputfilename, scaleCMStoATLAS, rescaleToATLAS, doCutnCount, useElectronChannel, useExtrapol13TeV );
+  //ProdTemplate("mWT_"+channel+"_ATLASFCNCsignalregion", "mWT"+channel+"ATLASFCNCSignalregion",signalList, signalXsecs, sampleList,  sampleXsecs, systlist, inputfilename, scaleCMStoATLAS, rescaleToATLAS, doCutnCount, useElectronChannel, useExtrapol13TeV );
+  ProdTemplate("mWT_"+channel+"_Selectedsignalregion", "mWT"+channel+"SelectedSignalregion",signalList, signalXsecs, sampleList,  sampleXsecs, systlist,  inputfilename, scaleCMStoATLAS, rescaleToATLAS, doCutnCount, useElectronChannel, useExtrapol13TeV );
+  ProdTemplate("mWT_"+channel+"_Wregion_highpt", "mWT"+channel+"WregionHighpt", signalList, signalXsecs, sampleList,  sampleXsecs, systlist,  inputfilename, scaleCMStoATLAS, rescaleToATLAS, doCutnCount, useElectronChannel, useExtrapol13TeV  );
+  ProdTemplate("mWT_"+channel+"_ttbarregion_highpt", "mWT"+channel+"ttbarregionHighpt",signalList, signalXsecs, sampleList,  sampleXsecs, systlist,  inputfilename, scaleCMStoATLAS, rescaleToATLAS, doCutnCount, useElectronChannel, useExtrapol13TeV  );
 
 }

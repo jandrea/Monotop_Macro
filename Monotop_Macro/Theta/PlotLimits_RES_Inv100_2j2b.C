@@ -1,34 +1,37 @@
 {
 
-  const unsigned int n=6;   // number of mass points
+  const unsigned int n=9;   // number of mass points
 
-  Double_t x[n] = {500, 700, 900, 1100, 1300, 1500};
+  Double_t x[n] = {500, 700, 900, 1100, 1300, 1500, 1700, 1900, 2100};
+  //Double_t x[n] = {300, 500, 700, 900, 1100, 1300, 1500};
 
   bool useATLASvsCMS = false;
   bool displayExclXsec = true;
 
-  Double_t x_sec[n]       = {11.8  ,2.77, 0.87, 0.31, 0.11, 0.05};
+  Double_t x_sec[n]       = {11.8  ,2.77, 0.87, 0.31, 0.11, 0.05, 0.022, 0.0097, 0.0045};
+  //Double_t x_sec[n]       = {77.2  ,11.8  ,2.77, 0.87, 0.31, 0.11, 0.05};
 
   if(!useATLASvsCMS){
      TString name = "ShapeAnalysis";
-     Double_t y_obs[n]    = {0.0103 ,0.01725,0.02880,0.0739 ,0.2043 ,0.4761 };
-     Double_t y_obs_err[n]= {0.00008,0.00011,0.00014,0.00041,0.0011 ,0.0031 };
-     Double_t y_exp2up[n] = {0.0965 ,0.0889 ,0.0935 ,0.2177 ,0.531  ,1.260  };
-     Double_t y_expup[n]  = {0.0490 ,0.0494 ,0.0567 ,0.1299 ,0.313  ,0.721  };
-     Double_t y_exp[n]    = {0.0248 ,0.0272 ,0.0335 ,0.0796 ,0.1981 ,0.4721 };
-     Double_t y_expdn[n]  = {0.0143 ,0.0164 ,0.0225 ,0.0525 ,0.1341 ,0.3261 };
-     Double_t y_exp2dn[n] = {0.0087 ,0.0102 ,0.016  ,0.0402 ,0.0997 ,0.2402 };
 
-/*
-     Double_t y_obs[n]    = {0.0262 ,0.03165,0.04720,0.1173 ,0.3203 ,0.6971 };
-     Double_t y_obs_err[n]= {0.00024,0.00019,0.00021,0.00054,0.0015 ,0.0034 };
-     Double_t y_exp2up[n] = {0.1915 ,0.2009 ,0.2265 ,0.4923 ,1.428  ,3.525  };
-     Double_t y_expup[n]  = {0.1030 ,0.1030 ,0.1168 ,0.2584 ,0.700  ,1.677  };
-     Double_t y_exp[n]    = {0.0470 ,0.0485 ,0.0552 ,0.1209 ,0.3341 ,0.7411 };
-     Double_t y_expdn[n]  = {0.0232 ,0.0254 ,0.0306 ,0.0704 ,0.1931 ,0.4271 };
-     Double_t y_exp2dn[n] = {0.0144 ,0.0162 ,0.020  ,0.0479 ,0.1257 ,0.2992 };
+  Double_t y_obs_err[n]= {0.00008, 0.00012, 0.00018, 0.00049, 0.0011, 0.0042, 0.0066, 0.0098, 0.015 };
+  Double_t y_obs[n]    = {0.0138, 0.0203, 0.0362, 0.0820, 0.3518, 0.562, 1.537, 4.080 , 11.095 };
+  Double_t y_exp2up[n] = {0.0339, 0.0481, 0.0812, 0.1841, 0.7671, 1.244, 3.424, 8.832 , 23.76  };
+  Double_t y_expup[n]  = {0.0216, 0.0303, 0.0510, 0.1129, 0.4738, 0.757, 2.038, 5.254 , 14.02  };
+  Double_t y_exp[n]    = {0.0136, 0.0193, 0.0327, 0.0724, 0.2969, 0.478, 1.288, 3.282 , 8.878  };
+  Double_t y_expdn[n]  = {0.0087, 0.0128, 0.0218, 0.0489, 0.2004, 0.323, 0.859, 2.215 , 5.963  };
+  Double_t y_exp2dn[n] = {0.0059, 0.0091, 0.0159, 0.0361, 0.1491, 0.242, 0.649, 1.661 , 4.452  };
+
+
+     /*
+     Double_t y_obs[n]    = {0.0120 ,0.0065 ,0.01155,0.02190,0.0515 ,0.1443 ,0.3871 };
+     Double_t y_obs_err[n]= {0.00007,0.00006,0.00006,0.00010,0.00024,0.0007 ,0.0022 };
+     Double_t y_exp2up[n] = {0.109  ,0.0536 ,0.0625 ,0.1136 ,0.2643 ,0.745  ,1.928  };
+     Double_t y_expup[n]  = {0.060  ,0.0264 ,0.0312 ,0.0556 ,0.1374 ,0.349  ,0.876  };
+     Double_t y_exp[n]    = {0.0275 ,0.0113 ,0.0145 ,0.0269 ,0.0619 ,0.1577 ,0.3771 };
+     Double_t y_expdn[n]  = {0.013  ,0.0054 ,0.0084 ,0.0149 ,0.0341 ,0.0901 ,0.2111 };
+     Double_t y_exp2dn[n] = {0.0077 ,0.0029 ,0.0053 ,0.010  ,0.0225 ,0.0622 ,0.1482 };
 */
-
 
 /*
      // with the 4 distributions in SR and mTW only in CRs
@@ -150,7 +153,7 @@
   mg->GetYaxis()->SetTitleSize(0.055);
   mg->GetXaxis()->SetLabelSize(0.04);
   mg->GetYaxis()->SetLabelSize(0.04);
-  mg->GetXaxis()->SetTitle("m_{mediator} (GeV)");
+  mg->GetXaxis()->SetTitle("m_{Res.} (GeV)");
   mg->GetXaxis()->SetRangeUser(x[0],x[n-1]);
   if(displayExclXsec)
   {
@@ -199,7 +202,7 @@
   if(!displayExclXsec) text_2 = new TPaveText(0.3, 0.45, 0.55, 0.55, "NDC");
   else                 text_2 = new TPaveText(0.6, 0.45, 0.85, 0.55, "NDC");
   text_2->AddText("Resonant model");
-  text_2->AddText("m(DM) = 200 GeV");
+  text_2->AddText("m(Inv.) = 100 GeV");
   text_2->SetFillColor(kWhite);
   text_2->SetFillStyle(0);
   text_2->SetBorderSize(0);
@@ -210,8 +213,8 @@
   TString             Y_axis = "SignalStrength";
   if(displayExclXsec) Y_axis = "ExcludedXsection";
 
-  c1->SaveAs("limitPlots/finalLimits_RES_DM200_"+name+"_"+Y_axis+".png");
-  c1->SaveAs("limitPlots/finalLimits_RES_DM200_"+name+"_"+Y_axis+".pdf");
-  c1->SaveAs("limitPlots/finalLimits_RES_DM200_"+name+"_"+Y_axis+".eps");
+  c1->SaveAs("limitPlots/finalLimits_RES_DM100_"+name+"_"+Y_axis+".png");
+  c1->SaveAs("limitPlots/finalLimits_RES_DM100_"+name+"_"+Y_axis+".pdf");
+  c1->SaveAs("limitPlots/finalLimits_RES_DM100_"+name+"_"+Y_axis+".eps");
 
 }

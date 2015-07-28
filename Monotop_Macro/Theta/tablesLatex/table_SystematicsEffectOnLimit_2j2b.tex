@@ -1,0 +1,55 @@
+\documentclass[10pt]{article}
+
+\usepackage{amsthm}
+\usepackage{color}
+
+\begin{document}
+
+\begin{table}[!ht]
+\begin{center}
+\begin{tabular}{|l|c|c|}
+\hline
+\hline
+\hline
+\textbf{Systematic} & \textbf{Applied on} & \textbf{Effect in \%}\\
+\hline
+lumi            & All bgds  & 0.6   \\
+%positive
+trig            & All bgds  & 0.5   \\
+%negative
+PU              & All bgds  & 0.1   \\
+PDF             & All bgds  & 16.6   \\
+%negative/positive
+lept            & All bgds  & 0.5   \\
+%negative
+jes             & All bgds  & 0.3   \\
+%negative
+jer             & All bgds  & 4.8   \\
+%negative
+btag            & All bgds  & 2.5   \\
+%positive/negative
+mistag          & All bgds  & 1.4   \\
+%negative
+metuncls        & All bgds  & 1.0   \\
+%negative
+toppt           & TTbar     & 3.5   \\
+%negative
+scale           & TTbar     & 0.5   \\
+%negative
+matching        & TTbar     & 2.5   \\
+%positive
+BgdContam       & QCD       & 1.4   \\
+%positive
+Iso             & QCD       & 3.2   \\
+\hline
+\hline
+
+\hline
+\hline
+\end{tabular}
+\caption{Effect of each systematic: computed in comparing the nominal limit with the one obtained when removing a systematic from the fit.}
+\label{tab:SFtable}
+\end{center}
+\end{table} 
+
+\end{document}
