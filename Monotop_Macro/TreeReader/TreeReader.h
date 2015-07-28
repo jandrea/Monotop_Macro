@@ -49,7 +49,8 @@ public :
    bool isWExcl;
    bool isWIncl;
    bool isQCD;
-   bool isTTbar;
+   bool isTTbarSyst;
+   bool isSignal;
    TString thechannel;
 
    // Declaration of leaf types
@@ -321,9 +322,10 @@ cout << "f_name= " << f->GetName() << endl;
 
    Init(CorrOption,sample, tree);
 
-   isData = 1;
-   isQCD  = 1;
-   isTTbar= 1;
+   isData      = 1;
+   isQCD       = 1;
+   isTTbarSyst = 1;
+   isSignal    = 1;
    if(useElectronChannel) thechannel = "eljets";
    else                   thechannel = "mujets";
 }

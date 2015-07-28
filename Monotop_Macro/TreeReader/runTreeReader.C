@@ -119,6 +119,9 @@
 
     vector<TString > signallist;
 
+    signallist.push_back("S1Res2100Inv10");
+    signallist.push_back("S1Res1900Inv10");
+    signallist.push_back("S1Res1700Inv10");
     signallist.push_back("S1Res1500Inv10");
     signallist.push_back("S1Res1300Inv10");
     signallist.push_back("S1Res1100Inv10");
@@ -127,6 +130,9 @@
     signallist.push_back("S1Res500Inv10");
     //signallist.push_back("S1Res300Inv10");
 
+    signallist.push_back("S1Res2100Inv50");
+    signallist.push_back("S1Res1900Inv50");
+    signallist.push_back("S1Res1700Inv50");
     signallist.push_back("S1Res1500Inv50");
     signallist.push_back("S1Res1300Inv50");
     signallist.push_back("S1Res1100Inv50");
@@ -135,14 +141,20 @@
     signallist.push_back("S1Res500Inv50");
     //signallist.push_back("S1Res300Inv50");
 
+    signallist.push_back("S1Res2100Inv100");
+    signallist.push_back("S1Res1900Inv100");
+    signallist.push_back("S1Res1700Inv100");
     signallist.push_back("S1Res1500Inv100");
     signallist.push_back("S1Res1300Inv100");
     signallist.push_back("S1Res1100Inv100");
     signallist.push_back("S1Res900Inv100");
     signallist.push_back("S1Res700Inv100");
     signallist.push_back("S1Res500Inv100");
-    signallist.push_back("S1Res300Inv100");
+    //signallist.push_back("S1Res300Inv100");
 
+    signallist.push_back("S1Res2100Inv150");
+    signallist.push_back("S1Res1900Inv150");
+    signallist.push_back("S1Res1700Inv150");
     signallist.push_back("S1Res1500Inv150");
     signallist.push_back("S1Res1300Inv150");
     signallist.push_back("S1Res1100Inv150");
@@ -150,6 +162,9 @@
     signallist.push_back("S1Res700Inv150");
     signallist.push_back("S1Res500Inv150");
 
+    signallist.push_back("S1Res2100Inv200");
+    signallist.push_back("S1Res1900Inv200");
+    signallist.push_back("S1Res1700Inv200");
     signallist.push_back("S1Res1500Inv200");
     signallist.push_back("S1Res1300Inv200");
     signallist.push_back("S1Res1100Inv200");
@@ -158,6 +173,7 @@
     signallist.push_back("S1Res500Inv200");
 
 
+    signallist.push_back("S4Inv91");
     signallist.push_back("S4Inv100");
     signallist.push_back("S4Inv200");
     signallist.push_back("S4Inv300");
@@ -217,8 +233,8 @@
         tree_.Loop(CorrOption, datalist,  mclist, signallist[isig], systlist, "noflav", 0);
         delete tree_;
     }
-
-/*    for (unsigned int imc = 0; imc < mclist.size(); imc++)
+/*
+    for (unsigned int imc = 0; imc < mclist.size(); imc++)
     {
         if (mclist[imc] != "WJets" && mclist[imc] != "W0Jets" && mclist[imc] != "W1Jets" && mclist[imc] != "W2Jets" && mclist[imc] != "W3Jets" && mclist[imc] != "W4Jets")
         {
@@ -262,16 +278,16 @@
         delete tree_;
     }
   }
-/*
+
   if(CorrOption == 2 || CorrOption == 3)
   {
-
+/*
     for (unsigned int iqcd = 0; iqcd < qcdcorrectedlist.size(); iqcd++)
     {
 
-//        TreeReader * tree_ = new TreeReader(CorrOption, tree, qcdcorrectedlist[iqcd], 0);
-//        tree_.Loop(CorrOption, datalist,  mclist, qcdcorrectedlist[iqcd], emptysystlist, "noflav", 0);
-//        delete tree_;
+        TreeReader * tree_ = new TreeReader(CorrOption, tree, qcdcorrectedlist[iqcd], 0);
+        tree_.Loop(CorrOption, datalist,  mclist, qcdcorrectedlist[iqcd], emptysystlist, "noflav", 0);
+        delete tree_;
 
         TreeReader * tree_ = new TreeReader(CorrOption, tree, qcdcorrectedlist[iqcd], -2);
         tree_.Loop(CorrOption, datalist,  mclist, qcdcorrectedlist[iqcd], emptysystlist, "noflav", -2);
@@ -290,9 +306,9 @@
         delete tree_;
 
     }
-
-  }
 */
+  }
+
   if(CorrOption == 3 && systlist.size() > 1)
   {
 /*

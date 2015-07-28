@@ -23,7 +23,7 @@
     //     2 : Analysis with QCD correction /
     ///    3 : Analysis with systematics  ///
     /////////////////////////////////////////
-    short int QCDCorr = 1;
+    short int QCDCorr = 3;
 
 
   //---------------------------
@@ -194,27 +194,29 @@
  //selectionStep_list.push_back("QCDnormWregion");
  //selectionStep_list.push_back("QCDnormSregion");
  //selectionStep_list.push_back("QCDnormTTregion");
- //selectionStep_list.push_back("Selectedsignalregion");
- //selectionStep_list.push_back("ttbarregion_highpt");
+ selectionStep_list.push_back("Selectedsignalregion");
+ selectionStep_list.push_back("ttbarregion_2j2b");
+ //selectionStep_list.push_back("ttbarregion_3j2b");
+ //selectionStep_list.push_back("ttbarregion_4j2b");
  selectionStep_list.push_back("Wregion_highpt");
 
 
  //------------------------
  //define list of variables
  std::vector<TString> variables_list;
- //variables_list.push_back("NVtx");
+ variables_list.push_back("NVtx");
  //variables_list.push_back("NJet");
  //variables_list.push_back("NBJet");
- variables_list.push_back("mWT");
- variables_list.push_back("DeltaPhiLJ");
+ //variables_list.push_back("mWT");
+ //variables_list.push_back("DeltaPhiLJ");
  //variables_list.push_back("mWT_full");
- variables_list.push_back("MET");
- variables_list.push_back("ptW");
+ //variables_list.push_back("MET");
+ //variables_list.push_back("ptW");
  //variables_list.push_back("etaW");
- variables_list.push_back("LeptPt");
- variables_list.push_back("LeptEta");
- variables_list.push_back("JetPt");
- variables_list.push_back("JetEta");
+ //variables_list.push_back("LeptPt");
+ //variables_list.push_back("LeptEta");
+ //variables_list.push_back("JetPt");
+ //variables_list.push_back("JetEta");
  //variables_list.push_back("LeadJetBtagDiscr");
 // variables_list.push_back("mW");
 // variables_list.push_back("mWTplusMET");

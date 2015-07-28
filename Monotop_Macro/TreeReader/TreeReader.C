@@ -10,12 +10,13 @@ void TreeReader::Loop(short int CorrOption, vector<TString> datalist, vector<TSt
 {
    TString thesample  = sample;
    TFile * theoutputfile = 0;
-   isData   = (sample == "SingleElA" || sample == "SingleElB" || sample == "SingleElC" || sample == "SingleElD" || sample == "SingleMuA" || sample == "SingleMuB" || sample == "SingleMuC" || sample == "SingleMuD" || sample == "NTuple_53X_SingleMuRun2012A" || sample == "NTuple_53X_SingleMuRun2012B" || sample == "NTuple_53X_SingleMuRun2012C" || sample == "NTuple_53X_SingleMuRun2012D" );
-   isQCD    = (sample == "QCD" || sample == "QCDdatadriven" );
-   isW      = (sample == "WJets"  || sample == "W0Jets" || sample == "W1Jets" || sample == "W2Jets" || sample == "W3Jets" || sample == "W4Jets" || sample == "WJets_matchingdown" || sample == "WJets_matchingup" || sample == "WJets_scaledown" ||  sample == "WJets_scaleup" );
-   isWExcl  = (sample == "W0Jets" || sample == "W1Jets" || sample == "W2Jets" || sample == "W3Jets" || sample == "W4Jets" || sample == "WJets_matchingdown" || sample == "WJets_matchingup" || sample == "WJets_scaledown" ||  sample == "WJets_scaleup" );
-   isWIncl  = (sample == "WJets");
-   isTTbar  = (sample == "TTMSDecays_matchingup" || sample == "TTMSDecays_matchingdown" || sample == "TTMSDecays_scaledown" ||  sample == "TTMSDecays_scaleup" );
+   isData       = (sample == "SingleElA" || sample == "SingleElB" || sample == "SingleElC" || sample == "SingleElD" || sample == "SingleMuA" || sample == "SingleMuB" || sample == "SingleMuC" || sample == "SingleMuD" || sample == "NTuple_53X_SingleMuRun2012A" || sample == "NTuple_53X_SingleMuRun2012B" || sample == "NTuple_53X_SingleMuRun2012C" || sample == "NTuple_53X_SingleMuRun2012D" );
+   isQCD        = (sample == "QCD" || sample == "QCDdatadriven" );
+   isW          = (sample == "WJets"  || sample == "W0Jets" || sample == "W1Jets" || sample == "W2Jets" || sample == "W3Jets" || sample == "W4Jets" || sample == "WJets_matchingdown" || sample == "WJets_matchingup" || sample == "WJets_scaledown" ||  sample == "WJets_scaleup" );
+   isWExcl      = (sample == "W0Jets" || sample == "W1Jets" || sample == "W2Jets" || sample == "W3Jets" || sample == "W4Jets" || sample == "WJets_matchingdown" || sample == "WJets_matchingup" || sample == "WJets_scaledown" ||  sample == "WJets_scaleup" );
+   isWIncl      = (sample == "WJets");
+   isTTbarSyst  = (sample == "TTMSDecays_matchingup" || sample == "TTMSDecays_matchingdown" || sample == "TTMSDecays_scaledown" ||  sample == "TTMSDecays_scaleup" );
+   isSignal     = ( (sample.SubString("S1Res") == "S1Res") || (sample.SubString("S4Inv") == "S4Inv") );
 
    TString sampleroot;
    if      ( isW && flavtag == "b") sampleroot = thesample+"_bflav";
@@ -24,7 +25,7 @@ void TreeReader::Loop(short int CorrOption, vector<TString> datalist, vector<TSt
    else                             sampleroot = thesample;
    double qcdIsoCut = 0.5;
 
-   if(CorrOption == 3 && !isData && !isQCD && !isTTbar) loadPDFSumWeight(thechannel,  sample, flavtag);
+   if(CorrOption == 3 && !isData && !isQCD && !isTTbarSyst && !isSignal) loadPDFSumWeight(thechannel,  sample, flavtag);
 
    if      (CorrOption == 0)  theoutputfile = new TFile( ("outputroot_QCDcorr_iso0p5/histofile_"     +sampleroot+".root" ).Data() , "recreate");
    else if (CorrOption == 1)  theoutputfile = new TFile( ("outputroot_woQCDcorr/histofile_"   +sampleroot+".root" ).Data() , "recreate");
@@ -669,37 +670,105 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
 
 
         //***********************************
-        //ttbar enriched region
+        //ttbar (2j2b) enriched region
         //***********************************
-        if(jetsup70 && njets >= 4 && nbjets ==2){
+        if(jetsup70 && njets == 2 && nbjets == 2){
 
           if(sample == "QCD")                          evtweight = QCDContamweight*SF_QCD_TT;
-          fillHisto("mWT_full",     "ttbarregion_highpt",  thesample, systtype,   mTW,    			        evtweight, flavtag, systType);
+          fillHisto("mWT_full",     "ttbarregion_2j2b",  thesample, systtype,   mTW,    			        evtweight, flavtag, systType);
           if(mTW > 40)
           {
             fillHisto("CutFlow",     "",  thesample, systtype, 11 ,  evtweight, flavtag, systType);
   	        for(int ijet=0; ijet<iter_jets; ijet++){
                 if(jet_pt[ijet] < 30 || fabs(jet_eta[ijet]) > 2.4) continue;
-                fillHisto("JetPt",     "ttbarregion_highpt",  thesample, systtype,  jet_pt[ijet], 		evtweight, flavtag, systType);
-                fillHisto("JetEta",    "ttbarregion_highpt",  thesample, systtype,  jet_eta[ijet], 		evtweight, flavtag, systType);
+                fillHisto("JetPt",     "ttbarregion_2j2b",  thesample, systtype,  jet_pt[ijet], 		evtweight, flavtag, systType);
+                fillHisto("JetEta",    "ttbarregion_2j2b",  thesample, systtype,  jet_eta[ijet], 		evtweight, flavtag, systType);
             }
 
-            fillHisto("NVtx",       "ttbarregion_highpt",  thesample, systtype,   smalltree_nvertex,                evtweight, flavtag, systType);
-            fillHisto("LeadJetBtagDiscr","ttbarregion_highpt",thesample, systtype,  jet_btagdiscri[0] ,             evtweight, flavtag, systType);
-            fillHisto("NJet",       "ttbarregion_highpt",  thesample, systtype,   njets, 		                    evtweight, flavtag, systType);
-            fillHisto("NBJet",      "ttbarregion_highpt",  thesample, systtype,   nbjets, 		                    evtweight, flavtag, systType);
-            fillHisto("ptW",        "ttbarregion_highpt",  thesample, systtype,   theWcand.Pt(),       	            evtweight, flavtag, systType);
-            fillHisto("etaW",       "ttbarregion_highpt",  thesample, systtype,   theWcand.Eta(),       	        evtweight, flavtag, systType);
+            fillHisto("NVtx",       "ttbarregion_2j2b",  thesample, systtype,   smalltree_nvertex,                evtweight, flavtag, systType);
+            fillHisto("LeadJetBtagDiscr","ttbarregion_2j2b",thesample, systtype,  jet_btagdiscri[0] ,             evtweight, flavtag, systType);
+            fillHisto("NJet",       "ttbarregion_2j2b",  thesample, systtype,   njets, 		                    evtweight, flavtag, systType);
+            fillHisto("NBJet",      "ttbarregion_2j2b",  thesample, systtype,   nbjets, 		                    evtweight, flavtag, systType);
+            fillHisto("ptW",        "ttbarregion_2j2b",  thesample, systtype,   theWcand.Pt(),       	            evtweight, flavtag, systType);
+            fillHisto("etaW",       "ttbarregion_2j2b",  thesample, systtype,   theWcand.Eta(),       	        evtweight, flavtag, systType);
 
-            fillHisto("mWT",        "ttbarregion_highpt",  thesample, systtype,   mTW,    			                evtweight, flavtag, systType);
-            fillHisto("mWT_high",   "ttbarregion_highpt",  thesample, systtype,   mTW,    			                evtweight, flavtag, systType);
-            fillHisto("MET",        "ttbarregion_highpt",  thesample, systtype,   met_pt, 			                evtweight, flavtag, systType);
-            fillHisto("LeptPt",     "ttbarregion_highpt",  thesample, systtype,   smalltree_lept_pt[0], 	        evtweight, flavtag, systType);
-            fillHisto("LeptEta",    "ttbarregion_highpt",  thesample, systtype,   smalltree_lept_eta[0], 	        evtweight, flavtag, systType);
-            fillHisto("DeltaPhiLJ", "ttbarregion_highpt",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)),   evtweight, flavtag, systType);
-            fillHisto("DeltaRLJ",   "ttbarregion_highpt",  thesample, systtype,   lept.DeltaR(leadingJet), 	        evtweight, flavtag, systType);
+            fillHisto("mWT",        "ttbarregion_2j2b",  thesample, systtype,   mTW,    			                evtweight, flavtag, systType);
+            fillHisto("mWT_high",   "ttbarregion_2j2b",  thesample, systtype,   mTW,    			                evtweight, flavtag, systType);
+            fillHisto("MET",        "ttbarregion_2j2b",  thesample, systtype,   met_pt, 			                evtweight, flavtag, systType);
+            fillHisto("LeptPt",     "ttbarregion_2j2b",  thesample, systtype,   smalltree_lept_pt[0], 	        evtweight, flavtag, systType);
+            fillHisto("LeptEta",    "ttbarregion_2j2b",  thesample, systtype,   smalltree_lept_eta[0], 	        evtweight, flavtag, systType);
+            fillHisto("DeltaPhiLJ", "ttbarregion_2j2b",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)),   evtweight, flavtag, systType);
+            fillHisto("DeltaRLJ",   "ttbarregion_2j2b",  thesample, systtype,   lept.DeltaR(leadingJet), 	        evtweight, flavtag, systType);
           }
         }
+
+        //***********************************
+        //ttbar (3j2b) enriched region
+        //***********************************
+        if(jetsup70 && njets == 3 && nbjets == 2){
+
+          if(sample == "QCD")                          evtweight = QCDContamweight*SF_QCD_TT;
+          fillHisto("mWT_full",     "ttbarregion_3j2b",  thesample, systtype,   mTW,    			        evtweight, flavtag, systType);
+          if(mTW > 40)
+          {
+            fillHisto("CutFlow",     "",  thesample, systtype, 11 ,  evtweight, flavtag, systType);
+  	        for(int ijet=0; ijet<iter_jets; ijet++){
+                if(jet_pt[ijet] < 30 || fabs(jet_eta[ijet]) > 2.4) continue;
+                fillHisto("JetPt",     "ttbarregion_3j2b",  thesample, systtype,  jet_pt[ijet], 		evtweight, flavtag, systType);
+                fillHisto("JetEta",    "ttbarregion_3j2b",  thesample, systtype,  jet_eta[ijet], 		evtweight, flavtag, systType);
+            }
+
+            fillHisto("NVtx",       "ttbarregion_3j2b",  thesample, systtype,   smalltree_nvertex,                evtweight, flavtag, systType);
+            fillHisto("LeadJetBtagDiscr","ttbarregion_3j2b",thesample, systtype,  jet_btagdiscri[0] ,             evtweight, flavtag, systType);
+            fillHisto("NJet",       "ttbarregion_3j2b",  thesample, systtype,   njets, 		                    evtweight, flavtag, systType);
+            fillHisto("NBJet",      "ttbarregion_3j2b",  thesample, systtype,   nbjets, 		                    evtweight, flavtag, systType);
+            fillHisto("ptW",        "ttbarregion_3j2b",  thesample, systtype,   theWcand.Pt(),       	            evtweight, flavtag, systType);
+            fillHisto("etaW",       "ttbarregion_3j2b",  thesample, systtype,   theWcand.Eta(),       	        evtweight, flavtag, systType);
+
+            fillHisto("mWT",        "ttbarregion_3j2b",  thesample, systtype,   mTW,    			                evtweight, flavtag, systType);
+            fillHisto("mWT_high",   "ttbarregion_3j2b",  thesample, systtype,   mTW,    			                evtweight, flavtag, systType);
+            fillHisto("MET",        "ttbarregion_3j2b",  thesample, systtype,   met_pt, 			                evtweight, flavtag, systType);
+            fillHisto("LeptPt",     "ttbarregion_3j2b",  thesample, systtype,   smalltree_lept_pt[0], 	        evtweight, flavtag, systType);
+            fillHisto("LeptEta",    "ttbarregion_3j2b",  thesample, systtype,   smalltree_lept_eta[0], 	        evtweight, flavtag, systType);
+            fillHisto("DeltaPhiLJ", "ttbarregion_3j2b",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)),   evtweight, flavtag, systType);
+            fillHisto("DeltaRLJ",   "ttbarregion_3j2b",  thesample, systtype,   lept.DeltaR(leadingJet), 	        evtweight, flavtag, systType);
+          }
+        }
+
+
+        //***********************************
+        //ttbar (4j2b) enriched region
+        //***********************************
+        if(jetsup70 && njets >= 4 && nbjets == 2){
+
+          if(sample == "QCD")                          evtweight = QCDContamweight*SF_QCD_TT;
+          fillHisto("mWT_full",     "ttbarregion_4j2b",  thesample, systtype,   mTW,    			        evtweight, flavtag, systType);
+          if(mTW > 40)
+          {
+            fillHisto("CutFlow",     "",  thesample, systtype, 11 ,  evtweight, flavtag, systType);
+  	        for(int ijet=0; ijet<iter_jets; ijet++){
+                if(jet_pt[ijet] < 30 || fabs(jet_eta[ijet]) > 2.4) continue;
+                fillHisto("JetPt",     "ttbarregion_4j2b",  thesample, systtype,  jet_pt[ijet], 		evtweight, flavtag, systType);
+                fillHisto("JetEta",    "ttbarregion_4j2b",  thesample, systtype,  jet_eta[ijet], 		evtweight, flavtag, systType);
+            }
+
+            fillHisto("NVtx",       "ttbarregion_4j2b",  thesample, systtype,   smalltree_nvertex,                evtweight, flavtag, systType);
+            fillHisto("LeadJetBtagDiscr","ttbarregion_4j2b",thesample, systtype,  jet_btagdiscri[0] ,             evtweight, flavtag, systType);
+            fillHisto("NJet",       "ttbarregion_4j2b",  thesample, systtype,   njets, 		                    evtweight, flavtag, systType);
+            fillHisto("NBJet",      "ttbarregion_4j2b",  thesample, systtype,   nbjets, 		                    evtweight, flavtag, systType);
+            fillHisto("ptW",        "ttbarregion_4j2b",  thesample, systtype,   theWcand.Pt(),       	            evtweight, flavtag, systType);
+            fillHisto("etaW",       "ttbarregion_4j2b",  thesample, systtype,   theWcand.Eta(),       	        evtweight, flavtag, systType);
+
+            fillHisto("mWT",        "ttbarregion_4j2b",  thesample, systtype,   mTW,    			                evtweight, flavtag, systType);
+            fillHisto("mWT_high",   "ttbarregion_4j2b",  thesample, systtype,   mTW,    			                evtweight, flavtag, systType);
+            fillHisto("MET",        "ttbarregion_4j2b",  thesample, systtype,   met_pt, 			                evtweight, flavtag, systType);
+            fillHisto("LeptPt",     "ttbarregion_4j2b",  thesample, systtype,   smalltree_lept_pt[0], 	        evtweight, flavtag, systType);
+            fillHisto("LeptEta",    "ttbarregion_4j2b",  thesample, systtype,   smalltree_lept_eta[0], 	        evtweight, flavtag, systType);
+            fillHisto("DeltaPhiLJ", "ttbarregion_4j2b",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)),   evtweight, flavtag, systType);
+            fillHisto("DeltaRLJ",   "ttbarregion_4j2b",  thesample, systtype,   lept.DeltaR(leadingJet), 	        evtweight, flavtag, systType);
+          }
+        }
+
 
     }
 
@@ -832,22 +901,56 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
   addHisto("DeltaPhiLJMet", "ATLASRESsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
   addHisto("DeltaRLJ",      "ATLASRESsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
 
-  addHisto("NVtx",      "ttbarregion_highpt",   sample.Data(), syst.Data(),   60,    0,    60, flavtag, systType);
-  addHisto("NJet",      "ttbarregion_highpt",  	sample.Data(), syst.Data(),   8,  -0.5,   7.5, flavtag, systType);
-  addHisto("NBJet",     "ttbarregion_highpt",  	sample.Data(), syst.Data(),   8,  -0.5,   7.5, flavtag, systType);
-  addHisto("mWT",       "ttbarregion_highpt",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag, systType);
-  addHisto("mWT_high",  "ttbarregion_highpt",  	sample.Data(), syst.Data(),   28,   40,   600, flavtag, systType);
-  addHisto("mWT_full",  "ttbarregion_highpt",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
-  addHisto("MET",       "ttbarregion_highpt",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
-  addHisto("ptW",       "ttbarregion_highpt", 	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
-  addHisto("etaW",      "ttbarregion_highpt", 	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
-  addHisto("LeptPt",    "ttbarregion_highpt",  	sample.Data(), syst.Data(),   30,    0,   300, flavtag, systType);
-  addHisto("LeptEta",   "ttbarregion_highpt",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
-  addHisto("DeltaPhiLJ","ttbarregion_highpt",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
-  addHisto("DeltaRLJ",  "ttbarregion_highpt",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
-  addHisto("JetPt",     "ttbarregion_highpt",   sample.Data(), syst.Data(),   30,    0,   300, flavtag, systType);
-  addHisto("JetEta",    "ttbarregion_highpt",   sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
-  addHisto("LeadJetBtagDiscr", "ttbarregion_highpt", sample.Data(), syst.Data(),  20,  0,     1, flavtag, systType);
+  addHisto("NVtx",      "ttbarregion_2j2b",     sample.Data(), syst.Data(),   60,    0,    60, flavtag, systType);
+  addHisto("NJet",      "ttbarregion_2j2b",  	sample.Data(), syst.Data(),   8,  -0.5,   7.5, flavtag, systType);
+  addHisto("NBJet",     "ttbarregion_2j2b",  	sample.Data(), syst.Data(),   8,  -0.5,   7.5, flavtag, systType);
+  addHisto("mWT",       "ttbarregion_2j2b",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag, systType);
+  addHisto("mWT_high",  "ttbarregion_2j2b",  	sample.Data(), syst.Data(),   28,   40,   600, flavtag, systType);
+  addHisto("mWT_full",  "ttbarregion_2j2b",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
+  addHisto("MET",       "ttbarregion_2j2b",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
+  addHisto("ptW",       "ttbarregion_2j2b", 	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
+  addHisto("etaW",      "ttbarregion_2j2b", 	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
+  addHisto("LeptPt",    "ttbarregion_2j2b",  	sample.Data(), syst.Data(),   30,    0,   300, flavtag, systType);
+  addHisto("LeptEta",   "ttbarregion_2j2b",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
+  addHisto("DeltaPhiLJ","ttbarregion_2j2b",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
+  addHisto("DeltaRLJ",  "ttbarregion_2j2b",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
+  addHisto("JetPt",     "ttbarregion_2j2b",     sample.Data(), syst.Data(),   30,    0,   300, flavtag, systType);
+  addHisto("JetEta",    "ttbarregion_2j2b",     sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
+  addHisto("LeadJetBtagDiscr", "ttbarregion_2j2b", sample.Data(), syst.Data(),  20,  0,     1, flavtag, systType);
+
+  addHisto("NVtx",      "ttbarregion_3j2b",     sample.Data(), syst.Data(),   60,    0,    60, flavtag, systType);
+  addHisto("NJet",      "ttbarregion_3j2b",  	sample.Data(), syst.Data(),   8,  -0.5,   7.5, flavtag, systType);
+  addHisto("NBJet",     "ttbarregion_3j2b",  	sample.Data(), syst.Data(),   8,  -0.5,   7.5, flavtag, systType);
+  addHisto("mWT",       "ttbarregion_3j2b",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag, systType);
+  addHisto("mWT_high",  "ttbarregion_3j2b",  	sample.Data(), syst.Data(),   28,   40,   600, flavtag, systType);
+  addHisto("mWT_full",  "ttbarregion_3j2b",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
+  addHisto("MET",       "ttbarregion_3j2b",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
+  addHisto("ptW",       "ttbarregion_3j2b", 	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
+  addHisto("etaW",      "ttbarregion_3j2b", 	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
+  addHisto("LeptPt",    "ttbarregion_3j2b",  	sample.Data(), syst.Data(),   30,    0,   300, flavtag, systType);
+  addHisto("LeptEta",   "ttbarregion_3j2b",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
+  addHisto("DeltaPhiLJ","ttbarregion_3j2b",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
+  addHisto("DeltaRLJ",  "ttbarregion_3j2b",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
+  addHisto("JetPt",     "ttbarregion_3j2b",     sample.Data(), syst.Data(),   30,    0,   300, flavtag, systType);
+  addHisto("JetEta",    "ttbarregion_3j2b",     sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
+  addHisto("LeadJetBtagDiscr", "ttbarregion_3j2b", sample.Data(), syst.Data(),  20,  0,     1, flavtag, systType);
+
+  addHisto("NVtx",      "ttbarregion_4j2b",     sample.Data(), syst.Data(),   60,    0,    60, flavtag, systType);
+  addHisto("NJet",      "ttbarregion_4j2b",  	sample.Data(), syst.Data(),   8,  -0.5,   7.5, flavtag, systType);
+  addHisto("NBJet",     "ttbarregion_4j2b",  	sample.Data(), syst.Data(),   8,  -0.5,   7.5, flavtag, systType);
+  addHisto("mWT",       "ttbarregion_4j2b",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag, systType);
+  addHisto("mWT_high",  "ttbarregion_4j2b",  	sample.Data(), syst.Data(),   28,   40,   600, flavtag, systType);
+  addHisto("mWT_full",  "ttbarregion_4j2b",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
+  addHisto("MET",       "ttbarregion_4j2b",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
+  addHisto("ptW",       "ttbarregion_4j2b", 	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
+  addHisto("etaW",      "ttbarregion_4j2b", 	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
+  addHisto("LeptPt",    "ttbarregion_4j2b",  	sample.Data(), syst.Data(),   30,    0,   300, flavtag, systType);
+  addHisto("LeptEta",   "ttbarregion_4j2b",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
+  addHisto("DeltaPhiLJ","ttbarregion_4j2b",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
+  addHisto("DeltaRLJ",  "ttbarregion_4j2b",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
+  addHisto("JetPt",     "ttbarregion_4j2b",     sample.Data(), syst.Data(),   30,    0,   300, flavtag, systType);
+  addHisto("JetEta",    "ttbarregion_4j2b",     sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
+  addHisto("LeadJetBtagDiscr", "ttbarregion_4j2b", sample.Data(), syst.Data(),  20,  0,     1, flavtag, systType);
 
   cout << "      Histograms properly initialized!   " << endl;
   cout << endl;

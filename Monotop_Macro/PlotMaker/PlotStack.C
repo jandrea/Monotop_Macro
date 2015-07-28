@@ -16,7 +16,7 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
      vector<TString> channel_list, vector<TString> mcSample_list, vector<TString > signalSample_list, vector<int> colorVector, short int QCDCorr, bool sumChannels, bool useElectronChannel)
 {
 
-
+  bool QCDregion = false;
   TString channel = "";
   if(!sumChannels ) channel = namechan;
 
@@ -26,9 +26,9 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
   if( QCDCorr == 0) filename = "../TreeReader/outputroot_QCDcorr_iso0p5/backup_final_muons/histo_merged.root";
   //if( QCDCorr == 0) filename = "../TreeReader/outputroot_QCDcorr/histo_merged.root";
   if( QCDCorr == 1) filename = "../TreeReader/outputroot_woQCDcorr/backup_final_muons/histo_merged.root";
-  if( QCDCorr == 2) filename = "../TreeReader/outputroot_withSyst/histo_merged_nosyst.root";
+  if( QCDCorr == 2) filename = "../TreeReader/outputroot_withSyst_beforeJuly15/histo_merged_nosyst.root";
   if( QCDCorr == 3 && !useElectronChannel) filename = "../TreeReader/outputroot_withSyst/histo_merged.root";
-  else if( QCDCorr == 3)                   filename = "../TreeReader/outputroot_withSyst/histo_merged_electron_syst.root";
+  else if( QCDCorr == 3)                   filename = "../TreeReader/outputroot_withSyst_beforeJuly15/histo_merged_electron_syst.root";
 
   Int_t stati=0;
   Bool_t  fit=1;
@@ -177,6 +177,7 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
           niter_data++;
       }
 
+      if(QCDregion) histo_data->GetXaxis()->SetRangeUser(0,80);
 
       //--------------------
       //loop over MC samples
@@ -217,12 +218,14 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
     histo_mcSamples[imc]->SetFillStyle(1001);
     histo_mcSamples[imc]->SetFillColor(colorVector[imc]);
     histo_mcSamples[imc]->SetLineColor(colorVector[imc]);
+    if(QCDregion) histo_mcSamples[imc]->GetXaxis()->SetRangeUser(0,80);
     if(imc < histo_mcSamples.size() && colorVector[imc] != colorVector[imc+1] )  histo_mcSamples[imc]->SetLineColor(1);
     if(imc ==  histo_mcSamples.size()) histo_mcSamples[imc]->SetLineColor(1);
     the_stack_histo->Add(histo_mcSamples[imc]);
   }
 
   the_stack_histo->Draw("h");
+  if(QCDregion) the_stack_histo->GetXaxis()->SetRangeUser(0,80);
   the_stack_histo->GetXaxis()->SetLabelSize(0.0);
   the_stack_histo->GetYaxis()->SetTitle("Entries");
   the_stack_histo->GetYaxis()->SetTitleSize(0.05);
@@ -231,6 +234,7 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
   else the_stack_histo->SetMaximum(the_stack_histo->GetMaximum()+0.3*the_stack_histo->GetMaximum());
 
   if(setlogy) the_stack_histo->SetMinimum(1);
+
 
   histo_data->SetMarkerStyle(20);
   histo_data->SetMarkerSize(1.2);
@@ -315,6 +319,7 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
   TLegend* qw = 0;
   if(varname == "DeltaPhiLJ" && selection != "Selectedsignalregion")  qw = new TLegend(.50,.60,.65,.90);
   else                                                                qw = new TLegend(.80,.60,.95,.90);
+  if(QCDregion)                                                       qw = new TLegend(.80,.45,.95,.70);
 
   qw->SetShadowColor(0);
   qw->SetFillColor(0);
@@ -412,7 +417,8 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
   if(varname == "InvM_ll") 	        histo_ratio_data->GetXaxis()->SetTitle("M_{ll} [GeV/c^{-1}]");
   else if(varname == "NJet")        histo_ratio_data->GetXaxis()->SetTitle("jet mult.");
   else if(varname == "NBJet")       histo_ratio_data->GetXaxis()->SetTitle("b-tagged jet mult.");
-  else if(varname == "MET")	        histo_ratio_data->GetXaxis()->SetTitle("missing E_{T} [GeV]");
+  else if(varname == "MET")	        histo_ratio_data->GetXaxis()->SetTitle("MET [GeV]");
+  else if(varname == "NVtx")	    histo_ratio_data->GetXaxis()->SetTitle("NVtx");
   else if(varname == "mWT")	        histo_ratio_data->GetXaxis()->SetTitle("m_{T}^{W} [GeV]");
   else if(varname == "mWT_full")	histo_ratio_data->GetXaxis()->SetTitle("m_{T}^{W} [GeV]");
   else if(varname == "mWTplusMET")  histo_ratio_data->GetXaxis()->SetTitle("m_{T}^{W} + missing E_{T} [GeV]");
@@ -453,8 +459,14 @@ bool PlotStack(TString varname, TString namechan, TString selection, bool setlog
   //if(QCDCorr == 0)      outputname = "plots_QCDcorr_iso0p6/"    +varname+"_"+namechan+"_"+selection;
   else if(QCDCorr == 1) outputname = "plots_AN/withoutQCDCorr/"  +varname+"_"+namechan+"_"+selection;
   else if(QCDCorr == 2) outputname = "plots_AN/withQCDCorr/new_"+varname+"_"+namechan+"_"+selection;
-  else if(QCDCorr == 3 && !useElectronChannel) outputname = "plots_AN/final/PreFit_"   +varname+"_"+namechan+"_"+selection;
+  else if(QCDCorr == 3 && !useElectronChannel) outputname = "plots_AN_final/PreFit_"   +varname+"_"+namechan+"_"+selection;
   else if(QCDCorr == 3)                        outputname = "plots_electrons/PreFit_"   +varname+"_"+namechan+"_"+selection;
+
+
+  if     (QCDregion && QCDCorr == 1) outputname = "plots_testQCD/beforeQCDCorr"+varname+"_"+namechan+"_"+selection;
+  else if(QCDregion && QCDCorr == 2) outputname = "plots_testQCD/afterQCDCorr" +varname+"_"+namechan+"_"+selection;
+  else if(QCDregion && QCDCorr == 3) outputname = "plots_testQCD/afterQCDCorr" +varname+"_"+namechan+"_"+selection;
+  else if(QCDregion)                 outputname = "plots_testQCD/"             +varname+"_"+namechan+"_"+selection;
 
   if(setlogy) c1->SaveAs((outputname+"_Logy").Data());
   else

@@ -18,10 +18,11 @@ rootenv
 #    time theta monotop_limits_mergedSamples.py 
 #done
 
-#mINV="10 50 100 150 200"
-mINV="100"
+#mINV="200"
+mINV="10 50 100 150 200"
+#mINV="100"
 for mInv in $mINV;do
-    for mRes in `seq 500 200 1500`;do
+    for mRes in `seq 500 200 2100`;do
         benchmark='S1Res'${mRes}'Inv'${mInv}
         echo $benchmark
         sed -ri "s%  signalList\.push.*%  signalList\.push_back(\"S1Res${mRes}Inv${mInv}\");  thetaSignalList\.push_back(\"S1Res${mRes}Inv${mInv}\");%g" ProdTemplate_mergedSamples.C
@@ -32,7 +33,7 @@ for mInv in $mINV;do
         #rm -rf inputTheta_merged_AllRegions.root
         rm -rf monotop_limits_mergedSamples/
         echo "BENCHMARK= " $benchmark
-        #hadd inputTheta_merged_AllRegions.root inputTheta_mujets_merged_Selectedsignalregion.root inputTheta_mujets_merged_Wregion.root inputTheta_mujets_merged_ttbarregion.root
+        #hadd inputTheta_merged_AllRegions.root inputTheta_mujets_merged_Selectedsignalregion.root inputTheta_mujets_merged_Wregion.root inputTheta_mujets_merged_ttbarregion_2j2b.root
         time theta monotop_limits_mergedSamples.py 
     done
 done
