@@ -213,7 +213,7 @@ public :
    void             fillHisto(TString var, TString selstep, TString sample, TString syst, float val, float weight, TString flavtag, short int systType);
    void             manageOverflows();
 
-   bool             applyEventSel(short int CorrOption, double SF_QCD_L, double SF_QCD_W, double SF_QCD_S, double SF_QCD_TT, double SFtrigger, double SFtriggerError, TString systtype, TString sample, TString flavtag, short int systType);
+   bool             applyEventSel(short int CorrOption, double SF_QCD_L, double SF_QCD_W, double SF_QCD_S, double SF_QCD_TT, double SFtrigger, double SFtriggerError, TString systtype, TString sample, TString flavtag, short int systType, double randomNumber);
    void             SetUpCSVreweighting();
    double           GetCSVweight(const int iSys, int jet_n, float *jet_pt,float *jet_eta,float *jet_btagdiscri,int *jet_flav);
    double           getQCDscalefactor(vector<TString> datalist, vector<TString> mclist, TString normregion);

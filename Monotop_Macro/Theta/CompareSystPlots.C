@@ -101,7 +101,7 @@ void CompareSystPlots(TString var, TString syst, TString process, TString variab
 void CompareSystPlots(){
 
     std::vector<TString > systlist;
-    systlist.push_back("lept"               );
+/*    systlist.push_back("lept"               );
     systlist.push_back("trig"               );
     systlist.push_back("PDF"                );
     systlist.push_back("PU"                 );
@@ -111,7 +111,7 @@ void CompareSystPlots(){
     systlist.push_back("jes"                );
     systlist.push_back("jer"                );
     systlist.push_back("metuncls"           );
-    systlist.push_back("matching"           );
+*/    systlist.push_back("matching"           );
     systlist.push_back("scale"              );
 
     std::vector<TString > processlist;
@@ -136,8 +136,8 @@ void CompareSystPlots(){
     processlist.push_back("QCD"                  );
 */
     std::vector<TString > varlist;
-    //varlist.push_back("mWT_mujets_Selectedsignalregion"     );
-    //varlist.push_back("NVtx_mujets_Wregion_highpt"   );
+    varlist.push_back("mWT_mujets_Selectedsignalregion"     );
+    varlist.push_back("NVtx_mujets_Wregion_highpt"   );
     varlist.push_back("mWT_mujets_ttbarregion_2j2b"   );
 
     TString variable, channel, region;

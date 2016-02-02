@@ -15,16 +15,39 @@ using namespace std;
 
 double getSFfit( TString thetasample, TString region, bool useAllRegions, bool useUpFit)
 {
-
    TFile*               inputfile_prefit  = 0;
+   //if(useAllRegions)    inputfile_prefit  = new TFile("inputTheta_merged_AllRegions_nosyst.root");
    if(useAllRegions)    inputfile_prefit  = new TFile("inputTheta_merged_AllRegions.root");
-   else                 inputfile_prefit  = new TFile("inputTheta_merged_CRsOnly.root");
+   //else                 inputfile_prefit  = new TFile("inputTheta_merged_CRsOnly.root");
+   //else                 inputfile_prefit  = new TFile("inputTheta_mujets_merged_Selectedsignalregion.root");
+   //else                 inputfile_prefit  = new TFile("inputTheta_merged_SignalRegion.root");
+   //else                 inputfile_prefit  = new TFile("inputTheta_mujets_merged_ttbarregion_2j2b.root");
+   //else                 inputfile_prefit  = new TFile("inputTheta_WTTinterRegionSR.root");
+   else                 inputfile_prefit  = new TFile("inputTest_noSignal.root");
+   //else                 inputfile_prefit  = new TFile("interRegionTest/inputTheta_interRegionSR.root");
+   //else                 inputfile_prefit  = new TFile("inputTheta_interRegionOnly.root");
+   //else                 inputfile_prefit  = new TFile("inputTheta_merged_InterRegion.root");
+   //else                 inputfile_prefit  = new TFile("inputTheta_mujets_merged_Wregion.root");
 
    TFile*                               inputfile_postfit = 0;
-   if(useUpFit && !useAllRegions)       inputfile_postfit = new TFile( ("thetaInOut/histos_postFit_CRsOnly_"+thetasample+"_rate.root").Data() );
+   if(useUpFit && !useAllRegions)       inputfile_postfit = new TFile( ("interRegionTest/histos_postFit_SignalAndInterRegion_"+thetasample+"_rate.root").Data() );
+   //if(useUpFit && !useAllRegions)       inputfile_postfit = new TFile( ("testsWCRonly/histos_postFit_WCRonly_"+thetasample+"_rate.root").Data() );
+   //if(useUpFit && !useAllRegions)       inputfile_postfit = new TFile( ("testsTTCRonly/histos_postFit_TTCRonly_"+thetasample+"_rate.root").Data() );
+   //if(useUpFit && !useAllRegions)       inputfile_postfit = new TFile( ("testsSRonly/histos_postFit_SRonly_test_"+thetasample+"_rate.root").Data() );
+   //if(useUpFit && !useAllRegions)       inputfile_postfit = new TFile( ("thetaInOut/histos_postFit_CRsOnly_"+thetasample+"_rate.root").Data() );
    else if(useUpFit && useAllRegions)   inputfile_postfit = new TFile( ("thetaInOut/histos_postFit_AllRegions_"+thetasample+"_rate.root").Data() );
-   else if(useAllRegions)               inputfile_postfit = new TFile(  "outputTheta_merged_AllRegions_2j2b.root");
-   else                                 inputfile_postfit = new TFile(  "outputTheta_merged_CRsOnly_2j2b.root");
+   //else if(useUpFit && useAllRegions)   inputfile_postfit = new TFile( ("noSystTheta/histos_postFit_AllRegions_"+thetasample+"_rate.root").Data() );
+   //else if(useAllRegions)               inputfile_postfit = new TFile(  "outputTheta_merged_AllRegions_2j2b_nosyst.root");
+   else if(useAllRegions)               inputfile_postfit = new TFile(  "outputTheta_merged_AllRegions.root");
+   //else                                 inputfile_postfit = new TFile(  "outputTheta_merged_SignalRegionTest.root");
+   //else                                 inputfile_postfit = new TFile(  "outputTheta_merged_TTCRonly.root");
+   else                                 inputfile_postfit = new TFile(  "outputTest_noSignal.root");
+   //else                                 inputfile_postfit = new TFile(  "interRegionTest/outputTheta_interRegionSR.root");
+   //else                                 inputfile_postfit = new TFile(  "outputTheta_WTTinterRegionSR.root");
+   //else                                 inputfile_postfit = new TFile(  "outputTheta_interRegionOnly.root");
+   //else                                 inputfile_postfit = new TFile(  "outputTheta_merged_InterRegion.root");
+   //else                                 inputfile_postfit = new TFile(  "outputTheta_merged_WCRonly.root");
+   //else                                 inputfile_postfit = new TFile(  "outputTheta_merged_CRsOnly.root");
 
    TString thetadistrib = "";
    bool isW = false;
@@ -33,14 +56,17 @@ double getSFfit( TString thetasample, TString region, bool useAllRegions, bool u
    if(region == "Selectedsignalregion" && useAllRegions)                        thetadistrib = "mWTmujetsSelectedSignalregion";
    else if(region == "Wregion" )                                                thetadistrib = "mWTmujetsWregionHighpt";
    else if(region == "TTbarregion")                                             thetadistrib = "mWTmujetsttbarregionHighpt";
-   else if(region == "Selectedsignalregion" && thetasample == "TTMSDecays")     thetadistrib = "mWTmujetsttbarregionHighpt";
-   else if(region == "Selectedsignalregion" && isW )                            thetadistrib = "mWTmujetsWregionHighpt";
+   //else if(region == "Selectedsignalregion" && thetasample == "TTMSDecays")     thetadistrib = "mWTmujetsttbarregionHighpt";
+   //else if(region == "Selectedsignalregion" && isW )                            thetadistrib = "mWTmujetsWregionHighpt";
+   else if(region == "Selectedsignalregion")                                    thetadistrib = "mWTmujetsSelectedSignalregion";
+   //else if(region == "Selectedsignalregion")                                    thetadistrib = "mWTmujetsinterRegion";
+   else if(region == "interRegion")                                             thetadistrib = "mWTmujetsinterRegion";
 
    TString whistoname_postfit = thetadistrib+"__"+thetasample;
    inputfile_postfit->cd();
+
    TH1D*       whisto_postfit = 0;
    if(thetadistrib != "") whisto_postfit = (TH1D*)inputfile_postfit->Get(whistoname_postfit)->Clone();
-
 
    TString whistoname_prefit  = thetadistrib+"__"+thetasample;
 
@@ -227,7 +253,7 @@ void Macro_CheckFit(vector<TString> signalSample_list, vector<TString> mcSample_
       SF_fit.push_back(SF_tmp);
       cout << "SF_fit(" << thetaSample_list[imc] << ") = " << SF_tmp << endl;
   }
-
+/*
   TFile * inputfile_toRescale ;
   inputfile_toRescale  = new TFile("../TreeReader/outputroot_withSyst/histo_merged.root");
 
@@ -430,7 +456,11 @@ void Macro_CheckFit(vector<TString> signalSample_list, vector<TString> mcSample_
   else if(var == "mW")	       histo_ratio_data->GetXaxis()->SetTitle("m(W) [GeV]");
   else if(var == "etaW")	   histo_ratio_data->GetXaxis()->SetTitle("#eta(W) ");
   else if(var == "JetPt")	   histo_ratio_data->GetXaxis()->SetTitle("p_{T}(jets) [GeV]");
+  else if(var == "LeadJetPt")	       histo_ratio_data->GetXaxis()->SetTitle("p_{T}(lead. jet) [GeV]");
+  else if(var == "SubLeadJetPt")	   histo_ratio_data->GetXaxis()->SetTitle("p_{T}(sublead. jet) [GeV]");
   else if(var == "JetEta")	   histo_ratio_data->GetXaxis()->SetTitle("#eta(jets)");
+  else if(var == "LeadJetEta")	       histo_ratio_data->GetXaxis()->SetTitle("#eta(lead. jet)");
+  else if(var == "SubLeadJetEta")	   histo_ratio_data->GetXaxis()->SetTitle("#eta(sublead. jet)");
   else if(var == "LeptPt")	   histo_ratio_data->GetXaxis()->SetTitle("p_{T}(lepton) [GeV]");
   else if(var == "LeptEta")	   histo_ratio_data->GetXaxis()->SetTitle("#eta(lepton)");
   else if(var == "LeptIso")	   histo_ratio_data->GetXaxis()->SetTitle("iso(lepton)");
@@ -447,7 +477,8 @@ void Macro_CheckFit(vector<TString> signalSample_list, vector<TString> mcSample_
 
   TString outputname;
   if(usePostFit && useAllRegions)       outputname = "PostFitbySF_finalVersion_AllRegions_"+var+"_mujets";
-  else if(usePostFit && !useAllRegions) outputname = "PostFitbySF_finalVersion_CRsOnly_"+var+"_mujets";
+  else if(usePostFit && !useAllRegions) outputname = "interRegionTest/PostFitbySF_interRegionSR_"+var+"_mujets";
+  //else if(usePostFit && !useAllRegions) outputname = "PostFitbySF_finalVersion_CRsOnly_"+var+"_mujets";
   else                                  outputname = "PreFitbySF_finalVersion_" +var+"_mujets";
 
   TString endname_png;
@@ -458,11 +489,11 @@ void Macro_CheckFit(vector<TString> signalSample_list, vector<TString> mcSample_
   if (setlogy) { endname_png = "_logY.png"; endname_pdf = "_logY.pdf"; }
   else         { endname_png = ".png";      endname_pdf = ".pdf"; }
 
-  //if(!useUpFit) c1->SaveAs( ("newfinalPlots_AN/"+outputname+"_"+region+endname_png).Data());
-  //if(!useUpFit) c1->SaveAs( ("newfinalPlots_AN/"+outputname+"_"+region+endname_pdf).Data());
-  if(!useUpFit) c1->SaveAs( ("ttbarCRTest/"+outputname+"_"+region+endname_png).Data());
-  if(!useUpFit) c1->SaveAs( ("ttbarCRTest/"+outputname+"_"+region+endname_pdf).Data());
-
+  //if(!useUpFit) c1->SaveAs( ("plots_PAS_AN/"+outputname+"_"+region+endname_png).Data());
+  //if(!useUpFit) c1->SaveAs( ("plots_PAS_AN/"+outputname+"_"+region+endname_pdf).Data());
+  if(!useUpFit) c1->SaveAs( (outputname+"_"+region+endname_png).Data());
+  if(!useUpFit) c1->SaveAs( (outputname+"_"+region+endname_pdf).Data());
+*/
 }
 
 
@@ -470,7 +501,7 @@ void Macro_CheckFit(){
 
   bool displaySignal = false;
   bool usePostFit    = true;
-  bool useAllRegions = true;
+  bool useAllRegions = false;
   bool useUpFit      = false;
 
   //-------------------------
@@ -510,9 +541,12 @@ void Macro_CheckFit(){
 //----------------------------------------------------------------------------//
 //---------- mWT MET DeltaPhiLJ JetEta JetPt LeptPt LeptEta ptW NVtx----------//
 //----------------------------------------------------------------------------//
-  Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, displaySignal, "NVtx_mujets_Selectedsignalregion", "Selectedsignalregion", "NVtx", usePostFit, useAllRegions, useUpFit);
-  Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, displaySignal, "NVtx_mujets_ttbarregion_2j2b",            "TTbarregion", "NVtx", usePostFit, useAllRegions, useUpFit);
-  Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, displaySignal, "NVtx_mujets_Wregion_highpt",                    "Wregion", "NVtx", usePostFit, useAllRegions, useUpFit);
+  Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, displaySignal, "mWT_mujets_Selectedsignalregion", "Selectedsignalregion", "mWT", usePostFit, useAllRegions, useUpFit);
+  Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, displaySignal, "mWT_mujets_ttbarregion_2j2b",            "TTbarregion",   "mWT", usePostFit, useAllRegions, useUpFit);
+  Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, displaySignal, "mWT_mujets_Wregion_highpt",                    "Wregion", "mWT", usePostFit, useAllRegions, useUpFit);
+  //Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, displaySignal, "mWT_mujets_interRegion",                    "interRegion", "mWT", usePostFit, useAllRegions, useUpFit);
+//  Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, displaySignal, "LeadJetPt_mujets_ttbarregion_2j2b",            "TTbarregion",   "LeadJetPt", usePostFit, useAllRegions, useUpFit);
+//  Macro_CheckFit(signalSample_list, mcSample_list, thetaSample_list, colorVector, displaySignal, "LeadJetPt_mujets_ttbarregion_2j2b",            "TTbarregion",   "LeadJetPt", usePostFit, useAllRegions, useUpFit);
 
 
 }

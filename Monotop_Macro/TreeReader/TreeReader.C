@@ -25,7 +25,8 @@ void TreeReader::Loop(short int CorrOption, vector<TString> datalist, vector<TSt
    else                             sampleroot = thesample;
    double qcdIsoCut = 0.5;
 
-   if(CorrOption == 3 && !isData && !isQCD && !isTTbarSyst && !isSignal) loadPDFSumWeight(thechannel,  sample, flavtag);
+   if(CorrOption == 3 && !isData && !isQCD && !isTTbarSyst) loadPDFSumWeight(thechannel,  sample, flavtag);
+   //cout << "thechannel = " << thechannel << " | sample = " << sample << " | flavtag = " << flavtag << endl;
 
    if      (CorrOption == 0)  theoutputfile = new TFile( ("outputroot_QCDcorr_iso0p5/histofile_"     +sampleroot+".root" ).Data() , "recreate");
    else if (CorrOption == 1)  theoutputfile = new TFile( ("outputroot_woQCDcorr/histofile_"   +sampleroot+".root" ).Data() , "recreate");
@@ -102,7 +103,10 @@ void TreeReader::Loop(short int CorrOption, vector<TString> datalist, vector<TSt
    ftrigger->GetObject("IsoMu24_eta2p1_DATA_over_MC_TightID_IsodB_PT_ABSETA_Endcaps_1p2to2p1_pt25-500_2012ABCD",ratio_eta_1p2to2p1);
    ftrigger->Close();
 
+   TRandom3* rand_ = new TRandom3(12345);
+
    Long64_t nbytes = 0, nb = 0;
+   double n0b = 0, n1b = 0, n2b = 0, n3b = 0, dilepton = 0;
    for (Long64_t jentry=0; jentry<nentries;jentry++)
    {
       Long64_t ientry = LoadTree(jentry);
@@ -113,6 +117,7 @@ void TreeReader::Loop(short int CorrOption, vector<TString> datalist, vector<TSt
       if (nentries > 100   && nentries <= 10000 && (jentry % (nentries / 100) == 0)) 	printProgressBar(jentry,nentries,sample);
 
       bool hasBjet  = false, hasCjet  = false, isBflavour = false, isCflavour = false, isLflavour = false, match = false;
+      short int nbflav = 0;
       if(CorrOption != 0 && isW && (flavtag != "Incl" && flavtag != "allflav") )
       {
          int     iter_jets   = smalltree_njets;
@@ -123,7 +128,7 @@ void TreeReader::Loop(short int CorrOption, vector<TString> datalist, vector<TSt
          for(short int ijet=0; ijet<iter_jets; ijet++)
           {
               if(jet_pt[ijet] < 30 || fabs(jet_eta[ijet]) > 2.4)  continue;
-              if(abs(jet_flav[ijet]) == 5)                        hasBjet = true;
+              if(abs(jet_flav[ijet]) == 5)                       {hasBjet = true; nbflav++;}
               if(abs(jet_flav[ijet]) == 4)                        hasCjet = true;
           }
 
@@ -152,6 +157,11 @@ void TreeReader::Loop(short int CorrOption, vector<TString> datalist, vector<TSt
       if(CorrOption == 0 && smalltree_lept_iso[0] < 0.5) continue;
       if(CorrOption == 3 && isQCD && smalltree_lept_iso[0] < qcdIsoCut) continue;
 
+      if ( nbflav == 0) n0b++;
+      if ( nbflav == 1) n1b++;
+      if ( nbflav == 2) n2b++;
+      if ( nbflav >= 3) n3b++;
+
       double SFtrigger      = 1;
       double SFtriggerError = 0;
       if(!useElectronChannel)
@@ -161,12 +171,12 @@ void TreeReader::Loop(short int CorrOption, vector<TString> datalist, vector<TSt
           SFtrigger      = getSFtrigger(ratio_eta_0to0p9,  smalltree_lept_pt[0] ,smalltree_lept_eta[0] )[0];
           SFtriggerError = getSFtrigger(ratio_eta_0to0p9,  smalltree_lept_pt[0] ,smalltree_lept_eta[0] )[1];
         }
-        else if (abs(smalltree_lept_eta[0]) > 0.9 && abs(smalltree_lept_eta[0]) < 1.2)
+        else if (abs(smalltree_lept_eta[0]) >= 0.9 && abs(smalltree_lept_eta[0]) < 1.2)
         {
           SFtrigger      = getSFtrigger(ratio_eta_0p9to1p2,smalltree_lept_pt[0] ,smalltree_lept_eta[0] )[0];
           SFtriggerError = getSFtrigger(ratio_eta_0p9to1p2,smalltree_lept_pt[0] ,smalltree_lept_eta[0] )[1];
         }
-        else if (abs(smalltree_lept_eta[0]) > 1.2 && abs(smalltree_lept_eta[0]) < 2.1)
+        else if (abs(smalltree_lept_eta[0]) >= 1.2 && abs(smalltree_lept_eta[0]) <= 2.1)
         {
           SFtrigger      = getSFtrigger(ratio_eta_1p2to2p1,smalltree_lept_pt[0] ,smalltree_lept_eta[0] )[0];
           SFtriggerError = getSFtrigger(ratio_eta_1p2to2p1,smalltree_lept_pt[0] ,smalltree_lept_eta[0] )[1];
@@ -182,16 +192,20 @@ void TreeReader::Loop(short int CorrOption, vector<TString> datalist, vector<TSt
       //"leptup", "leptdown", "trigup", "trigdown", "PDFup", "PDFdown"
       //"jesup", "jesdown", "jerup", "jerdown", "metunclsup", "metunclsdown"
       //----------------------------------------------------------------------
-      if      (CorrOption == 0)         applyEventSel(CorrOption, SF_QCD_L, SF_QCD_W, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, systlist[0], thesample, flavtag, systType);
-      else if (CorrOption == 1)         applyEventSel(CorrOption, SF_QCD_L, SF_QCD_W, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, systlist[0], thesample, flavtag, systType);
-      else if (CorrOption == 2)         applyEventSel(CorrOption, SF_QCD_L, SF_QCD_W, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, systlist[0], thesample, flavtag, systType);
+
+      double randomNumber = rand_->Uniform(1.);
+//cout << "randomNumber = " << randomNumber << endl;
+
+      if      (CorrOption == 0)         applyEventSel(CorrOption, SF_QCD_L, SF_QCD_W, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, systlist[0], thesample, flavtag, systType, randomNumber);
+      else if (CorrOption == 1)         applyEventSel(CorrOption, SF_QCD_L, SF_QCD_W, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, systlist[0], thesample, flavtag, systType, randomNumber);
+      else if (CorrOption == 2)         applyEventSel(CorrOption, SF_QCD_L, SF_QCD_W, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, systlist[0], thesample, flavtag, systType, randomNumber);
       else if (CorrOption == 3)
       {
           for(unsigned int isyst=0; isyst< systlist.size(); isyst++)
           {
               if( (systlist[isyst] == "toppt__plus" || systlist[isyst] == "toppt__minus") && thesample != "TTMSDecays_central" ) continue;
               if( isData && systlist[isyst] != "") continue;
-              applyEventSel(CorrOption, SF_QCD_L, SF_QCD_W, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, systlist[isyst], thesample, flavtag, systType);
+              applyEventSel(CorrOption, SF_QCD_L, SF_QCD_W, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, systlist[isyst], thesample, flavtag, systType, randomNumber);
           }
       }
       else cout << "ERROR: Wrong value of CorrOption! Allowed valued: 0,1,2,3" << endl;
@@ -202,6 +216,7 @@ void TreeReader::Loop(short int CorrOption, vector<TString> datalist, vector<TSt
    manageOverflows();
 
    cout << endl;
+   cout << "N0b = " << n0b << " | N1b = " << n1b << " | N2b = " << n2b << " | N3b = " << n3b << endl;
    theoutputfile->Write();
    deleteHisto();
    theoutputfile->Close();
@@ -211,13 +226,13 @@ void TreeReader::Loop(short int CorrOption, vector<TString> datalist, vector<TSt
 
 
 
-bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_QCD_W, double SF_QCD_S, double SF_QCD_TT, double SFtrigger, double SFtriggerError, TString systtype, TString sample, TString flavtag, short int systType){
+bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_QCD_W, double SF_QCD_S, double SF_QCD_TT, double SFtrigger, double SFtriggerError, TString systtype, TString sample, TString flavtag, short int systType, double randomNumber){
 
       bool applyCSV_reshape = 0;
       bool applyCSV         = 1;
 
-      int  btagSys          = 1;
-      int  mistagSys        = 1;
+      int  btagSys          = 0;
+      int  mistagSys        = 0;
 
       double met_pt    = smalltree_met_pt;
       double met_phi   = smalltree_met_phi;
@@ -229,6 +244,11 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
       else if(isQCD && systType == -1) thesample = thesample + "__Iso__minus";
       else if(isQCD && systType ==  1) thesample = thesample + "__Iso__plus";
       else if(isQCD && systType ==  2) thesample = thesample + "__BgdContam__plus";
+
+      TString WtagForPDF = sample;
+      if      ( isW && flavtag == "b") WtagForPDF = "WExclb";
+      else if ( isW && flavtag == "c") WtagForPDF = "WExclc";
+      else if ( isW && flavtag == "l") WtagForPDF = "WExcll";
 
       int iter_jets          = 0;
       float * jet_pt         = 0;
@@ -267,7 +287,8 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
 	if(!isQCD) evtweight = smalltree_evtweight;
     else       evtweight = smalltree_evtweight_nominal;
 
-	if(     systtype == "lept__plus")                           evtweight = smalltree_weight_leptup;
+
+    if(     systtype == "lept__plus")                           evtweight = smalltree_weight_leptup;
 	else if(systtype == "lept__minus")                          evtweight = smalltree_weight_leptdown;
 	else if(systtype == "trig__plus" && useElectronChannel)     evtweight = smalltree_weight_trigup;
 	else if(systtype == "trig__plus")                           evtweight = (SFtrigger + SFtriggerError)*smalltree_evtweight/SFtrigger;
@@ -275,10 +296,10 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
 	else if(systtype == "trig__minus")                          evtweight = (SFtrigger - SFtriggerError)*smalltree_evtweight/SFtrigger;
 	else if(systtype == "PU__plus")                             evtweight = smalltree_weight_PUup;
 	else if(systtype == "PU__minus")                            evtweight = smalltree_weight_PUdown;
-	//else if(systtype == "PDF__plus")                            evtweight = smalltree_weight_PDFup;
-	else if(systtype == "PDF__plus")                            evtweight = smalltree_weight_PDFup*(PDFSumWeight["pdfWeight_"+thechannel+"___"+sample+"__"+systtype]);
-	//else if(systtype == "PDF__minus")                           evtweight = smalltree_weight_PDFdown;
-	else if(systtype == "PDF__minus")                           evtweight = smalltree_weight_PDFdown*(PDFSumWeight["pdfWeight_"+thechannel+"___"+sample+"__"+systtype]);
+	else if(systtype == "PDF__plus")                            evtweight = smalltree_weight_PDFup;
+	//else if(systtype == "PDF__plus")                            evtweight = smalltree_weight_PDFup*(PDFSumWeight["pdfWeight_"+thechannel+"___"+WtagForPDF+"__"+systtype]);
+	else if(systtype == "PDF__minus")                           evtweight = smalltree_weight_PDFdown;
+	//else if(systtype == "PDF__minus")                           evtweight = smalltree_weight_PDFdown*(PDFSumWeight["pdfWeight_"+thechannel+"___"+WtagForPDF+"__"+systtype]);
 	else if(systtype == "toppt__plus")                          evtweight = smalltree_weight_toppt*smalltree_evtweight;
 	else if(systtype == "toppt__minus")                         evtweight = smalltree_evtweight;
 
@@ -333,42 +354,49 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
 
       }else if(systtype == "btag__plus"   ){btagSys =  1;}
       else if(systtype  == "btag__minus"  ){btagSys = -1;}
-      else if(systtype  == "mistag__plus" ){btagSys =  1;}
-      else if(systtype  == "mistag__minus"){btagSys = -1;}
+      else if(systtype  == "mistag__plus" ){mistagSys =  1;}
+      else if(systtype  == "mistag__minus"){mistagSys = -1;}
       else{
         cout << "WARNING syst type " << systtype << " not recognized !! " << endl;
 	    cout << "correct syst types are " << endl;
 	    cout << " \"\",  \"lept__plus\", \"lept__minus\", \"trig__plus\", \"trig__minus\", \"PDF__plus\", \"PDF__minus\"  " << endl;
 	    cout << "\"jes__plus\", \"jes__minus\", \"jer__plus\", \"jer__minus\", \"metuncls__plus\", \"metuncls__minus\" " << endl;
       }
+	 //cout << "pdfWeight_"+thechannel+"___"+sample+"__"+systtype << endl;
 
       if( applyCSV_reshape && !applyCSV ) evtweight *= wCSV;
 
+      bool isBsyst = false;
       //determine the btag systematic
       if(systtype == "btag__plus" )
       {
         btagSys   = 1;
         evtweight = smalltree_evtweight;
+        isBsyst = true;
       }
       else if(systtype == "btag__minus" )
       {
         btagSys   = -1;
         evtweight = smalltree_evtweight;
+        isBsyst = true;
       }
       else if(systtype == "mistag__plus" )
       {
         mistagSys = 1;
         evtweight = smalltree_evtweight;
+        isBsyst = true;
       }
       else if(systtype == "mistag__minus")
       {
         mistagSys = -1;
         evtweight = smalltree_evtweight;
+        isBsyst = true;
       }
 
      // Add the trigger efficiency
      if(isData)      evtweight  = 1;
      else if(!isQCD) evtweight *= SFtrigger;
+
 
      double QCDContamweight = 1;
      if  (CorrOption == 2 || CorrOption == 3 )
@@ -378,9 +406,16 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
          else if(sample == "QCD" && systType ==  2)   QCDContamweight = smalltree_evtweight_plus;
          if(sample == "QCD" )                         evtweight = QCDContamweight;
      }
-     if (!isfinite(evtweight) || isnan(evtweight)) return false;
+
+
      if (systtype == "PDF__plus"  && (!isfinite(smalltree_weight_PDFup)   || isnan(smalltree_weight_PDFup)   )) return false;
      if (systtype == "PDF__minus" && (!isfinite(smalltree_weight_PDFdown) || isnan(smalltree_weight_PDFdown) )) return false;
+
+     if (!isfinite(evtweight) || isnan(evtweight))
+     {
+         cout << "WARNING: Infinite/NaN value of evtweight !! (syst = " << systtype << ")" << endl;
+         return false;
+     }
 
      fillHisto("CutFlow",     "",  thesample, systtype, 1 ,  evtweight, flavtag, systType);
 
@@ -388,7 +423,6 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
      if( systtype == "PDF__plus" || systtype == "PDF__minus") fillHisto("pdfWeight",   "", thesample, systtype, 0.5 , evtweight, flavtag, systType);
 
 
-//cout << "evtweight = " << evtweight  << " | PDF_up = " << smalltree_weight_PDFup << " | PDF_down = " << smalltree_weight_PDFdown << endl;
      if(smalltree_lept_pt[0] > 33 && fabs(smalltree_lept_eta[0]) < 2.1 )
      {
        fillHisto("CutFlow",     "",  thesample, systtype, 2 ,  evtweight, flavtag, systType);
@@ -418,26 +452,27 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
          if( applyCSV)
          {
            bool isbtag = 0;
-           if(isData) isbtag = fBTagSF->IsTagged( jet_btagdiscri[ijet], -999999 , jet_pt[ijet] , jet_eta[ijet], btagSys); // for nominal sample
+           if(isData) isbtag = fBTagSF->IsTagged( jet_btagdiscri[ijet], -999999 , jet_pt[ijet] , jet_eta[ijet], btagSys, randomNumber); // for nominal sample
            else
            {
-               if(abs(jet_flav[ijet]) == 5 || abs(jet_flav[ijet])== 4)
+               if(abs(jet_flav[ijet]) == 5 || abs(jet_flav[ijet]) == 4)
                {
-                   isbtag = fBTagSF->IsTagged( jet_btagdiscri[ijet], jet_flav[ijet] , jet_pt[ijet] , jet_eta[ijet], btagSys);
+                   isbtag = fBTagSF->IsTagged( jet_btagdiscri[ijet], jet_flav[ijet] , jet_pt[ijet] , jet_eta[ijet], btagSys, randomNumber);
                }
                else
                {
-                   isbtag = fBTagSF->IsTagged( jet_btagdiscri[ijet], jet_flav[ijet] , jet_pt[ijet] , jet_eta[ijet], mistagSys);
+                   isbtag = fBTagSF->IsTagged( jet_btagdiscri[ijet], jet_flav[ijet] , jet_pt[ijet] , jet_eta[ijet], mistagSys, randomNumber);
                }
-               fillHisto("BTagProba", "afterleptsel", thesample, systtype, isbtag , evtweight, flavtag, systType);
            }
-           if(applyCSV && isbtag) {nbjets++; btagged_jet_idx.push_back(ijet); }
+           fillHisto("BTagProba", "afterleptsel", thesample, systtype, isbtag , evtweight, flavtag, systType);
+           if(isbtag) {nbjets++; btagged_jet_idx.push_back(ijet); }
          }
 
 	     if(jet_pt[ijet] > 70 ) jetsup70 = true;
        }
 
        if (njets > 0) fillHisto("CutFlow",     "",  thesample, systtype, 3 ,  evtweight, flavtag, systType);
+
        double term1 = lept.Pz()*(lept.Px()*met.Px() + lept.Py()*met.Py() + (80.399)*(80.399)/2.);
        double det = lept.Px()*met.Px() + lept.Py()*met.Py() + (80.399)*(80.399)/2.
        		  - met.Pt()*met.Pt()*(lept.E()*lept.E() - lept.Pz()*lept.Pz());
@@ -471,24 +506,29 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
         //***********************************
         //qcd region
         //***********************************
-    if(CorrOption == 0){
+    if(CorrOption == 0)
+    {
 
         fillHisto("mWT",          "qcdLregion",  thesample, systtype,   mTW,    			    evtweight, flavtag, systType);
         fillHisto("MET",          "qcdLregion",  thesample, systtype,   met_pt, 			    evtweight, flavtag, systType);
 
-        if(jetsup70 && njets == 1 && nbjets == 0){
+        if(jetsup70 && njets == 1 && nbjets == 0)
+        {
           fillHisto("mWT",        "qcdWregion",  thesample, systtype,   mTW,    			    evtweight, flavtag, systType);
           fillHisto("MET",        "qcdWregion",  thesample, systtype,   met_pt, 			    evtweight, flavtag, systType);
         }
-        else if(njets == 1 && nbjets == 1){
+        else if(njets == 1 && nbjets == 1)
+        {
           fillHisto("mWT",        "qcdBregion",  thesample, systtype,   mTW,    			    evtweight, flavtag, systType);
           fillHisto("MET",        "qcdBregion",  thesample, systtype,   met_pt, 			    evtweight, flavtag, systType);
         }
-        if(jetsup70 && njets == 1 && nbjets == 1){
+        if(jetsup70 && njets == 1 && nbjets == 1)
+        {
           fillHisto("mWT",        "qcdSregion",  thesample, systtype,   mTW,    			    evtweight, flavtag, systType);
           fillHisto("MET",        "qcdSregion",  thesample, systtype,   met_pt, 			    evtweight, flavtag, systType);
         }
-        else if(jetsup70 && njets >= 4 && nbjets ==2 ){
+        else if(jetsup70 && njets >= 4 && nbjets ==2 )
+        {
           fillHisto("mWT",        "qcdTTregion",  thesample, systtype,   mTW,    			    evtweight, flavtag, systType);
           fillHisto("MET",        "qcdTTregion",  thesample, systtype,   met_pt, 			    evtweight, flavtag, systType);
         }
@@ -497,20 +537,25 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
         //***********************************
         //QCD normalization region
         //***********************************
-    if(CorrOption == 0 || CorrOption == 1){
+    if(CorrOption == 0 || CorrOption == 1)
+    {
 
         if(mTW <= 40) fillHisto("mWT",        "QCDnormLregion",   thesample, systtype,   mTW,    		evtweight, flavtag, systType);
 
-        if(jetsup70 && njets == 1 && nbjets == 0 && mTW <= 40){
+        if(jetsup70 && njets == 1 && nbjets == 0 && mTW <= 40)
+        {
           fillHisto("mWT",        "QCDnormWregion",   thesample, systtype,   mTW,    			evtweight, flavtag, systType);
         }
-        else if(njets == 1 && nbjets == 1 && mTW <= 40){
+        else if(njets == 1 && nbjets == 1 && mTW <= 40)
+        {
           fillHisto("mWT",        "QCDnormBregion",   thesample, systtype,   mTW,    			evtweight, flavtag, systType);
         }
-        if(jetsup70 && njets == 1 && nbjets == 1 && mTW <= 40){
+        if(jetsup70 && njets == 1 && nbjets == 1 && mTW <= 40)
+        {
           fillHisto("mWT",        "QCDnormSregion",   thesample, systtype,   mTW,    			evtweight, flavtag, systType);
         }
-        else if(jetsup70 && njets >= 4 && nbjets == 2 && mTW <= 40){
+        else if(jetsup70 && njets >= 4 && nbjets == 2 && mTW <= 40)
+        {
           fillHisto("mWT",        "QCDnormTTregion",  thesample, systtype,   mTW,    			evtweight, flavtag, systType);
         }
 	}
@@ -520,7 +565,8 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
         //***********************************
         //W enriched region
         //***********************************
-	    if(jetsup70 && njets == 1 && nbjets == 0){
+	    if(jetsup70 && njets == 1 && nbjets == 0)
+        {
 
           if(sample == "QCD")                          evtweight = QCDContamweight*SF_QCD_W;
           fillHisto("mWT_full",   "Wregion_highpt",  thesample, systtype,   mTW,    			                evtweight, flavtag, systType);
@@ -543,10 +589,46 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
             fillHisto("mWT_high",   "Wregion_highpt",  thesample, systtype,   mTW,    			                evtweight, flavtag, systType);
             fillHisto("MET",        "Wregion_highpt",  thesample, systtype,   met_pt, 			                evtweight, flavtag, systType);
             fillHisto("DeltaPhiLJ", "Wregion_highpt",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)),   evtweight, flavtag, systType);
+            fillHisto("DeltaPhiWptMet",  "Wregion_highpt",  thesample, systtype,  abs(theWcand.DeltaPhi(met)),     evtweight, flavtag, systType);
             fillHisto("DeltaPhiLMet","Wregion_highpt", thesample, systtype,   abs(lept.DeltaPhi(met)),          evtweight, flavtag, systType);
             fillHisto("DeltaRLJ",   "Wregion_highpt",  thesample, systtype,   lept.DeltaR(leadingJet), 	        evtweight, flavtag, systType);
             fillHisto("LeptPt",     "Wregion_highpt",  thesample, systtype,   smalltree_lept_pt[0], 	        evtweight, flavtag, systType);
             fillHisto("LeptEta",    "Wregion_highpt",  thesample, systtype,   smalltree_lept_eta[0], 	        evtweight, flavtag, systType);
+          }
+	    }
+
+        //***********************************
+        //Intermediate region
+        //***********************************
+	    if(jetsup70 && njets == 1 && nbjets == 1 && met_pt <= 100)
+        {
+
+          if(sample == "QCD")                          evtweight = QCDContamweight*SF_QCD_S;
+          fillHisto("mWT_full",   "interRegion",  thesample, systtype,   mTW,    			                evtweight, flavtag, systType);
+          if(mTW > 40)
+          {
+            fillHisto("CutFlow",     "",  thesample, systtype, 15 ,  evtweight, flavtag, systType);
+            for(int ijet=0; ijet<iter_jets; ijet++)
+            {
+                if(jet_pt[ijet] < 30 || fabs(jet_eta[ijet]) > 2.4) continue;
+                fillHisto("JetPt",  "interRegion",  thesample, systtype,  jet_pt[ijet] ,                 evtweight, flavtag, systType);
+                fillHisto("JetEta", "interRegion",  thesample, systtype,  jet_eta[ijet] ,                evtweight, flavtag, systType);
+            }
+            fillHisto("NVtx",       "interRegion",  thesample, systtype,   smalltree_nvertex,                evtweight, flavtag, systType);
+            fillHisto("NJet",       "interRegion",  thesample, systtype,   njets, 		                    evtweight, flavtag, systType);
+            fillHisto("NBJet",      "interRegion",  thesample, systtype,   nbjets, 		                    evtweight, flavtag, systType);
+            fillHisto("LeadJetBtagDiscr","interRegion",thesample, systtype,jet_btagdiscri[0],                evtweight, flavtag, systType);
+            fillHisto("ptW",        "interRegion",  thesample, systtype,   theWcand.Pt(),       	            evtweight, flavtag, systType);
+            fillHisto("etaW",       "interRegion",  thesample, systtype,   theWcand.Eta(),       	        evtweight, flavtag, systType);
+            fillHisto("mWT",        "interRegion",  thesample, systtype,   mTW,    			                evtweight, flavtag, systType);
+            fillHisto("mWT_high",   "interRegion",  thesample, systtype,   mTW,    			                evtweight, flavtag, systType);
+            fillHisto("MET",        "interRegion",  thesample, systtype,   met_pt, 			                evtweight, flavtag, systType);
+            fillHisto("DeltaPhiLJ", "interRegion",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)),   evtweight, flavtag, systType);
+            fillHisto("DeltaPhiWptMet",  "interRegion",  thesample, systtype,  abs(theWcand.DeltaPhi(met)),     evtweight, flavtag, systType);
+            fillHisto("DeltaPhiLMet","interRegion", thesample, systtype,   abs(lept.DeltaPhi(met)),          evtweight, flavtag, systType);
+            fillHisto("DeltaRLJ",   "interRegion",  thesample, systtype,   lept.DeltaR(leadingJet), 	        evtweight, flavtag, systType);
+            fillHisto("LeptPt",     "interRegion",  thesample, systtype,   smalltree_lept_pt[0], 	        evtweight, flavtag, systType);
+            fillHisto("LeptEta",    "interRegion",  thesample, systtype,   smalltree_lept_eta[0], 	        evtweight, flavtag, systType);
           }
 	    }
 
@@ -566,6 +648,11 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
                     fillHisto("CutFlow",     "",  thesample, systtype, 6 ,  evtweight, flavtag, systType);
                     if(jetsup70)
                     {
+                        fillHisto("ptW",            "Signalregion",  thesample, systtype,   theWcand.Pt(),       evtweight, flavtag, systType);
+                        fillHisto("MET",            "Signalregion",  thesample, systtype,   met_pt, 			evtweight, flavtag, systType);
+                        fillHisto("DeltaPhiLJ",     "Signalregion",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)), evtweight, flavtag, systType);
+                        fillHisto("mWT",            "Signalregion",  thesample, systtype,   mTW,    			evtweight, flavtag, systType);
+
                         fillHisto("CutFlow",     "",  thesample, systtype, 7 ,  evtweight, flavtag, systType);
                         if(met_pt > 100)
                         {
@@ -593,6 +680,9 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
 
                                         if(theTree_map[thesample] != 0)  theTree_map[thesample]->Fill();
 
+                                        //if tmeme is dilepton
+                                        //if(smalltree_tmeme != 0 || smalltree_tmeme != 1 || smalltree_tmeme != 10 || smalltree_tmeme != 11000 || smalltree_tmeme != 10100 ) dilepton++;
+
                                         fillHisto("NVtx",           "Selectedsignalregion",  thesample, systtype,   smalltree_nvertex,   evtweight, flavtag, systType);
                                         fillHisto("LeadJetBtagDiscr","Selectedsignalregion", thesample, systtype,   jet_btagdiscri[0] ,  evtweight, flavtag, systType);
                                         fillHisto("NJet",           "Selectedsignalregion",  thesample, systtype,   njets, 	    	     evtweight, flavtag, systType);
@@ -608,6 +698,7 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
                                         fillHisto("DeltaPhiLMet",   "Selectedsignalregion",  thesample, systtype,   abs(lept.DeltaPhi(met)),        evtweight, flavtag, systType);
                                         fillHisto("DeltaPhiJMet",   "Selectedsignalregion",  thesample, systtype,   abs(leadingJet.DeltaPhi(met)),  evtweight, flavtag, systType);
                                         fillHisto("DeltaPhiLJMet",  "Selectedsignalregion",  thesample, systtype,   abs(jetLept.DeltaPhi(met)),     evtweight, flavtag, systType);
+                                        fillHisto("DeltaPhiWptMet",  "Selectedsignalregion",  thesample, systtype,  abs(theWcand.DeltaPhi(met)),     evtweight, flavtag, systType);
                                         fillHisto("DeltaRLJ",       "Selectedsignalregion",  thesample, systtype,   lept.DeltaR(leadingJet), 	evtweight, flavtag, systType);
                                 }
                             }
@@ -685,6 +776,7 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
                 fillHisto("JetEta",    "ttbarregion_2j2b",  thesample, systtype,  jet_eta[ijet], 		evtweight, flavtag, systType);
             }
 
+     //cout << "evtweight (syst : " << systtype << " ) = " << evtweight << endl;
             fillHisto("NVtx",       "ttbarregion_2j2b",  thesample, systtype,   smalltree_nvertex,                evtweight, flavtag, systType);
             fillHisto("LeadJetBtagDiscr","ttbarregion_2j2b",thesample, systtype,  jet_btagdiscri[0] ,             evtweight, flavtag, systType);
             fillHisto("NJet",       "ttbarregion_2j2b",  thesample, systtype,   njets, 		                    evtweight, flavtag, systType);
@@ -698,7 +790,16 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
             fillHisto("LeptPt",     "ttbarregion_2j2b",  thesample, systtype,   smalltree_lept_pt[0], 	        evtweight, flavtag, systType);
             fillHisto("LeptEta",    "ttbarregion_2j2b",  thesample, systtype,   smalltree_lept_eta[0], 	        evtweight, flavtag, systType);
             fillHisto("DeltaPhiLJ", "ttbarregion_2j2b",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)),   evtweight, flavtag, systType);
+            fillHisto("DeltaPhiWptMet",  "ttbarregion_2j2b",  thesample, systtype,  abs(theWcand.DeltaPhi(met)),     evtweight, flavtag, systType);
             fillHisto("DeltaRLJ",   "ttbarregion_2j2b",  thesample, systtype,   lept.DeltaR(leadingJet), 	        evtweight, flavtag, systType);
+
+            fillHisto("LeadJetPt",     "ttbarregion_2j2b",  thesample, systtype,  jet_pt[0], 			evtweight, flavtag, systType);
+            fillHisto("LeadJetEta",    "ttbarregion_2j2b",  thesample, systtype,  jet_eta[0], 			evtweight, flavtag, systType);
+
+            fillHisto("SubLeadJetPt",  "ttbarregion_2j2b",  thesample, systtype,  jet_pt[1], 			evtweight, flavtag, systType);
+            fillHisto("SubLeadJetEta", "ttbarregion_2j2b",  thesample, systtype,  jet_eta[1], 			evtweight, flavtag, systType);
+
+
           }
         }
 
@@ -766,6 +867,7 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
             fillHisto("LeptEta",    "ttbarregion_4j2b",  thesample, systtype,   smalltree_lept_eta[0], 	        evtweight, flavtag, systType);
             fillHisto("DeltaPhiLJ", "ttbarregion_4j2b",  thesample, systtype,   abs(lept.DeltaPhi(leadingJet)),   evtweight, flavtag, systType);
             fillHisto("DeltaRLJ",   "ttbarregion_4j2b",  thesample, systtype,   lept.DeltaR(leadingJet), 	        evtweight, flavtag, systType);
+
           }
         }
 
@@ -787,9 +889,9 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
 void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, TString flavtag, short int systType)
 {
 
-  cout << endl;
-  cout << endl;
-  cout << "Initializing histograms for sample: " << sample << " ... " << endl;
+//  cout << endl;
+//  cout << endl;
+//  cout << "Initializing histograms for sample: " << sample << " ... " << endl;
 
   if(isfirstset)
   {
@@ -800,7 +902,7 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
     numb_histo++;
   }
 
-  addHisto("CutFlow",               "",     sample.Data(), syst.Data(),    15,    0,    15, flavtag, systType);
+  addHisto("CutFlow",               "",     sample.Data(), syst.Data(),    20,    0,    20, flavtag, systType);
   addHisto("sumWeight",             "",     sample.Data(), syst.Data(),     1,    0,     1, flavtag, systType);
   addHisto("pdfWeight",             "",     sample.Data(), syst.Data(),     1,    0,     1, flavtag, systType);
 
@@ -835,8 +937,30 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
   addHisto("LeptEta",   "Wregion_highpt",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
   addHisto("DeltaPhiLJ","Wregion_highpt",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
   addHisto("DeltaPhiLMet","Wregion_highpt",	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
+  addHisto("DeltaPhiWptMet","Wregion_highpt",	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
   addHisto("DeltaRLJ",  "Wregion_highpt",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
   addHisto("LeadJetBtagDiscr", "Wregion_highpt",sample.Data(), syst.Data(),   20,    0,     1, flavtag, systType);
+
+  addHisto("NVtx",      "interRegion",   sample.Data(), syst.Data(),   60,    0,    60, flavtag, systType);
+  addHisto("NJet",      "interRegion",  	sample.Data(), syst.Data(),   5,  -0.5,   4.5, flavtag, systType);
+  addHisto("NBJet",     "interRegion",  	sample.Data(), syst.Data(),   5,  -0.5,   4.5, flavtag, systType);
+  addHisto("JetPt",     "interRegion",  	sample.Data(), syst.Data(),   30,    0,   300, flavtag, systType);
+  addHisto("JetEta",    "interRegion",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
+  addHisto("ptW",       "interRegion", 	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
+  addHisto("etaW",      "interRegion", 	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
+  addHisto("mWT",       "interRegion",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag, systType);
+  addHisto("mWT_high",  "interRegion",  	sample.Data(), syst.Data(),   28,   40,   600, flavtag, systType);
+  addHisto("mWT_full",  "interRegion",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
+  addHisto("MET",       "interRegion",  	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
+  addHisto("LeptPt",    "interRegion",  	sample.Data(), syst.Data(),   30,    0,   300, flavtag, systType);
+  addHisto("LeptEta",   "interRegion",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
+  addHisto("DeltaPhiLJ","interRegion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
+  addHisto("DeltaPhiLMet","interRegion",	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
+  addHisto("DeltaPhiWptMet","interRegion",	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
+  addHisto("DeltaRLJ",  "interRegion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
+  addHisto("LeadJetBtagDiscr", "interRegion",sample.Data(), syst.Data(),   20,    0,     1, flavtag, systType);
+
+
 
   addHisto("mWT",       "QCDnormLregion",  	sample.Data(), syst.Data(),   50,    0,   300, flavtag, systType);
   addHisto("mWT",       "QCDnormWregion",  	sample.Data(), syst.Data(),   50,    0,   300, flavtag, systType);
@@ -855,6 +979,11 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
   addHisto("mWT",       "qcdTTregion", 	    sample.Data(), syst.Data(),   50,    0,   300, flavtag, systType);
   addHisto("MET",       "qcdTTregion", 	    sample.Data(), syst.Data(),   50,    0,   300, flavtag, systType);
 
+  addHisto("ptW",           "Signalregion", 	sample.Data(), syst.Data(),   25,    0,   500, flavtag, systType);
+  addHisto("mWT",           "Signalregion",  	sample.Data(), syst.Data(),   23,   40,   500, flavtag, systType);
+  addHisto("MET",           "Signalregion",  	sample.Data(), syst.Data(),   20,    0,   500, flavtag, systType);
+  addHisto("DeltaPhiLJ",    "Signalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
+
   addHisto("NVtx",          "Selectedsignalregion",     sample.Data(), syst.Data(),   60,    0,    60, flavtag, systType);
   addHisto("NJet",          "Selectedsignalregion",  	sample.Data(), syst.Data(),   5,  -0.5,   4.5, flavtag, systType);
   addHisto("NBJet",         "Selectedsignalregion",  	sample.Data(), syst.Data(),   5,  -0.5,   4.5, flavtag, systType);
@@ -870,6 +999,7 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
   addHisto("MET",           "Selectedsignalregion",  	sample.Data(), syst.Data(),   20,    0,   500, flavtag, systType);
   addHisto("DeltaPhiLJ",    "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
   addHisto("DeltaPhiLMet",  "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
+  addHisto("DeltaPhiWptMet",  "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
   addHisto("DeltaPhiJMet",  "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
   addHisto("DeltaPhiLJMet", "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
   addHisto("DeltaRLJ",      "Selectedsignalregion",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
@@ -913,9 +1043,14 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
   addHisto("LeptPt",    "ttbarregion_2j2b",  	sample.Data(), syst.Data(),   30,    0,   300, flavtag, systType);
   addHisto("LeptEta",   "ttbarregion_2j2b",  	sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
   addHisto("DeltaPhiLJ","ttbarregion_2j2b",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
+  addHisto("DeltaPhiWptMet","ttbarregion_2j2b",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
   addHisto("DeltaRLJ",  "ttbarregion_2j2b",  	sample.Data(), syst.Data(),   25,    0,  3.14, flavtag, systType);
-  addHisto("JetPt",     "ttbarregion_2j2b",     sample.Data(), syst.Data(),   30,    0,   300, flavtag, systType);
-  addHisto("JetEta",    "ttbarregion_2j2b",     sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
+  addHisto("JetPt",         "ttbarregion_2j2b",     sample.Data(), syst.Data(),   30,    0,   300, flavtag, systType);
+  addHisto("LeadJetPt",     "ttbarregion_2j2b",     sample.Data(), syst.Data(),   30,    0,   300, flavtag, systType);
+  addHisto("SubLeadJetPt",  "ttbarregion_2j2b",     sample.Data(), syst.Data(),   30,    0,   300, flavtag, systType);
+  addHisto("JetEta",        "ttbarregion_2j2b",     sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
+  addHisto("LeadJetEta",    "ttbarregion_2j2b",     sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
+  addHisto("SubLeadJetEta", "ttbarregion_2j2b",     sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
   addHisto("LeadJetBtagDiscr", "ttbarregion_2j2b", sample.Data(), syst.Data(),  20,  0,     1, flavtag, systType);
 
   addHisto("NVtx",      "ttbarregion_3j2b",     sample.Data(), syst.Data(),   60,    0,    60, flavtag, systType);
@@ -952,8 +1087,8 @@ void TreeReader::initializeHisto(TString sample, TString syst, bool isfirstset, 
   addHisto("JetEta",    "ttbarregion_4j2b",     sample.Data(), syst.Data(),   26, -2.5,   2.5, flavtag, systType);
   addHisto("LeadJetBtagDiscr", "ttbarregion_4j2b", sample.Data(), syst.Data(),  20,  0,     1, flavtag, systType);
 
-  cout << "      Histograms properly initialized!   " << endl;
-  cout << endl;
+//  cout << "      Histograms properly initialized!   " << endl;
+//  cout << endl;
 
   // Prepare a TTree for the BdT
   TString treename = "Ttree_"+sample;
@@ -1415,8 +1550,8 @@ vector<double> TreeReader::getSFtrigger( TGraphAsymmErrors* ratioPlot,  double p
    }
    else
    {
-       SFvalue = 1;
-       SFerror = 0;
+       SFvalue = getY( ratioPlot, 499)[0];
+       SFerror = getY( ratioPlot, 499)[1];
    }
 
    SF.push_back(SFvalue);
@@ -1450,8 +1585,11 @@ void TreeReader::loadPDFSumWeight(TString channel, TString tmp_sample, TString f
     TH1D* histo_sum        = (TH1D*)theinput_file->Get( histoname_sum.Data() )->Clone();
 
 
+    //PDFSumWeight[histoname_pdfUp]   = histo_sum->GetBinContent(1);
+    //PDFSumWeight[histoname_pdfDown] = histo_sum->GetBinContent(1);
     PDFSumWeight[histoname_pdfUp]   = histo_sum->GetBinContent(1)/histo_pdfUp->GetBinContent(1);
     PDFSumWeight[histoname_pdfDown] = histo_sum->GetBinContent(1)/histo_pdfDown->GetBinContent(1);
+    cout << "PDF_Sum = " << histo_sum->GetBinContent(1) << " | PDF_down = " << histo_pdfDown->GetBinContent(1) << endl;
 
     theinput_file->Close();
     delete theinput_file;

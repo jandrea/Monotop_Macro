@@ -1,17 +1,42 @@
+#include "TString.h"
+#include "TH1F.h"
+#include "TStyle.h"
+#include "TFile.h"
+#include "TLegend.h"
+#include "TLine.h"
+#include "TLatex.h"
+#include "TPaveText.h"
+#include "TCanvas.h"
+#include "TGraphErrors.h"
+#include "TMultiGraph.h"
+#include "TGraphAsymmErrors.h"
+#include "THStack.h"
+#include <iostream>
+#include <vector>
+
+#include "writeLimits_FCNC.C"
+
+using namespace std;
+
+void CompareLimitMethod()
 {
 
+  short int option = 0;
+  //gROOT->ProcessLine(".L writeLimits.C+");
   const unsigned int n=10;   // number of mass points
 
+  Double_t y_obs[n], y_obs_err[n], y_exp2up[n], SA_expup[n], SA_exp[n], SA_expdn[n], y_exp2dn[n] ;
   Double_t x[n] = {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
+
+  writeLimits("FCNC", y_obs, y_obs_err, y_exp2up, SA_expup, SA_exp, SA_expdn, y_exp2dn, option);
 
   bool useATLASvsCMS   = false;
   bool displayExclXsec = true;
 
   Double_t x_sec[n]       = {28.0  ,8.1  ,2.94, 1.22, 0.57, 0.29, 0.15, 0.08, 0.05, 0.03};
 
-  if(!useATLASvsCMS){
-     TString name = "CCvsSA";
-
+  TString name = "CCvsSA";
+/*
      Double_t y_obs[n]    = {0.0641  , 0.173  , 0.245  , 0.418  , 0.739  , 1.129 , 1.553 , 2.439 , 4.31 , 6.02  };
      Double_t y_obs_err[n]= {0.0003  , 0.0008 , 0.0009 , 0.0013 , 0.0026 , 0.0035, 0.0048, 0.0071, 0.015, 0.022 };
      Double_t y_exp2up[n] = {0.342   , 0.712  , 0.877  , 1.145  , 2.13   , 2.81  , 3.820 , 5.475 , 10.0 , 15.16 };
@@ -19,11 +44,15 @@
      Double_t SA_exp[n]    = {0.081   , 0.185  , 0.267  , 0.393  , 0.674  , 0.975 , 1.342 , 2.083 , 3.435, 4.94  };
      Double_t SA_expdn[n]  = {0.0485  , 0.113  , 0.168  , 0.254  , 0.429  , 0.637 , 0.889 , 1.372 , 2.241, 3.24  };
      Double_t y_exp2dn[n] = {0.0317  , 0.076  , 0.116  , 0.178  , 0.298  , 0.451 , 0.643 , 0.994 , 1.621, 2.27  };
+*/
 
+     Double_t CC_CMS_expup[n]   = {0.345   , 0.952  , 1.953  , 3.723  , 6.556  , 12.14 , 20.61 , 35.96 , 59.35, 96.43 };
+     Double_t CC_CMS_exp[n]     = {0.207   , 0.579  , 1.162  , 2.225  , 4.013  , 7.371 , 12.11 , 21.70 , 35.54, 59.82 };
+     Double_t CC_CMS_expdn[n]   = {0.126   , 0.361  , 0.696  , 1.363  , 2.453  , 4.401 , 7.433 , 13.67 , 21.46, 35.49 };
 
-     Double_t CC_expup[n]  = {0.691   , 1.022  , 1.267  , 2.001  , 3.345  , 5.271 , 7.639 , 11.94 , 20.81, 29.72 };
-     Double_t CC_exp[n]    = {0.402   , 0.646  , 0.804  , 1.293  , 2.154  , 3.417 , 4.988 , 7.821 , 13.24, 18.80 };
-     Double_t CC_expdn[n]  = {0.257   , 0.437  , 0.553  , 0.901  , 1.479  , 2.349 , 3.463 , 5.370 , 9.112, 13.07 };
+     Double_t CC_ATLAS_expup[n] = {0.400   , 0.983  , 1.219  , 2.049  , 3.338  , 5.536 , 7.704 , 11.89 , 19.25, 30.07 };
+     Double_t CC_ATLAS_exp[n]   = {0.254   , 0.590  , 0.728  , 1.251  , 2.036  , 3.402 , 4.723 , 7.192 , 11.75, 18.63 };
+     Double_t CC_ATLAS_expdn[n] = {0.147   , 0.372  , 0.451  , 0.794  , 1.256  , 2.111 , 2.976 , 4.566 , 7.341, 11.72 };
 
 /*
      Double_t y_obs[n]    = {0.043   , 0.108  , 0.162  , 0.372  , 0.402  , 0.646 , 1.245 , 1.814 , 3.66 , 3.58  };
@@ -69,18 +98,6 @@
      Double_t y_expdn[n]  = {0.0224  , 0.057  , 0.077  , 0.100  , 0.102  , 0.124 , 0.153 , 0.213 , 0.342, 0.532 };
      Double_t y_exp2dn[n] = {0.0125  , 0.033  , 0.0466 , 0.055  , 0.0611 , 0.070 , 0.096 , 0.125 , 0.203, 0.321 };
 */
-   }else{
-  // Delta phi
-     TString name = "ATLASvsCMS";
-     Double_t y_obs[n]    = {0.236  ,0.367  ,0.405  };
-     Double_t y_obs_err[n]= {0.00196,0.00477,0.00454};
-     Double_t y_exp2up[n] = {1.79   ,1.4    ,1.31   };
-     Double_t y_expup[n]  = {0.755  ,0.808  ,0.833  };
-     Double_t y_exp[n]    = {0.329  ,0.447  ,0.474  };
-     Double_t y_expdn[n]  = {0.166  ,0.254  ,0.295  };
-     Double_t y_exp2dn[n] = {0.105  ,0.166  ,0.19   };
-
-  }
 
   if(displayExclXsec)
   {
@@ -88,15 +105,18 @@
       {
           y_obs[ind]      *= x_sec[ind];
           y_obs_err[ind]  *= x_sec[ind];
-          y_exp2up[ind]   *= x_sec[ind];
+
           SA_expup[ind]   *= x_sec[ind];
           SA_exp[ind]     *= x_sec[ind];
           SA_expdn[ind]   *= x_sec[ind];
 
-          CC_expup[ind]   *= x_sec[ind];
-          CC_exp[ind]     *= x_sec[ind];
-          CC_expdn[ind]   *= x_sec[ind];
-          y_exp2dn[ind]   *= x_sec[ind];
+          CC_CMS_expup[ind]   *= x_sec[ind];
+          CC_CMS_exp[ind]     *= x_sec[ind];
+          CC_CMS_expdn[ind]   *= x_sec[ind];
+
+          CC_ATLAS_expup[ind] *= x_sec[ind];
+          CC_ATLAS_exp[ind]   *= x_sec[ind];
+          CC_ATLAS_expdn[ind] *= x_sec[ind];
       }
   }
 
@@ -116,14 +136,17 @@
   xsec_th_0p05->SetLineWidth(2);
   xsec_th_0p05->SetLineStyle(2);
 
-  Double_t SA_sigmaup[n], SA_sigmadn[n], CC_sigmaup[n], CC_sigmadn[n], y_sigma2up[n], y_sigma2dn[n];
+  Double_t SA_sigmaup[n], SA_sigmadn[n], CC_CMS_sigmaup[n], CC_CMS_sigmadn[n], CC_ATLAS_sigmaup[n], CC_ATLAS_sigmadn[n], y_sigma2up[n], y_sigma2dn[n];
 
   for(int i = 0; i<n; i++)
   {
      SA_sigmadn[i]  = SA_exp[i] - SA_expdn[i];
      SA_sigmaup[i]  = SA_expup[i] - SA_exp[i];
-     CC_sigmadn[i]  = CC_exp[i] - CC_expdn[i];
-     CC_sigmaup[i]  = CC_expup[i] - CC_exp[i];
+     CC_CMS_sigmadn[i]  = CC_CMS_exp[i] - CC_CMS_expdn[i];
+     CC_CMS_sigmaup[i]  = CC_CMS_expup[i] - CC_CMS_exp[i];
+     CC_ATLAS_sigmadn[i]  = CC_ATLAS_exp[i] - CC_ATLAS_expdn[i];
+     CC_ATLAS_sigmaup[i]  = CC_ATLAS_expup[i] - CC_ATLAS_exp[i];
+
      y_sigma2dn[i] = SA_exp[i] - y_exp2dn[i];
      y_sigma2up[i] = y_exp2up[i] - SA_exp[i];
   }
@@ -145,10 +168,15 @@
   gr_SA_exp->SetLineStyle(2);
   gr_SA_exp->SetMarkerStyle(22);
 
-  TGraph* gr_CC_exp = new TGraph(n, x, CC_exp);
-  gr_CC_exp->SetLineColor(kBlack);
-  gr_CC_exp->SetLineWidth(2);
-  gr_CC_exp->SetMarkerStyle(20);
+  TGraph* gr_CC_CMS_exp = new TGraph(n, x, CC_CMS_exp);
+  gr_CC_CMS_exp->SetLineColor(kBlack);
+  gr_CC_CMS_exp->SetLineWidth(2);
+  gr_CC_CMS_exp->SetMarkerStyle(20);
+
+  TGraph* gr_CC_ATLAS_exp = new TGraph(n, x, CC_ATLAS_exp);
+  gr_CC_ATLAS_exp->SetLineColor(kBlack);
+  gr_CC_ATLAS_exp->SetLineWidth(2);
+  gr_CC_ATLAS_exp->SetMarkerStyle(21);
 
   TGraphAsymmErrors* sigma2 = new TGraphAsymmErrors(n, x, SA_exp, 0, 0, y_sigma2dn, y_sigma2up);
   sigma2->SetFillColor(kYellow-4);
@@ -158,9 +186,13 @@
   sigma1_SA->SetFillColor(kGreen-3);
   sigma1_SA->SetLineColor(kGreen-3);
 
-  TGraphAsymmErrors* sigma1_CC = new TGraphAsymmErrors(n, x, CC_exp, 0, 0, CC_sigmadn, CC_sigmaup);
-  sigma1_CC->SetFillColor(kYellow-4);
-  sigma1_CC->SetLineColor(kYellow-4);
+  TGraphAsymmErrors* sigma1_CC_CMS = new TGraphAsymmErrors(n, x, CC_CMS_exp, 0, 0, CC_CMS_sigmadn, CC_CMS_sigmaup);
+  sigma1_CC_CMS->SetFillColor(kYellow-4);
+  sigma1_CC_CMS->SetLineColor(kYellow-4);
+
+  TGraphAsymmErrors* sigma1_CC_ATLAS = new TGraphAsymmErrors(n, x, CC_ATLAS_exp, 0, 0, CC_ATLAS_sigmadn, CC_ATLAS_sigmaup);
+  sigma1_CC_ATLAS->SetFillColor(kOrange);
+  sigma1_CC_ATLAS->SetLineColor(kOrange);
 
   TGraphErrors* gr_SA_expup = new TGraphErrors(n, x, SA_expup, 0, 0);
   gr_SA_expup->SetLineColor(kRed);
@@ -184,7 +216,8 @@
 
   //mg->Add(sigma2);
   mg->Add(sigma1_SA);
-  mg->Add(sigma1_CC);
+  mg->Add(sigma1_CC_CMS);
+  mg->Add(sigma1_CC_ATLAS);
   mg->Draw("3AC");
   mg->GetXaxis()->SetTitleFont(62);
   mg->GetYaxis()->SetTitleFont(62);
@@ -194,7 +227,7 @@
   mg->GetYaxis()->SetTitleSize(0.055);
   mg->GetXaxis()->SetLabelSize(0.04);
   mg->GetYaxis()->SetLabelSize(0.04);
-  mg->GetXaxis()->SetTitle("m_{Inv.} (GeV)");
+  mg->GetXaxis()->SetTitle("m_{Inv.} [GeV]");
   mg->GetXaxis()->SetRangeUser(x[0],x[n-1]);
   if(displayExclXsec)
   {
@@ -202,7 +235,7 @@
       mg->GetYaxis()->SetTitleSize(0.04);
       mg->GetYaxis()->SetTitleOffset(1.2);
       //mg->SetMinimum(0.01);
-      mg->SetMinimum(y_exp2dn[n-1]);
+      mg->SetMinimum(SA_expdn[n-1]);
       mg->SetMaximum(x_sec[0]);
   }
   else
@@ -212,10 +245,11 @@
   }
 
   gr_SA_exp  ->Draw("samelp");
-  gr_CC_exp  ->Draw("samelp");
+  gr_CC_CMS_exp  ->Draw("samelp");
+  gr_CC_ATLAS_exp  ->Draw("samelp");
   //gr_obs  ->Draw("samelp");
 
-  TLine line (x[0], 1., x[n-1], 1.);
+  TLine* line = new TLine(x[0], 1., x[n-1], 1.);
   line->SetLineWidth(1);
   line->SetLineColor(1);
   line->SetLineStyle(2);
@@ -228,8 +262,10 @@
   leg->AddEntry(gr_SA_exp    ,"Shape Ana. CMS"    ,"lp");
   leg->AddEntry(sigma1_SA  ," Expected #pm1#sigma (Shape Ana.)","f");
   //leg->AddEntry(sigma2  ," Expected #pm2#sigma","f");
-  leg->AddEntry(gr_CC_exp ,"Cut&Count ATLAS Sel." ,"lp");
-  leg->AddEntry(sigma1_CC  ," Expected #pm1#sigma (Cut&Count)","f");
+  leg->AddEntry(gr_CC_CMS_exp ,"Cut&Count CMS Sel." ,"lp");
+  leg->AddEntry(sigma1_CC_CMS  ," Expected #pm1#sigma (Cut&Count CMS)","f");
+  leg->AddEntry(gr_CC_ATLAS_exp ,"Cut&Count ATLAS Sel." ,"lp");
+  leg->AddEntry(sigma1_CC_ATLAS  ," Expected #pm1#sigma (Cut&Count ATLAS)","f");
   if(displayExclXsec) {leg->AddEntry(xsec_th_0p1  ," Theory (LO), a_{non-res} = 0.1","l"); leg->AddEntry(xsec_th_0p05  ," Theory (LO), a_{non-res} = 0.05","l");}
   leg->SetBorderSize(0);
   leg->SetFillColor(0);
@@ -258,8 +294,17 @@
   TString             Y_axis = "SignalStrength";
   if(displayExclXsec) Y_axis = "ExcludedXsection";
 
-  c1->SaveAs("limitPlots/finalLimits_methodComparison_"+name+"_FCNC.png");
-  c1->SaveAs("limitPlots/finalLimits_methodComparison_"+name+"_FCNC.pdf");
-  c1->SaveAs("limitPlots/finalLimits_methodComparison_"+name+"_FCNC.eps");
+  TString externOfSyst;
+  if(isExtern) externOfSyst = "_Extern";
+  else         externOfSyst = "_noExtern";
 
+  c1->SaveAs("limitPlots/finalLimits_FCNC"+externOfSyst+"_methodComparison_"+name+".png");
+  c1->SaveAs("limitPlots/finalLimits_FCNC"+externOfSyst+"_methodComparison_"+name+".pdf");
+  c1->SaveAs("limitPlots/finalLimits_FCNC"+externOfSyst+"_methodComparison_"+name+".eps");
+
+}
+
+void CompareLimitMethod_FCNC()
+{
+    CompareLimitMethod();
 }

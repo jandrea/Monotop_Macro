@@ -110,13 +110,13 @@ void PlotLumi13TeV_FCNC_new()
   text_2->Draw();
 
 
-  TLine* line_h = new TLine(1, 617, 7.2, 617);
+  TLine* line_h = new TLine(1, 560, 4.1, 560);
   line_h->SetLineWidth(2);
   line_h->SetLineColor(kRed);
   line_h->SetLineStyle(2);
   line_h->Draw("same");
 
-  TLine* line_v = new TLine(7.2, 100, 7.2, 617);
+  TLine* line_v = new TLine(4.1, 100, 4.1, 560);
   line_v->SetLineWidth(2);
   line_v->SetLineColor(kRed);
   line_v->SetLineStyle(2);

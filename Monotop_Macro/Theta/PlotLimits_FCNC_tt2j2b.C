@@ -1,17 +1,50 @@
+#include "TString.h"
+#include "TH1F.h"
+#include "TStyle.h"
+#include "TFile.h"
+#include "TLegend.h"
+#include "TLine.h"
+#include "TLatex.h"
+#include "TPaveText.h"
+#include "TCanvas.h"
+#include "TGraphErrors.h"
+#include "TMultiGraph.h"
+#include "TGraphAsymmErrors.h"
+#include "THStack.h"
+#include <iostream>
+#include <vector>
+
+#include "writeLimits_FCNC.C"
+
+using namespace std;
+
+void PlotLimits()
 {
 
+  bool isExtern = false;
+  //gROOT->ProcessLine(".L writeLimits.C+");
   const unsigned int n=10;   // number of mass points
 
+  Double_t y_obs[n], y_obs_err[n], y_exp2up[n], y_expup[n], y_exp[n], y_expdn[n], y_exp2dn[n] ;
   Double_t x[n] = {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
+
+  writeLimits("FCNC", y_obs, y_obs_err, y_exp2up, y_expup, y_exp, y_expdn, y_exp2dn, isExtern);
 
   bool useATLASvsCMS   = false;
   bool displayExclXsec = true;
 
   Double_t x_sec[n]       = {28.0  ,8.1  ,2.94, 1.22, 0.57, 0.29, 0.15, 0.08, 0.05, 0.03};
-
-  if(!useATLASvsCMS){
-     TString name = "ShapeAnalysis";
-
+  TString name = "ShapeAnalysis";
+/*
+     Double_t y_obs[n]    = {0.0771  , 0.205  , 0.259  , 0.511  , 0.735  , 1.197 , 1.685 , 2.574 , 4.39 , 5.64  };
+     Double_t y_obs_err[n]= {0.0004  , 0.0009 , 0.0010 , 0.0018 , 0.0024 , 0.0038, 0.0055, 0.0081, 0.015, 0.020 };
+     Double_t y_exp2up[n] = {0.267   , 0.555  , 0.842  , 1.111  , 1.935  , 2.68  , 3.630 , 6.555 , 8.97 , 12.59 };
+     Double_t y_expup[n]  = {0.127   , 0.277  , 0.430  , 0.642  , 1.028  , 1.599 , 2.208 , 3.737 , 5.439, 7.58  };
+     Double_t y_exp[n]    = {0.074   , 0.166  , 0.256  , 0.400  , 0.625  , 0.983 , 1.376 , 2.339 , 3.405, 4.67  };
+     Double_t y_expdn[n]  = {0.0456  , 0.103  , 0.161  , 0.259  , 0.404  , 0.642 , 0.914 , 1.522 , 2.241, 3.08  };
+     Double_t y_exp2dn[n] = {0.0305  , 0.069  , 0.111  , 0.186  , 0.285  , 0.460 , 0.659 , 1.084 , 1.661, 2.25  };
+*/
+/*
      Double_t y_obs[n]    = {0.0641  , 0.173  , 0.245  , 0.418  , 0.739  , 1.129 , 1.553 , 2.439 , 4.31 , 6.02  };
      Double_t y_obs_err[n]= {0.0003  , 0.0008 , 0.0009 , 0.0013 , 0.0026 , 0.0035, 0.0048, 0.0071, 0.015, 0.022 };
      Double_t y_exp2up[n] = {0.342   , 0.712  , 0.877  , 1.145  , 2.13   , 2.81  , 3.820 , 5.475 , 10.0 , 15.16 };
@@ -20,6 +53,7 @@
      Double_t y_expdn[n]  = {0.0485  , 0.113  , 0.168  , 0.254  , 0.429  , 0.637 , 0.889 , 1.372 , 2.241, 3.24  };
      Double_t y_exp2dn[n] = {0.0317  , 0.076  , 0.116  , 0.178  , 0.298  , 0.451 , 0.643 , 0.994 , 1.621, 2.27  };
 
+*/
 /*
      Double_t y_obs[n]    = {0.043   , 0.108  , 0.162  , 0.372  , 0.402  , 0.646 , 1.245 , 1.814 , 3.66 , 3.58  };
      Double_t y_obs_err[n]= {0.0003  , 0.0008 , 0.0013 , 0.0031 , 0.0026 , 0.0037, 0.0060, 0.0114, 0.023, 0.022};
@@ -64,18 +98,6 @@
      Double_t y_expdn[n]  = {0.0224  , 0.057  , 0.077  , 0.100  , 0.102  , 0.124 , 0.153 , 0.213 , 0.342, 0.532 };
      Double_t y_exp2dn[n] = {0.0125  , 0.033  , 0.0466 , 0.055  , 0.0611 , 0.070 , 0.096 , 0.125 , 0.203, 0.321 };
 */
-   }else{
-  // Delta phi
-     TString name = "ATLASvsCMS";
-     Double_t y_obs[n]    = {0.236  ,0.367  ,0.405  };
-     Double_t y_obs_err[n]= {0.00196,0.00477,0.00454};
-     Double_t y_exp2up[n] = {1.79   ,1.4    ,1.31   };
-     Double_t y_expup[n]  = {0.755  ,0.808  ,0.833  };
-     Double_t y_exp[n]    = {0.329  ,0.447  ,0.474  };
-     Double_t y_expdn[n]  = {0.166  ,0.254  ,0.295  };
-     Double_t y_exp2dn[n] = {0.105  ,0.166  ,0.19   };
-
-  }
 
   if(displayExclXsec)
   {
@@ -174,7 +196,7 @@
   mg->GetYaxis()->SetTitleSize(0.055);
   mg->GetXaxis()->SetLabelSize(0.04);
   mg->GetYaxis()->SetLabelSize(0.04);
-  mg->GetXaxis()->SetTitle("m_{Inv.} (GeV)");
+  mg->GetXaxis()->SetTitle("m_{Inv.} [GeV]");
   mg->GetXaxis()->SetRangeUser(x[0],x[n-1]);
   if(displayExclXsec)
   {
@@ -194,7 +216,7 @@
   gr_exp  ->Draw("samelp");
   gr_obs  ->Draw("samelp");
 
-  TLine line (x[0], 1., x[n-1], 1.);
+  TLine* line = new TLine(x[0], 1., x[n-1], 1.);
   line->SetLineWidth(1);
   line->SetLineColor(1);
   line->SetLineStyle(2);
@@ -235,8 +257,16 @@
   TString             Y_axis = "SignalStrength";
   if(displayExclXsec) Y_axis = "ExcludedXsection";
 
-  c1->SaveAs("limitPlots/finalLimits_FCNC_"+name+"_"+Y_axis+"_2j2b.png");
-  c1->SaveAs("limitPlots/finalLimits_FCNC_"+name+"_"+Y_axis+"_2j2b.pdf");
-  c1->SaveAs("limitPlots/finalLimits_FCNC_"+name+"_"+Y_axis+"_2j2b.eps");
+  TString externOfSyst;
+  if(isExtern) externOfSyst = "_Extern";
+  else         externOfSyst = "_noExtern";
 
+  c1->SaveAs("limitPlots/finalLimits_FCNC"+externOfSyst+"_"+name+"_"+Y_axis+"_2j2b.png");
+  c1->SaveAs("limitPlots/finalLimits_FCNC"+externOfSyst+"_"+name+"_"+Y_axis+"_2j2b.pdf");
+  c1->SaveAs("limitPlots/finalLimits_FCNC"+externOfSyst+"_"+name+"_"+Y_axis+"_2j2b.eps");
+}
+
+void PlotLimits_FCNC_tt2j2b()
+{
+    PlotLimits();
 }

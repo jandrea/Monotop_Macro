@@ -2,7 +2,9 @@ options = Options()
 
 options.set('minimizer', 'strategy', 'newton_vanilla')
 
-benchmark='S4Inv600'
+doUpVariation=False
+
+benchmark='S4Inv1000'
 
 # for model building:
 def get_model():
@@ -12,12 +14,8 @@ def get_model():
     # For more info about this model and naming conventuion, see documentation
     # of build_model_from_rootfile.
     
-    model = build_model_from_rootfile('input.root',include_mc_uncertainties=True)
-    #model = build_model_from_rootfile('inputTheta_merged_mWT_mujets_ATLASFCNCsignalregion.root',include_mc_uncertainties=True)
-    #model = build_model_from_rootfile('inputTheta_merged_mWT_mujets_ATLASRESsignalregion.root',include_mc_uncertainties=True)
-    #model = build_model_from_rootfile('thetaInOut/inputTheta_merged_AllRegions.root',include_mc_uncertainties=True)
-    #model = build_model_from_rootfile('inputTheta_merged_AllRegions.root',include_mc_uncertainties=True)
-   # model = build_model_from_rootfile('inputTheta_merged_CRsOnly.root',include_mc_uncertainties=True)
+    model = build_model_from_rootfile('inputTheta_WTTinterCRSR.root',include_mc_uncertainties=True)
+    #model = build_model_from_rootfile('inputTheta_Wmerged_WTTSR.root',include_mc_uncertainties=True)
     
     # If the prediction histogram is zero, but data is non-zero, teh negative log-likelihood
     # is infinity which causes problems for some methods. Therefore, we set all histogram
@@ -49,7 +47,7 @@ def get_model():
     model.add_lognormal_uncertainty('VV_rate',              math.log(1.30), 'VV'            )
     model.add_lognormal_uncertainty('QCD_rate',             math.log(1.50), 'QCD'           )
 
-    #model.distribution.set_distribution_parameters('WExclb_rate', mean=0.0,width=0.0, range =[0.0,0.0])
+    #model.distribution.set_distribution_parameters(benchmark, mean=0.0,width=0.0, range =[0.0,0.0])
 
     for p in model.processes:
         # because QCD is fully datadriven
@@ -72,6 +70,7 @@ print ("------------------------------------------------------------------")
 
 print ("Run MLE")
 
+#signal_shapes = {'': []}
 signal_shapes = {benchmark:[benchmark]}
                     
 fit = mle(model, input = 'data', n = 1, signal_process_groups = signal_shapes, with_covariance=False, with_error=True, ks = True, chi2 = True, options = options)
@@ -92,21 +91,51 @@ parameter_uncert = {}
 ######   a +1 sigma nuisance parameter    ###### 
 ################################################
 #
-#for q in model.get_parameters([benchmark]):
-#    for p in model.get_parameters([benchmark]):
-#        parameter_values[p] = fit[benchmark][p][0][0]
-#        parameter_uncert[p] = fit[benchmark][p][0][1]
-#
-#        if p == q : 
-#            parameter_values[p] = fit[benchmark][p][0][0]+fit[benchmark][p][0][1]
-#            print [p, "%.4f" %parameter_values[p], "%.4f" %parameter_uncert[p] ]
-#
-#    histos = evaluate_prediction(model, parameter_values, include_signal = False)
-#    write_histograms_to_rootfile(histos, 'thetaInOut/histos_postFit_AllRegions_'+q+'.root')
-#    #write_histograms_to_rootfile(histos, 'thetaInOut/histos_postFit_CRsOnly_'+q+'.root')
-#
-#
-################################################
+if doUpVariation:
+
+    print ("Start moving one by one each nuisance parameter by 1 sigma ")
+
+    parameter_values_systup = {}
+    parameter_uncert_systup = {}
+
+    for q in model.get_parameters([]):
+        print 
+        print q
+        model_systup = model.copy()
+	for p in model_systup.get_parameters([]):
+    	    parameter_values_systup[p] = fit[benchmark][p][0][0]
+    	    parameter_uncert_systup[p] = fit[benchmark][p][0][1]
+            if p == q:
+                # print [par_value, par_uncert] before the systUp fit
+                print [q, "%.4f" %parameter_values_systup[p], "%.4f" %parameter_uncert_systup[p] ]
+                if parameter_values_systup[p] < 0 : parameter_values_systup[p] = fit[benchmark][p][0][0]-fit[benchmark][p][0][1]
+                else                              : parameter_values_systup[p] = fit[benchmark][p][0][0]+fit[benchmark][p][0][1]
+
+        # fix q-parameter to its +1 sigma value
+        model_systup.distribution.set_distribution_parameters(q, width = 0.0, mean = parameter_values_systup[q], range = [parameter_values_systup[q], parameter_values_systup[q]])
+
+        # fit again but with q fixed
+        fit_systup = mle(model_systup, input = 'data', n = 1, signal_process_groups = signal_shapes, with_covariance=False, with_error=True, ks = True, chi2 = True, options = options)
+
+        # fill syst_up vectors with new values
+        parameter_values_systup[q] = fit_systup[benchmark][q][0][0]
+        parameter_uncert_systup[q] = fit_systup[benchmark][q][0][1]
+
+        # print [par_value, par_uncert] after the systUp fit
+        print [q, "%.4f" %parameter_values_systup[q], "%.4f" %parameter_uncert_systup[q] ]
+
+        # to deal with the beta_signal w/o getting an error from it
+        parameter_values_systup['beta_signal'] = fit[benchmark][q][0][0]
+
+        # ouput of histos with q-systUp
+        histos = evaluate_prediction(model_systup, parameter_values_systup, include_signal = True)
+        write_histograms_to_rootfile(histos, 'interRegionTest/histos_postFit_SignalAndInterRegion_'+q+'.root')
+
+
+# to also always get the nominal fit together with the nominal constraints
+print
+print "Results from a nominal fit" 
+print
 
 for p in model.get_parameters([benchmark]):
     parameter_values[p] = fit[benchmark][p][0][0]
@@ -115,16 +144,7 @@ for p in model.get_parameters([benchmark]):
     print [p, "%.4f" %parameter_values[p], "%.4f" %parameter_uncert[p] ]
 
 histos = evaluate_prediction(model, parameter_values, include_signal = False)
-#write_histograms_to_rootfile(histos, 'thetaInOut/outputTheta_merged_CRsOnly.root')
-#write_histograms_to_rootfile(histos, 'outputTheta_merged_AllRegions_4j2b.root')
-#write_histograms_to_rootfile(histos, 'outputTheta_merged_CRsOnly_2j2b.root')
-#write_histograms_to_rootfile(histos, 'thetaInOut/outputTheta_merged_AllRegions.root')
-#write_histograms_to_rootfile(histos, 'outputTheta_merged_ATLASRESsignalregion.root')
-#write_histograms_to_rootfile(histos, 'outputTheta_merged_ATLASFCNCsignalregion.root')
-write_histograms_to_rootfile(histos, 'output.root')
-
-################################################
-
+write_histograms_to_rootfile(histos, 'outputTheta_WTTnterCRSR.root')
 
 
 # 2.a. Bayesian limits
@@ -133,7 +153,7 @@ write_histograms_to_rootfile(histos, 'output.root')
 # process all signals defined as signal processes before; see Section "Common Parameters"
 # on the theta auto intro doxygen page for details)
 
-plot_exp, plot_obs = bayesian_limits(model, options = options, n_toy = 5000, n_data=500)
+plot_exp, plot_obs = bayesian_limits(model, options = options, n_toy = 3000, n_data=500)
 
 # plot_exp and plot_obs are instances of plotutil.plotdata. they contain x/y values and
 # bands. You can do many things with these objects such as inspect the x/y/ban
@@ -142,14 +162,10 @@ plot_exp, plot_obs = bayesian_limits(model, options = options, n_toy = 5000, n_d
 # to apply your own plotting routines or present the result in a text Table.
 
 
-plot_exp.write_txt('limits_expected_'+benchmark+'.txt')
-plot_obs.write_txt('limits_observed_'+benchmark+'.txt')
-#plot_exp.write_txt('limits_CutnCount_ATLASSel/bayesian_newfinal_limits_expected_'+benchmark+'.txt')
-#plot_obs.write_txt('limits_CutnCount_ATLASSel/bayesian_newfinal_limits_observed_'+benchmark+'.txt')
-##plot_exp.write_txt('limits_ShapeAnalysis_AllRegions/bayesian_final_limits_expected_'+benchmark+'.txt')
-##plot_obs.write_txt('limits_ShapeAnalysis_AllRegions/bayesian_final_limits_observed_'+benchmark+'.txt')
-#plot_exp.write_txt('ttbarCRTest/min4j2b/bayesian__limits_expected_'+benchmark+'_4j2b.txt')
-#plot_obs.write_txt('ttbarCRTest/min4j2b/bayesian__limits_observed_'+benchmark+'_4j2b.txt')
+plot_exp.write_txt('limits_WTTinterCRSR/bayesian_limits_expected_'+benchmark+'.txt')
+plot_obs.write_txt('limits_WTTinterCRSR/bayesian_limits_observed_'+benchmark+'.txt')
+#plot_exp.write_txt('limits_WTTSR_Wmerged/bayesian_limits_expected_'+benchmark+'.txt')
+#plot_obs.write_txt('limits_WTTSR_Wmerged/bayesian_limits_observed_'+benchmark+'.txt')
 
 # 2.b. CLs limits
 # calculate cls limit plots. The interface is very similar to bayesian_limits. However, there are a few

@@ -1,9 +1,34 @@
+#include "TString.h"
+#include "TH1F.h"
+#include "TStyle.h"
+#include "TFile.h"
+#include "TLegend.h"
+#include "TLine.h"
+#include "TLatex.h"
+#include "TPaveText.h"
+#include "TCanvas.h"
+#include "TGraphErrors.h"
+#include "TMultiGraph.h"
+#include "TGraphAsymmErrors.h"
+#include "THStack.h"
+#include <iostream>
+#include <vector>
+
+#include "writeLimits_RES.C"
+
+using namespace std;
+
+void PlotLimits()
 {
 
+  bool isExtern = true;
+  //gROOT->ProcessLine(".L writeLimits.C+");
   const unsigned int n=9;   // number of mass points
 
+  Double_t y_obs[n], y_obs_err[n], y_exp2up[n], y_expup[n], y_exp[n], y_expdn[n], y_exp2dn[n] ;
   Double_t x[n] = {500, 700, 900, 1100, 1300, 1500, 1700, 1900, 2100};
-  //Double_t x[n] = {300, 500, 700, 900, 1100, 1300, 1500};
+
+  writeLimits("RES", y_obs, y_obs_err, y_exp2up, y_expup, y_exp, y_expdn, y_exp2dn, isExtern);
 
   bool useATLASvsCMS = false;
   bool displayExclXsec = true;
@@ -11,9 +36,17 @@
   Double_t x_sec[n]       = {11.8  ,2.77, 0.87, 0.31, 0.11, 0.05, 0.022, 0.0097, 0.0045};
   //Double_t x_sec[n]       = {77.2  ,11.8  ,2.77, 0.87, 0.31, 0.11, 0.05};
 
-  if(!useATLASvsCMS){
-     TString name = "ShapeAnalysis";
-
+  TString name = "ShapeAnalysis";
+/*
+  Double_t y_obs_err[n]= {0.00006, 0.00005, 0.00011, 0.00029, 0.0007, 0.0020, 0.0052, 0.0169, 0.042 };
+  Double_t y_obs[n]    = {0.0148,  0.0219,  0.0385,  0.0827,  0.2398, 0.560,  1.404,  4.548,  9.77  };
+  Double_t y_exp2up[n] = {0.0303,  0.0531,  0.0854,  0.1794,  0.5193, 1.300,  2.750,  8.848, 21.95  };
+  Double_t y_expup[n]  = {0.0182,  0.0306,  0.0511,  0.1128,  0.3171, 0.786,  1.758,  5.424, 13.25  };
+  Double_t y_exp[n]    = {0.0114,  0.0189,  0.0324,  0.0703,  0.2015, 0.491,  1.114,  3.463, 8.464  };
+  Double_t y_expdn[n]  = {0.0073,  0.0126,  0.0217,  0.0470,  0.1353, 0.330,  0.754,  2.312, 5.717  };
+  Double_t y_exp2dn[n] = {0.0049,  0.0088,  0.0156,  0.0348,  0.1015, 0.244,  0.577,  1.728, 4.225  };
+*/
+/*
   Double_t y_obs[n]    = {0.0126, 0.0206, 0.0362, 0.0772, 0.2378, 0.562, 1.464, 4.418 , 10.20  };
   Double_t y_obs_err[n]= {0.00008, 0.00012, 0.00018, 0.00049, 0.0011, 0.0042, 0.0066, 0.0098, 0.015 };
   Double_t y_exp2up[n] = {0.0293, 0.0473, 0.0784, 0.1729, 0.5203, 1.270, 3.300, 8.848 , 22.75  };
@@ -21,40 +54,7 @@
   Double_t y_exp[n]    = {0.0117, 0.0188, 0.0319, 0.0690, 0.1955, 0.469, 1.194, 3.463 , 8.444  };
   Double_t y_expdn[n]  = {0.0076, 0.0125, 0.0213, 0.0460, 0.1313, 0.314, 0.803, 2.302 , 5.677  };
   Double_t y_exp2dn[n] = {0.0051, 0.0088, 0.0157, 0.0342, 0.0985, 0.238, 0.599, 1.728 , 4.275  };
-
-
-     /*
-     Double_t y_obs[n]    = {0.0120 ,0.0065 ,0.01155,0.02190,0.0515 ,0.1443 ,0.3871 };
-     Double_t y_obs_err[n]= {0.00007,0.00006,0.00006,0.00010,0.00024,0.0007 ,0.0022 };
-     Double_t y_exp2up[n] = {0.109  ,0.0536 ,0.0625 ,0.1136 ,0.2643 ,0.745  ,1.928  };
-     Double_t y_expup[n]  = {0.060  ,0.0264 ,0.0312 ,0.0556 ,0.1374 ,0.349  ,0.876  };
-     Double_t y_exp[n]    = {0.0275 ,0.0113 ,0.0145 ,0.0269 ,0.0619 ,0.1577 ,0.3771 };
-     Double_t y_expdn[n]  = {0.013  ,0.0054 ,0.0084 ,0.0149 ,0.0341 ,0.0901 ,0.2111 };
-     Double_t y_exp2dn[n] = {0.0077 ,0.0029 ,0.0053 ,0.010  ,0.0225 ,0.0622 ,0.1482 };
 */
-
-/*
-     // with the 4 distributions in SR and mTW only in CRs
-     Double_t y_obs[n]    = {0.0522 ,0.0081 ,0.00918,0.01566,0.0315 ,0.0792 };
-     Double_t y_obs_err[n]= {0.00038,0.00010,0.00010,0.00019,0.00025,0.0006 };
-     Double_t y_exp2up[n] = {0.257  ,0.0507 ,0.0508 ,0.0656 ,0.1547 ,0.354  };
-     Double_t y_expup[n]  = {0.143  ,0.0279 ,0.0329 ,0.0422 ,0.0971 ,0.219  };
-     Double_t y_exp[n]    = {0.063  ,0.0113 ,0.0163 ,0.0249 ,0.0565 ,0.1274 };
-     Double_t y_expdn[n]  = {0.031  ,0.0048 ,0.0083 ,0.0141 ,0.0330 ,0.0764 };
-     Double_t y_exp2dn[n] = {0.016  ,0.0029 ,0.0052 ,0.0088 ,0.0217 ,0.0475 };
-*/
-   }else{
-  // Delta phi
-     TString name = "ATLASvsCMS";
-     Double_t y_obs[n]    = {0.236  ,0.367  ,0.405  };
-     Double_t y_obs_err[n]= {0.00196,0.00477,0.00454};
-     Double_t y_exp2up[n] = {1.79   ,1.4    ,1.31   };
-     Double_t y_expup[n]  = {0.755  ,0.808  ,0.833  };
-     Double_t y_exp[n]    = {0.329  ,0.447  ,0.474  };
-     Double_t y_expdn[n]  = {0.166  ,0.254  ,0.295  };
-     Double_t y_exp2dn[n] = {0.105  ,0.166  ,0.19   };
-
-  }
 
   if(displayExclXsec)
   {
@@ -153,7 +153,7 @@
   mg->GetYaxis()->SetTitleSize(0.055);
   mg->GetXaxis()->SetLabelSize(0.04);
   mg->GetYaxis()->SetLabelSize(0.04);
-  mg->GetXaxis()->SetTitle("m_{Res.} (GeV)");
+  mg->GetXaxis()->SetTitle("m_{Res.} [GeV]");
   mg->GetXaxis()->SetRangeUser(x[0],x[n-1]);
   if(displayExclXsec)
   {
@@ -172,7 +172,7 @@
   gr_exp  ->Draw("samelp");
   gr_obs  ->Draw("samelp");
 
-  TLine line (x[0], 1., x[n-1], 1.);
+  TLine* line = new TLine(x[0], 1., x[n-1], 1.);
   line->SetLineWidth(1);
   line->SetLineColor(1);
   line->SetLineStyle(2);
@@ -213,8 +213,17 @@
   TString             Y_axis = "SignalStrength";
   if(displayExclXsec) Y_axis = "ExcludedXsection";
 
-  c1->SaveAs("limitPlots/finalLimits_RES_DM50_"+name+"_"+Y_axis+".png");
-  c1->SaveAs("limitPlots/finalLimits_RES_DM50_"+name+"_"+Y_axis+".pdf");
-  c1->SaveAs("limitPlots/finalLimits_RES_DM50_"+name+"_"+Y_axis+".eps");
+  TString externOfSyst;
+  if(isExtern) externOfSyst = "_Extern";
+  else         externOfSyst = "_noExtern";
 
+  c1->SaveAs("limitPlots/finalLimits_RES"+externOfSyst+"_DM50_"+name+"_"+Y_axis+".png");
+  c1->SaveAs("limitPlots/finalLimits_RES"+externOfSyst+"_DM50_"+name+"_"+Y_axis+".pdf");
+  c1->SaveAs("limitPlots/finalLimits_RES"+externOfSyst+"_DM50_"+name+"_"+Y_axis+".eps");
+
+}
+
+void PlotLimits_RES_Inv50_2j2b()
+{
+    PlotLimits();
 }

@@ -108,8 +108,8 @@ void CutFlow(TString signal_type){
   if(signal_type == "RES")
   {
     samplelist_signal.push_back("S1Res500Inv100");  samplename_signal.push_back("\\bm{$S1(500, 100)$}");
-    samplelist_signal.push_back("S1Res1300Inv100");  samplename_signal.push_back("\\bm{$S1(1300, 100)$}");
-    samplelist_signal.push_back("S1Res2100Inv100");  samplename_signal.push_back("\\bm{$S1(2100, 100)$}");
+    samplelist_signal.push_back("S1Res900Inv100");  samplename_signal.push_back("\\bm{$S1(900, 100)$}");
+    samplelist_signal.push_back("S1Res1500Inv100");  samplename_signal.push_back("\\bm{$S1(1500, 100)$}");
   }
 
   vector<TString > samplelist_data;
@@ -120,7 +120,8 @@ void CutFlow(TString signal_type){
   //*********************************
   //get histograms
   //*********************************
-  TFile *f_data  = new TFile("../inputTheta_merged_AllRegions_2j2b.root");
+  TFile *f_data  = new TFile("../inputTheta_WTTSR.root");
+  //TFile *f_data  = new TFile("../inputTheta_merged_AllRegions_2j2b.root");
   f_data->cd();
 
   for(unsigned int ireg=0; ireg<regions.size(); ireg++)
@@ -132,7 +133,8 @@ void CutFlow(TString signal_type){
     }
   }
 
-  TFile *f_mc  = new TFile("../outputTheta_merged_AllRegions_2j2b.root");
+  TFile *f_mc  = new TFile("../outputTheta_WTTSR.root");
+  //TFile *f_mc  = new TFile("../outputTheta_merged_AllRegions_2j2b.root");
   f_mc->cd();
 
   for(unsigned int ireg=0; ireg<regions.size(); ireg++)
@@ -217,7 +219,6 @@ void CutFlow(TString signal_type){
 
     if(samplelist_MC[iback] != "SingleTopW") ofile << "\\hline " << endl;
     if(samplelist_MC[iback] != "SingleTopW") ofile << samplename_MC[iback] <<" & ";
-
     for(unsigned int ireg = 0; ireg < regions.size(); ireg++)
     {
         TH1D* tmp = 0;

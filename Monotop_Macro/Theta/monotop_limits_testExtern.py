@@ -2,8 +2,9 @@ options = Options()
 
 options.set('minimizer', 'strategy', 'newton_vanilla')
 
-benchmark='S4Inv600'
+benchmark='S1Res900Inv100'
 
+doextern=False
 dobreakdown=True
 
 # for model building:
@@ -14,7 +15,7 @@ def get_model():
     # For more info about this model and naming conventuion, see documentation
     # of build_model_from_rootfile.
     
-    model = build_model_from_rootfile('inputTheta_merged_AllRegions_2j2b.root',include_mc_uncertainties=True)
+    model = build_model_from_rootfile('inputTheta_merged_AllRegions_RES.root',include_mc_uncertainties=True)
     #model = build_model_from_rootfile('thetaInOut/inputTheta_merged_CRsOnly.root',include_mc_uncertainties=True)
     
     # If the prediction histogram is zero, but data is non-zero, teh negative log-likelihood
@@ -24,7 +25,7 @@ def get_model():
 
     # define what the signal processes are. All other processes are assumed to make up the 
     # 'background-only' model.
-    model.set_signal_processes('S4*')
+    model.set_signal_processes('S1*')
 
 
 
@@ -59,6 +60,26 @@ def get_model():
 
 model = get_model()
 
+
+
+if doextern:
+
+    print ("----------------------------------------------------------------------")
+    print ("------------------------externalize systematics-----------------------")
+
+    #fixed_syst_list = ['match','scale', 'trig', 'fit']
+    fixed_syst_list = ['matching', 'scale', 'PDF', 'toppt']
+
+    for fix_uncertainties in (None, fixed_syst_list ):
+        print "\nuncertainties not fitted: ", fix_uncertainties
+        if fix_uncertainties is None: fixed_dist = None
+        else: fixed_dist = get_fixed_dist_at_values(dict([(u, 0.0) for u in fix_uncertainties]))
+
+        print fix_uncertainties
+
+    print ("----------------------------------------------------------------------")
+    print ("----------------------------------------------------------------------")
+
 model_summary(model)
 
 
@@ -71,7 +92,9 @@ signal_shapes = {benchmark:[benchmark]}
 ### For max. Likelihood Fit results
 
 print ["start fit mle"]
-fit = mle(model, input = 'data', n = 1, signal_process_groups = signal_shapes, with_covariance=False, with_error=True, ks = True, chi2 = True, options = options)
+if doextern: fit = mle(model, input = 'data', n = 1, signal_process_groups = signal_shapes, with_covariance=False, with_error=True, ks = True, chi2 = True, options = options, nuisance_constraint = fixed_dist)
+else: fit = mle(model, input = 'data', n = 1, signal_process_groups = signal_shapes, with_covariance=False, with_error=True, ks = True, chi2 = True, options = options)
+
 
 # the output is (fitted value, uncertainty)
 # The first numbers in the brackets show how far we are from the nominal value (which is 0) after the fit. 
@@ -92,7 +115,8 @@ for p in model.get_parameters([benchmark]):
     print [p, "%.4f" %parameter_values[p], "%.4f" %parameter_uncert[p] ]
 
 histos = evaluate_prediction(model, parameter_values, include_signal = False)
-#write_histograms_to_rootfile(histos, 'thetaInOut/outputTheta_merged_CRsOnly.root')
+write_histograms_to_rootfile(histos, 'outputTheta_AllRegions.root')
+#write_histograms_to_rootfile(histos, 'outputTheta_Extern_AllRegions.root')
 #write_histograms_to_rootfile(histos, 'thetaInOut/outputTheta_merged_'+benchmark+'_AllRegions.root')
 #write_histograms_to_rootfile(histos, 'thetaInOut/outputTheta_testExtern_merged_'+benchmark+'_AllRegions.root')
 
@@ -121,9 +145,12 @@ print ("------------------------------------------------------------------")
 #
 #################################################
 
-#plot_exp_bayes, plot_obs_bayes = bayesian_limits(model, options = options, n_toy = 4000, n_data = 500)
-#plot_exp_bayes.write_txt('limits_breakdownSyst/bayesian_limits_expected_nominal.txt')
-#plot_obs_bayes.write_txt('limits_breakdownSyst/bayesian_limits_observed_nominal.txt')
+if doextern: plot_exp_bayes, plot_obs_bayes = bayesian_limits(model, options = options, n_toy = 10000, n_data = 2500, nuisance_constraint = fixed_dist)
+else: plot_exp_bayes, plot_obs_bayes = bayesian_limits(model, options = options, n_toy = 3000, n_data = 500)
+#plot_exp_bayes.write_txt('bayesian_limits_expected_nominal.txt')
+#plot_obs_bayes.write_txt('bayesian_limits_observed_nominal.txt')
+plot_exp_bayes.write_txt('limitsBreakdown/bayesian_limits_expected_'+benchmark+'.txt')
+plot_obs_bayes.write_txt('limitsBreakdown/bayesian_limits_observed_'+benchmark+'.txt')
 
 if dobreakdown:
 
@@ -156,9 +183,9 @@ if dobreakdown:
 
 
         ## pour propager dans l'externalisation calcul de limite
-        plot_exp_bayes_nosyst, plot_obs_bayes_nosyst = bayesian_limits(model_syst, options = options, n_toy = 5000, n_data = 500)
-        plot_exp_bayes_nosyst.write_txt('limits_breakdownSyst/bayesian_limits_expected_wo_'+p+'_2j2b.txt')
-        plot_obs_bayes_nosyst.write_txt('limits_breakdownSyst/bayesian_limits_observed_wo_'+p+'_2j2b.txt')
+        plot_exp_bayes_nosyst, plot_obs_bayes_nosyst = bayesian_limits(model_syst, options = options, n_toy = 3000, n_data = 500)
+        plot_exp_bayes_nosyst.write_txt('limitsBreakdown/bayesian_limits_expected_'+benchmark+'_wo_'+p+'.txt')
+        plot_obs_bayes_nosyst.write_txt('limitsBreakdown/bayesian_limits_observed_'+benchmark+'_wo_'+p+'.txt')
 
 
 report.write_html('htmlout')
