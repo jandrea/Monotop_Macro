@@ -7,13 +7,13 @@
 
     vector<TString > systlist;
     systlist.push_back(""                           );
-/*    systlist.push_back("lept__plus"                 );
+    systlist.push_back("lept__plus"                 );
     systlist.push_back("lept__minus"                );
     systlist.push_back("trig__plus"                 );
     systlist.push_back("trig__minus"                );
-*/    systlist.push_back("PDF__plus"                  );
+    systlist.push_back("PDF__plus"                  );
     systlist.push_back("PDF__minus"                 );
-/*    systlist.push_back("PU__plus"                   );
+    systlist.push_back("PU__plus"                   );
     systlist.push_back("PU__minus"                  );
     systlist.push_back("jes__plus"                  );
     systlist.push_back("jes__minus"                 );
@@ -27,7 +27,7 @@
     systlist.push_back("btag__minus"                );
     systlist.push_back("mistag__plus"               );
     systlist.push_back("mistag__minus"              );
-*/
+
 
     /////////////////////////////////////////
     //////   CorrOption possible values /////
@@ -226,24 +226,24 @@
 
   if(CorrOption == 1 || CorrOption == 2 || CorrOption == 3)
   {
-/*
+
     for (unsigned int isig = 0; isig < signallist.size(); isig++)
     {
         TreeReader * tree_ = new TreeReader(CorrOption, tree, signallist[isig], 0);
         tree_.Loop(CorrOption, datalist,  mclist, signallist[isig], systlist, "noflav", 0);
         delete tree_;
     }
-*/
+
     for (unsigned int imc = 0; imc < mclist.size(); imc++)
     {
 
         if (mclist[imc] != "WJets" && mclist[imc] != "W0Jets" && mclist[imc] != "W1Jets" && mclist[imc] != "W2Jets" && mclist[imc] != "W3Jets" && mclist[imc] != "W4Jets")
         {
-/*
+
             TreeReader * tree_ = new TreeReader(CorrOption, tree, mclist[imc] , 0);
             tree_.Loop(CorrOption, datalist,  mclist, mclist[imc], systlist, "noflav", 0);
             delete tree_;
-*/
+
         }
         else
         {
@@ -262,14 +262,14 @@
 
         }
     }
-/*
+
     for (unsigned int idata = 0; idata < datalist.size(); idata++)
     {
         TreeReader * tree_ = new TreeReader(CorrOption, tree, datalist[idata], 0);
         tree_.Loop(CorrOption, datalist,  mclist, datalist[idata], emptysystlist, "noflav", 0);
         delete tree_;
     }
-*/
+
   }
 
   if(CorrOption == 1)
@@ -284,7 +284,7 @@
 
   if(CorrOption == 2 || CorrOption == 3)
   {
-/*
+
     for (unsigned int iqcd = 0; iqcd < qcdcorrectedlist.size(); iqcd++)
     {
 
@@ -309,9 +309,9 @@
         delete tree_;
 
     }
-*/
+
   }
-/*
+
   if(CorrOption == 3 && systlist.size() > 1)
   {
 
@@ -386,5 +386,5 @@
       }
 
   }
-*/
+
 }

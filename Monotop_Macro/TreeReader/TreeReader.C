@@ -194,7 +194,6 @@ void TreeReader::Loop(short int CorrOption, vector<TString> datalist, vector<TSt
       //----------------------------------------------------------------------
 
       double randomNumber = rand_->Uniform(1.);
-//cout << "randomNumber = " << randomNumber << endl;
 
       if      (CorrOption == 0)         applyEventSel(CorrOption, SF_QCD_L, SF_QCD_W, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, systlist[0], thesample, flavtag, systType, randomNumber);
       else if (CorrOption == 1)         applyEventSel(CorrOption, SF_QCD_L, SF_QCD_W, SF_QCD_S, SF_QCD_TT, SFtrigger, SFtriggerError, systlist[0], thesample, flavtag, systType, randomNumber);
@@ -209,7 +208,6 @@ void TreeReader::Loop(short int CorrOption, vector<TString> datalist, vector<TSt
           }
       }
       else cout << "ERROR: Wrong value of CorrOption! Allowed valued: 0,1,2,3" << endl;
-
 
    }
 
@@ -362,7 +360,6 @@ bool TreeReader::applyEventSel(short int CorrOption, double SF_QCD_L, double SF_
 	    cout << " \"\",  \"lept__plus\", \"lept__minus\", \"trig__plus\", \"trig__minus\", \"PDF__plus\", \"PDF__minus\"  " << endl;
 	    cout << "\"jes__plus\", \"jes__minus\", \"jer__plus\", \"jer__minus\", \"metuncls__plus\", \"metuncls__minus\" " << endl;
       }
-	 //cout << "pdfWeight_"+thechannel+"___"+sample+"__"+systtype << endl;
 
       if( applyCSV_reshape && !applyCSV ) evtweight *= wCSV;
 
